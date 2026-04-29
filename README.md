@@ -25,16 +25,21 @@ iPhone-only, portrait-only mobile app. iPad and landscape layouts are intentiona
 ## Requirements
 
 - Xcode 16 (iOS 17 deployment target)
-- [xcodegen](https://github.com/yonaskolb/XcodeGen) — `brew install xcodegen`
 - A running `tribe-hub` (defaults to `http://127.0.0.1:4000`; override in **Profile → Settings**)
+- Optional: [xcodegen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`) — only needed if you edit `Project.yml`
 
 ## Running
 
 ```sh
 cd tribe-ios
-xcodegen generate          # creates TribeIOS.xcodeproj from Project.yml
 open TribeIOS.xcodeproj
 # In Xcode: pick an iPhone simulator (16 / 15 / SE / etc.) and ⌘R
+```
+
+The Xcode project is committed for convenience, so a fresh clone opens directly without any tooling. If you need to add files, change build settings, or fold in another target, edit `Project.yml` and re-run:
+
+```sh
+xcodegen generate
 ```
 
 If Xcode opens but doesn't show iPhone simulators in the destination menu, your active developer directory is probably set to Command Line Tools instead of Xcode itself. Fix it with:
@@ -42,8 +47,6 @@ If Xcode opens but doesn't show iPhone simulators in the destination menu, your 
 ```sh
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 ```
-
-Re-running `xcodegen generate` is safe to do any time — the `.xcodeproj` is gitignored (`Project.yml` is the source of truth) and the shared scheme is regenerated alongside it.
 
 If the hub is on a different machine, open the app, tap the gear in the Profile tab, and set the hub URL. The app persists this in `UserDefaults`, so you don't need to set it again.
 
@@ -86,9 +89,11 @@ Sources/
     Common/       Card, AvatarView, PageHeader, EmptyStateView, RelativeTime, Pill, …
 ```
 
-## Why xcodegen
+## Project file: xcodegen + committed `.xcodeproj`
 
-Hand-rolled `project.pbxproj` files are fragile and noisy in PRs. `Project.yml` is the source of truth — `xcodegen generate` produces a fresh `.xcodeproj` deterministically. The generated project is in `.gitignore` on purpose.
+`Project.yml` is the source of truth for build settings, schemes, source paths, and target config. The `.xcodeproj` is generated from it via [xcodegen](https://github.com/yonaskolb/XcodeGen) and **is committed** so a fresh clone opens directly in Xcode — no tooling install required.
+
+When you add new Swift files, you don't need to do anything: Xcode picks them up via the source group's directory reference. When you change build settings or add a new target, edit `Project.yml` and run `xcodegen generate`. xcodegen produces deterministic GUIDs from the Project.yml input, so the resulting pbxproj diff stays tight and reviewable.
 
 ## Adding it to TribeEco as a submodule
 
