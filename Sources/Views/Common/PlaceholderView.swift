@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Minimal placeholder used during scaffolding so each tab compiles.
-/// Replaced screen-by-screen as features get built out.
+/// Minimal placeholder still in use for tabs that haven't been wired up yet.
 struct PlaceholderView: View {
     let title: String
     let subtitle: String?
@@ -15,24 +14,25 @@ struct PlaceholderView: View {
         VStack(spacing: 8) {
             Spacer()
             Text(title)
-                .font(.system(size: 28, weight: .black, design: .default))
+                .font(.system(size: 28, weight: .black))
                 .tracking(-0.5)
             if let subtitle {
                 Text(subtitle)
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(TribeColor.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
             }
-            Spacer()
+            Spacer(minLength: TribeMetrics.bottomNavReservedHeight)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(TribeColor.pageBackground)
     }
 }
 
-struct HomeFeedView: View { var body: some View { PlaceholderView("Home", subtitle: "Tweet feed wires up next.") } }
+// Tabs without dedicated screens yet.
 struct ExploreView: View { var body: some View { PlaceholderView("Explore", subtitle: "Discover people on the network.") } }
-struct MapView: View { var body: some View { PlaceholderView("Map", subtitle: "City-anchored content (city channel kind).") } }
+struct ProfileView: View { var body: some View { PlaceholderView("Profile", subtitle: "Your TID, karma, and tweets.") } }
+struct MapView: View { var body: some View { PlaceholderView("Map", subtitle: "City-anchored content lands here once channel kind = 2 (city) is wired up.") } }
 struct TribesView: View { var body: some View { PlaceholderView("Tribes", subtitle: "Channels and groups.") } }
-struct ChatView: View { var body: some View { PlaceholderView("Chat", subtitle: "Direct messages and group threads.") } }
-struct ProfileView: View { var body: some View { PlaceholderView("Profile", subtitle: "Your TID, karma, tweets.") } }
+struct ChatView: View { var body: some View { PlaceholderView("Chat", subtitle: "Direct messages and group threads. x25519 + nacl box encryption needs porting from tribe-app.") } }
