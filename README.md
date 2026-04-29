@@ -6,6 +6,8 @@ The visual language is borrowed from `tribeapp.wtf`: a black rounded-pill bottom
 
 ## Status
 
+iPhone-only, portrait-only mobile app. iPad and landscape layouts are intentionally not supported — the bottom-pill nav and single-column card stacks are designed for one-hand portrait use.
+
 **Read-only** client wired to the existing `tribe-hub`. Every screen is functional against a real hub — feed, explore, channels, polls, events, tasks, crowdfunds, notifications, search, profile, plus a wallet *Receive* view with a QR code.
 
 **Stubbed** until ported:
@@ -32,7 +34,7 @@ The visual language is borrowed from `tribeapp.wtf`: a black rounded-pill bottom
 cd tribe-ios
 xcodegen generate          # creates TribeIOS.xcodeproj from Project.yml
 open TribeIOS.xcodeproj
-# In Xcode: pick a simulator and ⌘R
+# In Xcode: pick an iPhone simulator (16 / 15 / SE / etc.) and ⌘R
 ```
 
 If the hub is on a different machine, open the app, tap the gear in the Profile tab, and set the hub URL. The app persists this in `UserDefaults`, so you don't need to set it again.
