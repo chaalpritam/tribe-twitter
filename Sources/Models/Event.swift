@@ -9,13 +9,15 @@ public struct Event: Decodable, Identifiable, Hashable {
     public let startsAt: Date
     public let endsAt: Date?
     public let locationText: String?
+    public let latitude: Double?
+    public let longitude: Double?
     public let imageUrl: String?
     public let channelId: String?
     public let createdAt: Date
     public let yesCount: Int
 
     enum CodingKeys: String, CodingKey {
-        case id, title, description
+        case id, title, description, latitude, longitude
         case creatorTid = "creator_tid"
         case creatorUsername = "creator_username"
         case startsAt = "starts_at"
@@ -37,6 +39,8 @@ public struct Event: Decodable, Identifiable, Hashable {
         self.startsAt = try HubDecode.date(c, forKey: .startsAt)
         self.endsAt = try HubDecode.dateIfPresent(c, forKey: .endsAt)
         self.locationText = try c.decodeIfPresent(String.self, forKey: .locationText)
+        self.latitude = try c.decodeIfPresent(Double.self, forKey: .latitude)
+        self.longitude = try c.decodeIfPresent(Double.self, forKey: .longitude)
         self.imageUrl = try c.decodeIfPresent(String.self, forKey: .imageUrl)
         self.channelId = try c.decodeIfPresent(String.self, forKey: .channelId)
         self.createdAt = try HubDecode.date(c, forKey: .createdAt)

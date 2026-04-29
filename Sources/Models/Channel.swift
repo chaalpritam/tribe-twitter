@@ -7,6 +7,8 @@ public struct Channel: Decodable, Identifiable, Hashable {
     public let name: String?
     public let description: String?
     public let kind: Int?
+    public let latitude: Double?
+    public let longitude: Double?
     public let tweetCount: Int
     public let memberCount: Int
     public let lastTweetAt: Date?
@@ -16,8 +18,10 @@ public struct Channel: Decodable, Identifiable, Hashable {
         return "#\(id)"
     }
 
+    public var isCity: Bool { kind == 2 }
+
     enum CodingKeys: String, CodingKey {
-        case id, name, description, kind
+        case id, name, description, kind, latitude, longitude
         case tweetCount = "tweet_count"
         case memberCount = "member_count"
         case lastTweetAt = "last_tweet_at"
@@ -29,6 +33,8 @@ public struct Channel: Decodable, Identifiable, Hashable {
         self.name = try c.decodeIfPresent(String.self, forKey: .name)
         self.description = try c.decodeIfPresent(String.self, forKey: .description)
         self.kind = try c.decodeIfPresent(Int.self, forKey: .kind)
+        self.latitude = try c.decodeIfPresent(Double.self, forKey: .latitude)
+        self.longitude = try c.decodeIfPresent(Double.self, forKey: .longitude)
         self.tweetCount = HubDecode.intCount(c, forKey: .tweetCount)
         self.memberCount = HubDecode.intCount(c, forKey: .memberCount)
         self.lastTweetAt = try HubDecode.dateIfPresent(c, forKey: .lastTweetAt)

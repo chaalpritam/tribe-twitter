@@ -10,11 +10,12 @@ struct TribesHubView: View {
     @State private var refreshTick = 0
 
     enum Section: String, CaseIterable, Identifiable {
-        case channels, polls, events, tasks, crowdfunds
+        case channels, map, polls, events, tasks, crowdfunds
         var id: String { rawValue }
         var label: String {
             switch self {
             case .channels: return "Channels"
+            case .map: return "Map"
             case .polls: return "Polls"
             case .events: return "Events"
             case .tasks: return "Tasks"
@@ -39,6 +40,7 @@ struct TribesHubView: View {
             Group {
                 switch section {
                 case .channels: ChannelsView().id(refreshTick)
+                case .map: ChannelMapView().id(refreshTick)
                 case .polls: PollsView().id(refreshTick)
                 case .events: EventsView().id(refreshTick)
                 case .tasks: TasksView().id(refreshTick)
@@ -51,12 +53,14 @@ struct TribesHubView: View {
         .navigationTitle("Tribes")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showingCreate = true
-                } label: {
-                    Image(systemName: "plus")
+                if section != .map {
+                    Button {
+                        showingCreate = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("New \(section.label.lowercased())")
                 }
-                .accessibilityLabel("New \(section.label.lowercased())")
             }
         }
         .sheet(isPresented: $showingCreate) {
@@ -78,6 +82,8 @@ struct TribesHubView: View {
             CreateTaskSheet(onCreated: bumpRefresh)
         case .crowdfunds:
             CreateCrowdfundSheet(onCreated: bumpRefresh)
+        case .map:
+            EmptyView()
         }
     }
 }
