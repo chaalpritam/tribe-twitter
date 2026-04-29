@@ -238,7 +238,7 @@ private struct MessageBubble: View {
                     .foregroundStyle(isOwn ? Color.white : Color.primary)
                 Text(RelativeTime.short(message.timestamp))
                     .font(.caption2)
-                    .foregroundStyle(isOwn ? Color.white.opacity(0.8) : .tertiary)
+                    .foregroundStyle(isOwn ? Color.white.opacity(0.8) : Color(.tertiaryLabel))
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
