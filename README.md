@@ -6,21 +6,40 @@ The visual language is borrowed from `tribeapp.wtf`: a black rounded-pill bottom
 
 ## Status
 
-iPhone-only, portrait-only mobile app. iPad and landscape layouts are intentionally not supported — the bottom-pill nav and single-column card stacks are designed for one-hand portrait use.
+iPhone-only, portrait-only mobile app. iPad and landscape layouts are intentionally not supported — the bottom-tab nav and single-column card stacks are designed for one-hand portrait use.
 
-**Read-only** client wired to the existing `tribe-hub`. Every screen is functional against a real hub — feed, explore, channels, polls, events, tasks, crowdfunds, notifications, search, profile, plus a wallet *Receive* view with a QR code.
+**Functional, end-to-end against a real hub:**
 
-**Stubbed** until ported:
+| Surface | Read | Write |
+|---|---|---|
+| Onboarding (Welcome → Configure Hub → Import / Create identity) | — | ✅ |
+| Home feed | ✅ | Compose tweet, reply, delete |
+| Tweet card | ✅ | Like, unlike, bookmark, unbookmark, reply, delete (own) |
+| Explore (people) | ✅ | — |
+| Search (cross-primitive) | ✅ | — |
+| Tribes → Channels | ✅ | — |
+| Tribes → Polls | ✅ | Vote |
+| Tribes → Events | ✅ | RSVP yes / maybe / no |
+| Tribes → Tasks | ✅ | Claim, complete |
+| Tribes → Crowdfunds | ✅ | Pledge (off-chain envelope) |
+| Activity (notifications) | ✅ | — |
+| Profile | ✅ | — |
+| Wallet → Receive | ✅ | QR + copy |
+| Wallet → Send | — | Off-chain TIP_ADD envelope |
+| Wallet → Activity | ✅ | — |
+| Settings | ✅ | Switch hub, view app key, sign out |
 
-| Capability                       | Why it's stubbed                                                  |
-|----------------------------------|-------------------------------------------------------------------|
-| Compose tweet / reply            | Needs ed25519 signing + blake3 hashing of canonical envelope bytes (see `tribe-app/src/lib/messages.ts`). |
-| Like / bookmark / retweet        | Same — every write goes through a signed envelope.                |
-| Vote on poll, RSVP, claim/complete task, pledge crowdfund | Same.                                                             |
-| Send tip                         | TIP_ADD envelope + on-chain transfer through the tip-registry program. |
-| Direct messages                  | x25519 + NaCl box encryption + DM_KEY_REGISTER + DM_SEND envelopes. |
-| Register a new TID               | Solana program calls + ER server for app-key registration.         |
-| Map (city-anchored content)      | UI placeholder — channel kind = 2 (city) needs surfacing.          |
+Every write builds a signed envelope locally — BLAKE3 hashing (pure-Swift port of the reference implementation, with self-test vectors that run at launch) and ed25519 signing via Apple CryptoKit's `Curve25519`. The seed lives in the iOS Keychain (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`); UserDefaults only stores the hub URL and the public TID number.
+
+**Still stubbed:**
+
+| Capability | Why |
+|---|---|
+| Register a fresh TID on Solana | The on-chain `tid-registry` program needs a Solana mobile / WalletConnect provider on iOS. Workaround today: register on tribe-app, then import the TID + app-key via the iOS onboarding flow. |
+| On-chain tip settlement | Same — `tip-registry` program calls need the wallet-adapter integration. The off-chain TIP_ADD envelope works and shows up in notifications + karma; no `tx_signature` yet. |
+| On-chain crowdfund settlement | Same. |
+| Direct messages | x25519 + NaCl-box encryption needs porting from tribe-app's `lib/crypto.ts`. CryptoKit has Curve25519 KeyAgreement but not the XSalsa20-Poly1305 used by tweetnacl. |
+| Map (city-anchored content) | UI placeholder — channel kind = 2 (city) needs surfacing in the Tribes section. |
 
 ## Requirements
 
@@ -113,7 +132,23 @@ git commit -m "chore: add tribe-ios submodule"
 
 ## What's next
 
-- Port the signed envelope path (ed25519 + blake3 + canonical JSON) from `tribe-app/src/lib/messages.ts` into Swift, exposed as a `MessageSigner`. Once that lands, every read screen flips to writable in a few line per surface.
-- Wrap the Solana on-chain helpers (TID register, follow/unfollow, on-chain tip) using a Solana mobile / WalletConnect provider. Until that lands, the wallet stays receive-only.
-- Implement DM encryption (x25519 + NaCl box) so the Chat tab can flip on.
+- Wrap the Solana on-chain helpers (TID register, follow/unfollow, on-chain tip) using a Solana mobile / WalletConnect provider. Until that lands, on-chain settlement is the only piece left for full feature parity with tribe-app.
+- Implement DM encryption (x25519 + NaCl box) — needs an XSalsa20-Poly1305 implementation since CryptoKit ships ChaCha20-Poly1305 but not the variant tweetnacl uses.
 - Map tab for city-anchored content (channel kind = 2) using MapKit.
+
+## Crypto
+
+The signed-envelope path matches `tribe-app/src/lib/messages.ts`:
+
+```
+data    = { type, tid, timestamp, network: 2, body }
+dataB64 = base64( JSON-canonical(data) )
+hash    = base64( blake3(dataB64-bytes) )      // 32 bytes
+signature = base64( ed25519_sign(hash, app_key) ) // 64 bytes
+signer  = base64( ed25519_public_key )            // 32 bytes
+```
+
+- `Sources/Crypto/Blake3.swift` is a port of the BLAKE3 reference implementation. `Blake3.selfTest()` runs against three official vectors (empty input, `0x00`, and the 1023-byte sequence that exercises the chunk boundary) on every launch.
+- `Sources/Crypto/AppKey.swift` wraps `Curve25519.Signing.PrivateKey`. The 32-byte raw seed is the canonical representation everywhere.
+- `Sources/Crypto/Keychain.swift` stores the seed under `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`.
+- `Sources/Crypto/MessageSigner.swift` builds the envelope. `JSONSerialization` with `[.sortedKeys, .withoutEscapingSlashes]` produces canonical bytes for `dataB64` so the hash is reproducible.
