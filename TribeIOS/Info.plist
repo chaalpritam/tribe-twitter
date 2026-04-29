@@ -38,5 +38,7 @@
         <key>NSAllowsArbitraryLoads</key>
         <true/>
     </dict>
+    <key>NSCameraUsageDescription</key>
+    <string>Tribe uses the camera to scan a sign-in QR shown by tribe-app on your desktop.</string>
 </dict>
 </plist>
