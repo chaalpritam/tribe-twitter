@@ -73,11 +73,31 @@ struct TasksView: View {
 }
 
 private struct TaskRow: View {
+    @EnvironmentObject private var app: AppState
     let task: TaskItem
+
+    @State private var localStatus: String
+    @State private var working = false
+    @State private var error: String?
+
+    init(task: TaskItem) {
+        self.task = task
+        _localStatus = State(initialValue: task.status)
+    }
+
+    private var canClaim: Bool {
+        localStatus == "open" && app.appKey != nil && app.myTID != nil
+    }
+
+    private var canComplete: Bool {
+        guard let myTID = app.myTID else { return false }
+        return localStatus == "claimed" && task.claimedByTid == myTID && app.appKey != nil
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Pill(text: task.status, color: statusColor)
+                Pill(text: localStatus, color: statusColor)
                 Spacer()
                 if let r = task.rewardText, !r.isEmpty {
                     Text(r)
@@ -93,19 +113,68 @@ private struct TaskRow: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(3)
             }
-            Text("by TID #\(task.creatorTid)")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+            HStack {
+                Text("by TID #\(task.creatorTid)")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                Spacer()
+                if canClaim {
+                    Button("Claim") { Task { await claim() } }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .disabled(working)
+                } else if canComplete {
+                    Button("Mark complete") { Task { await complete() } }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                        .disabled(working)
+                } else if working {
+                    ProgressView().controlSize(.mini)
+                }
+            }
+            if let error {
+                Text(error).font(.caption2).foregroundStyle(.red)
+            }
         }
         .padding(.vertical, 6)
     }
 
     private var statusColor: Color {
-        switch task.status {
+        switch localStatus {
         case "open": return .indigo
         case "claimed": return .orange
         case "completed": return .green
         default: return .secondary
+        }
+    }
+
+    private func claim() async {
+        guard let key = app.appKey, let tid = app.myTID else { return }
+        let previous = localStatus
+        localStatus = "claimed"
+        working = true
+        defer { working = false }
+        do {
+            _ = try await app.api.claimTask(taskId: task.id, as: key, tid: tid)
+            error = nil
+        } catch {
+            localStatus = previous
+            self.error = error.localizedDescription
+        }
+    }
+
+    private func complete() async {
+        guard let key = app.appKey, let tid = app.myTID else { return }
+        let previous = localStatus
+        localStatus = "completed"
+        working = true
+        defer { working = false }
+        do {
+            _ = try await app.api.completeTask(taskId: task.id, as: key, tid: tid)
+            error = nil
+        } catch {
+            localStatus = previous
+            self.error = error.localizedDescription
         }
     }
 }

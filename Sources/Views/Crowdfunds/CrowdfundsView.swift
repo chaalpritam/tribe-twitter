@@ -53,6 +53,8 @@ private struct CrowdfundRow: View {
     @EnvironmentObject private var app: AppState
     let crowdfund: Crowdfund
 
+    @State private var presentingPledge = false
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let url = app.api.resolveMediaURL(crowdfund.imageUrl) {
@@ -85,8 +87,20 @@ private struct CrowdfundRow: View {
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                 }
+                Button {
+                    presentingPledge = true
+                } label: {
+                    Text("Pledge").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
+                .disabled(app.appKey == nil)
             }
             .padding(16)
+        }
+        .sheet(isPresented: $presentingPledge) {
+            PledgeSheet(crowdfund: crowdfund)
+                .environmentObject(app)
         }
     }
 
@@ -96,6 +110,91 @@ private struct CrowdfundRow: View {
         f.maximumFractionDigits = 2
         f.numberStyle = .decimal
         return f.string(from: NSNumber(value: n)) ?? "\(n)"
+    }
+}
+
+private struct PledgeSheet: View {
+    @EnvironmentObject private var app: AppState
+    @Environment(\.dismiss) private var dismiss
+    let crowdfund: Crowdfund
+
+    @State private var amount: String = ""
+    @State private var working = false
+    @State private var error: String?
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text(crowdfund.title)
+                        .font(.headline)
+                    Text("Goal: \(crowdfund.goalAmount) \(crowdfund.currency)")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } header: { Text("Crowdfund") }
+
+                Section {
+                    TextField("0.00", text: $amount)
+                        .keyboardType(.decimalPad)
+                } header: {
+                    Text("Pledge amount (\(crowdfund.currency))")
+                } footer: {
+                    Text("This is an off-chain pledge envelope. Settling pledges on-chain through the crowdfund Solana program is a separate flow that needs Solana mobile / WalletConnect.")
+                }
+
+                if let error {
+                    Section {
+                        Label(error, systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.red)
+                            .font(.footnote)
+                    }
+                }
+
+                Section {
+                    Button {
+                        Task { await pledge() }
+                    } label: {
+                        HStack {
+                            if working { ProgressView() }
+                            Text(working ? "Submitting…" : "Pledge")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .disabled(working || amountDecimal == nil)
+                }
+            }
+            .navigationTitle("Pledge")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private var amountDecimal: Decimal? {
+        let trimmed = amount.replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, let d = Decimal(string: trimmed), d > 0 else { return nil }
+        return d
+    }
+
+    private func pledge() async {
+        guard let key = app.appKey, let tid = app.myTID, let value = amountDecimal else { return }
+        working = true
+        defer { working = false }
+        do {
+            _ = try await app.api.pledgeCrowdfund(
+                crowdfundId: crowdfund.id,
+                amount: value,
+                currency: crowdfund.currency,
+                as: key,
+                tid: tid
+            )
+            dismiss()
+        } catch {
+            self.error = error.localizedDescription
+        }
     }
 }
 
