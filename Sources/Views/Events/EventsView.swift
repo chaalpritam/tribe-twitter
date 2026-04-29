@@ -65,6 +65,10 @@ private struct EventRow: View {
     @EnvironmentObject private var app: AppState
     let event: Event
 
+    @State private var myStatus: String?
+    @State private var rsvping = false
+    @State private var error: String?
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let url = app.api.resolveMediaURL(event.imageUrl) {
@@ -100,6 +104,10 @@ private struct EventRow: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(3)
                 }
+                rsvpButtons
+                if let error {
+                    Text(error).font(.caption2).foregroundStyle(.red)
+                }
             }
             .padding(16)
         }
@@ -109,6 +117,52 @@ private struct EventRow: View {
         let f = DateFormatter()
         f.dateFormat = "MMM d · h:mm a"
         return f.string(from: event.startsAt)
+    }
+
+    private var rsvpButtons: some View {
+        HStack(spacing: 8) {
+            rsvpButton(label: "Going", value: "yes", color: .green)
+            rsvpButton(label: "Maybe", value: "maybe", color: .orange)
+            rsvpButton(label: "Pass", value: "no", color: .secondary)
+            if rsvping { ProgressView().controlSize(.mini) }
+            Spacer(minLength: 0)
+        }
+        .padding(.top, 4)
+    }
+
+    private func rsvpButton(label: String, value: String, color: Color) -> some View {
+        Button {
+            Task { await rsvp(status: value) }
+        } label: {
+            Text(label)
+                .font(.caption.weight(.semibold))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule().fill(myStatus == value ? color.opacity(0.2) : Color(.tertiarySystemFill))
+                )
+                .overlay(
+                    Capsule().stroke(myStatus == value ? color : .clear, lineWidth: 1)
+                )
+                .foregroundStyle(myStatus == value ? color : .secondary)
+        }
+        .buttonStyle(.plain)
+        .disabled(rsvping || app.appKey == nil)
+    }
+
+    private func rsvp(status: String) async {
+        guard let key = app.appKey, let tid = app.myTID, !rsvping else { return }
+        let previous = myStatus
+        myStatus = status
+        rsvping = true
+        defer { rsvping = false }
+        do {
+            _ = try await app.api.rsvp(eventId: event.id, status: status, as: key, tid: tid)
+            error = nil
+        } catch {
+            myStatus = previous
+            self.error = error.localizedDescription
+        }
     }
 }
 

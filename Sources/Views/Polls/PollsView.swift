@@ -49,7 +49,18 @@ struct PollsView: View {
 }
 
 private struct PollCard: View {
+    @EnvironmentObject private var app: AppState
     let poll: Poll
+
+    @State private var myChoice: Int?
+    @State private var voting = false
+    @State private var error: String?
+
+    private var expired: Bool {
+        if let exp = poll.expiresAt { return exp < Date() }
+        return false
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -65,21 +76,38 @@ private struct PollCard: View {
                 .font(.headline)
             VStack(spacing: 6) {
                 ForEach(poll.options.indices, id: \.self) { i in
-                    HStack {
-                        Text(poll.options[i])
-                            .font(.subheadline)
-                        Spacer()
+                    Button {
+                        Task { await vote(option: i) }
+                    } label: {
+                        HStack {
+                            Image(systemName: myChoice == i ? "checkmark.circle.fill" : "circle")
+                                .foregroundStyle(myChoice == i ? .indigo : .secondary)
+                            Text(poll.options[i])
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                            Spacer()
+                        }
+                        .padding(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .stroke(myChoice == i ? Color.indigo : TribeColor.cardStroke, lineWidth: myChoice == i ? 1.5 : 0.5)
+                        )
+                        .contentShape(Rectangle())
                     }
-                    .padding(10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .stroke(TribeColor.cardStroke, lineWidth: 0.5)
-                    )
+                    .buttonStyle(.plain)
+                    .disabled(voting || expired || app.appKey == nil)
                 }
             }
-            Text("\(poll.totalVotes ?? 0) votes · by TID #\(poll.creatorTid)")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+            HStack {
+                Text("\(poll.totalVotes ?? 0) votes · by TID #\(poll.creatorTid)")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+                Spacer()
+                if voting { ProgressView().controlSize(.mini) }
+            }
+            if let error {
+                Text(error).font(.caption2).foregroundStyle(.red)
+            }
         }
         .padding(.vertical, 6)
     }
@@ -91,6 +119,21 @@ private struct PollCard: View {
         if diff < 3600 { return "\(diff/60)m left" }
         if diff < 86400 { return "\(diff/3600)h left" }
         return "\(diff/86400)d left"
+    }
+
+    private func vote(option: Int) async {
+        guard let key = app.appKey, let tid = app.myTID, !voting else { return }
+        let previous = myChoice
+        myChoice = option
+        voting = true
+        defer { voting = false }
+        do {
+            _ = try await app.api.voteOnPoll(pollId: poll.id, optionIndex: option, as: key, tid: tid)
+            error = nil
+        } catch {
+            myChoice = previous
+            self.error = error.localizedDescription
+        }
     }
 }
 
