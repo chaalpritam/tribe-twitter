@@ -12,13 +12,6 @@ struct ProfileView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                PageHeader("Profile") {
-                    HStack(spacing: 8) {
-                        headerButton(symbol: "wallet.pass") { showingWallet = true }
-                        headerButton(symbol: "gearshape") { showingSettings = true }
-                    }
-                }
-
                 if let tid = app.myTID {
                     profileBody(tid: tid)
                 } else {
@@ -27,13 +20,30 @@ struct ProfileView: View {
                         title: "No TID set",
                         message: "Open Settings and enter your TID to see your profile, karma, and tweets."
                     )
-                    .padding(.horizontal, 16)
+                    .padding(.top, 60)
                 }
-
-                Spacer(minLength: TribeMetrics.bottomNavReservedHeight)
             }
         }
         .background(TribeColor.pageBackground)
+        .navigationTitle("Profile")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingWallet = true
+                } label: {
+                    Image(systemName: "wallet.pass")
+                }
+                .accessibilityLabel("Wallet")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingSettings = true
+                } label: {
+                    Image(systemName: "gearshape")
+                }
+                .accessibilityLabel("Settings")
+            }
+        }
         .refreshable { await refresh() }
         .task { load() }
         .sheet(isPresented: $showingWallet) {
@@ -60,19 +70,6 @@ struct ProfileView: View {
         }
     }
 
-    private func headerButton(symbol: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            ZStack {
-                Circle().fill(TribeColor.chipBackground)
-                Image(systemName: symbol)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(TribeColor.textPrimary)
-            }
-            .frame(width: 36, height: 36)
-        }
-        .buttonStyle(.plain)
-    }
-
     @ViewBuilder
     private func profileBody(tid: String) -> some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -82,12 +79,11 @@ struct ProfileView: View {
                         AvatarView(initial: user?.initial ?? String(tid.prefix(1)), size: 60)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(user?.displayName ?? "TID #\(tid)")
-                                .font(.system(size: 18, weight: .black))
-                                .tracking(-0.3)
+                                .font(.title2.weight(.semibold))
                             if let address = user?.custodyAddress {
                                 Text(short(address))
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(TribeColor.textSecondary)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                         Spacer()
@@ -103,8 +99,8 @@ struct ProfileView: View {
 
                     if let bio = user?.profile?.bio, !bio.isEmpty {
                         Text(bio)
-                            .font(.system(size: 13))
-                            .foregroundStyle(TribeColor.textSecondary)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
@@ -112,8 +108,9 @@ struct ProfileView: View {
 
             HStack {
                 Text("Tweets")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(TribeColor.textSecondary)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
                 Spacer()
             }
             .padding(.horizontal, 22)
@@ -131,8 +128,8 @@ struct ProfileView: View {
                 }
             } else if tweets.isEmpty {
                 Text("No tweets yet.")
-                    .font(.system(size: 13))
-                    .foregroundStyle(TribeColor.textTertiary)
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 24)
             } else {
@@ -143,6 +140,7 @@ struct ProfileView: View {
                 }
             }
         }
+        .padding(.vertical, 8)
     }
 
     private func short(_ s: String) -> String {
@@ -174,10 +172,10 @@ private struct Stat: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(value)
-                .font(.system(size: 18, weight: .black))
+                .font(.title3.weight(.semibold))
             Text(label)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(TribeColor.textSecondary)
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
         }
     }
 }

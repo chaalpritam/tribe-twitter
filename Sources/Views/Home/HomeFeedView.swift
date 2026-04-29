@@ -5,86 +5,54 @@ struct HomeFeedView: View {
     @State private var tweets: [Tweet] = []
     @State private var loading = true
     @State private var error: String?
-    @State private var showingNotifications = false
-    @State private var unreadCount = 0
+    @State private var presentingCompose = false
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                PageHeader("Home", subtitle: "Tweets across the network") {
-                    Button {
-                        showingNotifications = true
-                    } label: {
-                        ZStack(alignment: .topTrailing) {
-                            ZStack {
-                                Circle().fill(TribeColor.chipBackground)
-                                Image(systemName: "bell")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(TribeColor.textPrimary)
-                            }
-                            .frame(width: 36, height: 36)
-                            if unreadCount > 0 {
-                                Text(unreadCount > 9 ? "9+" : "\(unreadCount)")
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 5)
-                                    .padding(.vertical, 1)
-                                    .background(Capsule().fill(TribeColor.accentRose))
-                                    .offset(x: 4, y: -4)
-                            }
-                        }
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                LazyVStack(spacing: 12) {
-                    if loading {
-                        ForEach(0..<3, id: \.self) { _ in TweetSkeleton() }
-                    } else if let error {
-                        EmptyStateView(
-                            symbol: "wifi.exclamationmark",
-                            title: "Couldn't load feed",
-                            message: error,
-                            action: ("Retry", load)
-                        )
-                        .padding(.horizontal, 16)
-                    } else if tweets.isEmpty {
-                        EmptyStateView(
-                            symbol: "sparkles",
-                            title: "It's quiet here",
-                            message: "Once people start posting, their tweets will appear here in real time."
-                        )
-                        .padding(.horizontal, 16)
-                    } else {
-                        ForEach(tweets) { tweet in
-                            TweetCardView(tweet: tweet)
-                                .padding(.horizontal, 16)
-                        }
+            LazyVStack(spacing: 12) {
+                if loading {
+                    ForEach(0..<3, id: \.self) { _ in TweetSkeleton() }
+                } else if let error {
+                    EmptyStateView(
+                        symbol: "wifi.exclamationmark",
+                        title: "Couldn't load feed",
+                        message: error,
+                        action: ("Retry", load)
+                    )
+                    .padding(.top, 60)
+                } else if tweets.isEmpty {
+                    EmptyStateView(
+                        symbol: "sparkles",
+                        title: "It's quiet here",
+                        message: "Once people start posting, their tweets will appear here in real time."
+                    )
+                    .padding(.top, 60)
+                } else {
+                    ForEach(tweets) { tweet in
+                        TweetCardView(tweet: tweet)
+                            .padding(.horizontal, 16)
                     }
                 }
-
-                Spacer(minLength: TribeMetrics.bottomNavReservedHeight)
             }
+            .padding(.vertical, 8)
         }
         .background(TribeColor.pageBackground)
-        .refreshable { await refresh() }
-        .task {
-            load()
-            if let tid = app.myTID {
-                unreadCount = (try? await app.api.fetchUnreadCount(tid)) ?? 0
+        .navigationTitle("Home")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    presentingCompose = true
+                } label: {
+                    Image(systemName: "square.and.pencil")
+                }
+                .accessibilityLabel("Compose")
             }
         }
-        .sheet(isPresented: $showingNotifications) {
-            NavigationStack {
-                NotificationsView()
-                    .navigationTitle("")
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("Done") { showingNotifications = false }
-                        }
-                    }
-            }
-            .environmentObject(app)
+        .refreshable { await refresh() }
+        .task { load() }
+        .sheet(isPresented: $presentingCompose) {
+            ComposePlaceholderView()
+                .presentationDetents([.medium, .large])
         }
     }
 
@@ -118,5 +86,26 @@ private struct TweetSkeleton: View {
             }
         }
         .padding(.horizontal, 16)
+    }
+}
+
+private struct ComposePlaceholderView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ContentUnavailableView {
+                Label("Compose", systemImage: "square.and.pencil")
+            } description: {
+                Text("Tweets, polls, events, tasks and crowdfunds. Wiring this up needs the signed-envelope path ported from tribe-app.")
+            }
+            .navigationTitle("New Post")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
     }
 }

@@ -7,49 +7,42 @@ struct NotificationsView: View {
     @State private var error: String?
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                PageHeader("Notifications", subtitle: "Replies, tips, RSVPs, and more")
-
-                if app.myTID == nil {
-                    EmptyStateView(
-                        symbol: "person.crop.circle.badge.exclamationmark",
-                        title: "Sign in required",
-                        message: "Set your TID in Settings to see notifications addressed to you."
-                    )
-                    .padding(.horizontal, 16)
-                } else if loading {
-                    LazyVStack(spacing: 10) {
+        Group {
+            if app.myTID == nil {
+                EmptyStateView(
+                    symbol: "person.crop.circle.badge.exclamationmark",
+                    title: "Sign in required",
+                    message: "Set your TID in Settings to see notifications addressed to you."
+                )
+            } else if loading {
+                ScrollView {
+                    LazyVStack(spacing: 8) {
                         ForEach(0..<4, id: \.self) { _ in NotifSkeleton() }
                     }
-                } else if let error {
-                    EmptyStateView(
-                        symbol: "wifi.exclamationmark",
-                        title: "Couldn't load notifications",
-                        message: error,
-                        action: ("Retry", load)
-                    )
-                    .padding(.horizontal, 16)
-                } else if rows.isEmpty {
-                    EmptyStateView(
-                        symbol: "bell",
-                        title: "All caught up",
-                        message: "Replies, reactions, tips, RSVPs, and other activity will appear here."
-                    )
-                    .padding(.horizontal, 16)
-                } else {
-                    LazyVStack(spacing: 8) {
-                        ForEach(rows) { row in
-                            NotifRow(row: row)
-                                .padding(.horizontal, 16)
-                        }
-                    }
+                    .padding(.vertical, 8)
                 }
-
-                Spacer(minLength: TribeMetrics.bottomNavReservedHeight)
+            } else if let error {
+                EmptyStateView(
+                    symbol: "wifi.exclamationmark",
+                    title: "Couldn't load notifications",
+                    message: error,
+                    action: ("Retry", load)
+                )
+            } else if rows.isEmpty {
+                EmptyStateView(
+                    symbol: "bell",
+                    title: "All caught up",
+                    message: "Replies, reactions, tips, RSVPs, and other activity will appear here."
+                )
+            } else {
+                List(rows) { row in
+                    NotifRow(row: row)
+                }
+                .listStyle(.plain)
             }
         }
         .background(TribeColor.pageBackground)
+        .navigationTitle("Activity")
         .refreshable { await refresh() }
         .task { load() }
     }
@@ -76,47 +69,42 @@ private struct NotifRow: View {
     let row: TribeNotification
 
     var body: some View {
-        Card(padding: 14) {
-            HStack(alignment: .top, spacing: 12) {
-                ZStack {
-                    Circle().fill(TribeColor.chipBackground)
-                    Image(systemName: row.type.symbol)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(TribeColor.textPrimary)
-                }
-                .frame(width: 32, height: 32)
+        HStack(alignment: .top, spacing: 12) {
+            ZStack {
+                Circle().fill(TribeColor.chipBackground)
+                Image(systemName: row.type.symbol)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(TribeColor.textPrimary)
+            }
+            .frame(width: 36, height: 36)
 
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("TID #\(row.actorTid) \(row.type.label)")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(TribeColor.textPrimary)
-                    if let preview = row.preview, !preview.isEmpty {
-                        Text(preview)
-                            .font(.system(size: 12))
-                            .foregroundStyle(TribeColor.textSecondary)
-                            .lineLimit(2)
-                    }
-                    Text(RelativeTime.short(row.createdAt))
-                        .font(.system(size: 11))
-                        .foregroundStyle(TribeColor.textTertiary)
+            VStack(alignment: .leading, spacing: 3) {
+                Text("TID #\(row.actorTid) \(row.type.label)")
+                    .font(.subheadline.weight(.medium))
+                if let preview = row.preview, !preview.isEmpty {
+                    Text(preview)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 }
-                Spacer()
+                Text(RelativeTime.short(row.createdAt))
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             }
         }
+        .padding(.vertical, 4)
     }
 }
 
 private struct NotifSkeleton: View {
     var body: some View {
-        Card(padding: 14) {
-            HStack(spacing: 12) {
-                Circle().fill(TribeColor.chipBackground).frame(width: 32, height: 32)
-                VStack(alignment: .leading, spacing: 5) {
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 180, height: 10)
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 120, height: 8)
-                }
-                Spacer()
+        HStack(spacing: 12) {
+            Circle().fill(TribeColor.chipBackground).frame(width: 36, height: 36)
+            VStack(alignment: .leading, spacing: 5) {
+                RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 180, height: 10)
+                RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 120, height: 8)
             }
+            Spacer()
         }
         .padding(.horizontal, 16)
     }

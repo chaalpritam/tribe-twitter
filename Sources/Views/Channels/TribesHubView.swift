@@ -1,14 +1,14 @@
 import SwiftUI
 
-/// Tribes tab from the bottom nav. Five sub-tabs: Channels, Polls,
-/// Events, Tasks, Crowdfunds — each backed by the corresponding read
-/// endpoint. Mirrors how tribeapp.wtf surfaces these as the
-/// "community" content types.
+/// Tribes tab. Five sub-sections (Channels, Polls, Events, Tasks,
+/// Crowdfunds) selected via a segmented Picker in the toolbar so the
+/// section switch reads as a system control.
 struct TribesHubView: View {
     @State private var section: Section = .channels
 
-    enum Section: String, CaseIterable {
+    enum Section: String, CaseIterable, Identifiable {
         case channels, polls, events, tasks, crowdfunds
+        var id: String { rawValue }
         var label: String {
             switch self {
             case .channels: return "Channels"
@@ -22,30 +22,16 @@ struct TribesHubView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            PageHeader("Tribes", subtitle: "Community channels and activity")
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(Section.allCases, id: \.self) { s in
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.15)) { section = s }
-                        } label: {
-                            Text(s.label)
-                                .font(.system(size: 13, weight: .bold))
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
-                                .background(
-                                    Capsule().fill(section == s ? TribeColor.primary : TribeColor.chipBackground)
-                                )
-                                .foregroundStyle(section == s ? Color.white : TribeColor.textSecondary)
-                        }
-                        .buttonStyle(.plain)
-                    }
+            Picker("Section", selection: $section) {
+                ForEach(Section.allCases) { s in
+                    Text(s.label).tag(s)
                 }
-                .padding(.horizontal, 16)
             }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
 
-            Divider().padding(.top, 8).opacity(0.6)
+            Divider()
 
             Group {
                 switch section {
@@ -59,10 +45,11 @@ struct TribesHubView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(TribeColor.pageBackground)
+        .navigationTitle("Tribes")
     }
 }
 
-/// Replaces the Tribes placeholder with the real hub view.
+/// Public alias used as the Tribes tab root.
 struct TribesView: View {
     var body: some View { TribesHubView() }
 }

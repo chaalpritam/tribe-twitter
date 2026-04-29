@@ -17,73 +17,78 @@ struct SearchView: View {
     @State private var loading = false
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                PageHeader("Search")
-
-                searchBar
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 12)
-
-                if debouncedQuery.count < 2 {
-                    EmptyStateView(
-                        symbol: "magnifyingglass",
-                        title: "Search Tribe",
-                        message: "People, tweets, channels, polls, events, tasks and crowdfunds — all in one place."
-                    )
-                    .padding(.horizontal, 16)
-                } else if loading {
+        Group {
+            if debouncedQuery.count < 2 {
+                EmptyStateView(
+                    symbol: "magnifyingglass",
+                    title: "Search Tribe",
+                    message: "People, tweets, channels, polls, events, tasks and crowdfunds — all in one place."
+                )
+            } else if loading {
+                VStack {
+                    Spacer()
                     ProgressView()
-                        .padding(.vertical, 32)
-                        .frame(maxWidth: .infinity)
-                } else if totalCount == 0 {
-                    EmptyStateView(symbol: "tray", title: "No results", message: "Nothing matched \"\(debouncedQuery)\".")
-                        .padding(.horizontal, 16)
-                } else {
-                    LazyVStack(alignment: .leading, spacing: 16) {
-                        if !users.isEmpty {
-                            section(title: "People (\(users.count))") {
-                                ForEach(users) { u in MiniUserRow(user: u) }
-                            }
+                    Spacer()
+                }
+            } else if totalCount == 0 {
+                EmptyStateView(symbol: "tray", title: "No results", message: "Nothing matched \"\(debouncedQuery)\".")
+            } else {
+                List {
+                    if !users.isEmpty {
+                        SwiftUI.Section("People") {
+                            ForEach(users) { u in MiniUserRow(user: u) }
                         }
-                        if !channels.isEmpty {
-                            section(title: "Channels (\(channels.count))") {
-                                ForEach(channels) { c in MiniRow(title: c.displayName, subtitle: "\(c.memberCount) members") }
-                            }
-                        }
-                        if !polls.isEmpty {
-                            section(title: "Polls (\(polls.count))") {
-                                ForEach(polls) { p in MiniRow(title: p.question, subtitle: "\(p.totalVotes ?? 0) votes · TID #\(p.creatorTid)") }
-                            }
-                        }
-                        if !events.isEmpty {
-                            section(title: "Events (\(events.count))") {
-                                ForEach(events) { e in MiniRow(title: e.title, subtitle: e.locationText ?? "") }
-                            }
-                        }
-                        if !tasks.isEmpty {
-                            section(title: "Tasks (\(tasks.count))") {
-                                ForEach(tasks) { t in MiniRow(title: t.title, subtitle: "\(t.status) · TID #\(t.creatorTid)") }
-                            }
-                        }
-                        if !crowdfunds.isEmpty {
-                            section(title: "Crowdfunds (\(crowdfunds.count))") {
-                                ForEach(crowdfunds) { cf in MiniRow(title: cf.title, subtitle: "TID #\(cf.creatorTid)") }
-                            }
-                        }
-                        if !tweets.isEmpty {
-                            section(title: "Tweets (\(tweets.count))") {
-                                ForEach(tweets) { tw in TweetCardView(tweet: tw) }
+                    }
+                    if !channels.isEmpty {
+                        SwiftUI.Section("Channels") {
+                            ForEach(channels) { c in
+                                MiniRow(title: c.displayName, subtitle: "\(c.memberCount) members")
                             }
                         }
                     }
-                    .padding(.horizontal, 16)
+                    if !polls.isEmpty {
+                        SwiftUI.Section("Polls") {
+                            ForEach(polls) { p in
+                                MiniRow(title: p.question, subtitle: "\(p.totalVotes ?? 0) votes · TID #\(p.creatorTid)")
+                            }
+                        }
+                    }
+                    if !events.isEmpty {
+                        SwiftUI.Section("Events") {
+                            ForEach(events) { e in
+                                MiniRow(title: e.title, subtitle: e.locationText ?? "")
+                            }
+                        }
+                    }
+                    if !tasks.isEmpty {
+                        SwiftUI.Section("Tasks") {
+                            ForEach(tasks) { t in
+                                MiniRow(title: t.title, subtitle: "\(t.status) · TID #\(t.creatorTid)")
+                            }
+                        }
+                    }
+                    if !crowdfunds.isEmpty {
+                        SwiftUI.Section("Crowdfunds") {
+                            ForEach(crowdfunds) { cf in
+                                MiniRow(title: cf.title, subtitle: "TID #\(cf.creatorTid)")
+                            }
+                        }
+                    }
+                    if !tweets.isEmpty {
+                        SwiftUI.Section("Tweets") {
+                            ForEach(tweets) { tw in
+                                TweetCardView(tweet: tw)
+                                    .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                            }
+                        }
+                    }
                 }
-
-                Spacer(minLength: TribeMetrics.bottomNavReservedHeight)
+                .listStyle(.insetGrouped)
             }
         }
-        .background(TribeColor.pageBackground)
+        .navigationTitle("Search")
+        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "People, tweets, channels…")
+        .textInputAutocapitalization(.never)
         .onChange(of: query) { _, new in
             debounceTask?.cancel()
             debounceTask = Task {
@@ -93,29 +98,6 @@ struct SearchView: View {
             }
         }
         .onChange(of: debouncedQuery) { _, _ in runSearch() }
-    }
-
-    private var searchBar: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(TribeColor.textSecondary)
-            TextField("People, tweets, channels…", text: $query)
-                .font(.system(size: 14))
-                .textInputAutocapitalization(.never)
-                .submitLabel(.search)
-            if !query.isEmpty {
-                Button { query = "" } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(TribeColor.textTertiary)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            Capsule().fill(TribeColor.chipBackground)
-        )
     }
 
     private var totalCount: Int {
@@ -146,34 +128,20 @@ struct SearchView: View {
             }
         }
     }
-
-    @ViewBuilder
-    private func section<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.system(size: 12, weight: .heavy))
-                .tracking(0.4)
-                .foregroundStyle(TribeColor.textSecondary)
-                .textCase(.uppercase)
-            VStack(spacing: 8) { content() }
-        }
-    }
 }
 
 private struct MiniUserRow: View {
     let user: User
     var body: some View {
-        Card(padding: 12) {
-            HStack(spacing: 10) {
-                AvatarView(initial: user.initial, size: 36)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(user.displayName).font(.system(size: 13, weight: .bold))
-                    Text("\(user.followersCount) followers")
-                        .font(.system(size: 11))
-                        .foregroundStyle(TribeColor.textSecondary)
-                }
-                Spacer()
+        HStack(spacing: 12) {
+            AvatarView(initial: user.initial, size: 36)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(user.displayName).font(.subheadline.weight(.medium))
+                Text("\(user.followersCount) followers")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
+            Spacer()
         }
     }
 }
@@ -182,18 +150,15 @@ private struct MiniRow: View {
     let title: String
     let subtitle: String
     var body: some View {
-        Card(padding: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 13, weight: .bold))
-                    .lineLimit(2)
-                if !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(.system(size: 11))
-                        .foregroundStyle(TribeColor.textSecondary)
-                }
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .lineLimit(2)
+            if !subtitle.isEmpty {
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

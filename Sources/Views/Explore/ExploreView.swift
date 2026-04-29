@@ -5,69 +5,50 @@ struct ExploreView: View {
     @State private var users: [User] = []
     @State private var loading = true
     @State private var error: String?
-    @State private var showingSearch = false
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                PageHeader("Explore", subtitle: "Discover people on the network") {
-                    Button {
-                        showingSearch = true
-                    } label: {
-                        ZStack {
-                            Circle().fill(TribeColor.chipBackground)
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(TribeColor.textPrimary)
-                        }
-                        .frame(width: 36, height: 36)
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                LazyVStack(spacing: 10) {
-                    if loading {
-                        ForEach(0..<5, id: \.self) { _ in UserSkeleton() }
-                    } else if let error {
-                        EmptyStateView(
-                            symbol: "wifi.exclamationmark",
-                            title: "Couldn't load users",
-                            message: error,
-                            action: ("Retry", load)
-                        )
-                        .padding(.horizontal, 16)
-                    } else if users.isEmpty {
-                        EmptyStateView(
-                            symbol: "person.2",
-                            title: "No users yet",
-                            message: "Be the first to register a Tribe identity."
-                        )
-                        .padding(.horizontal, 16)
-                    } else {
-                        ForEach(users) { user in
-                            UserRow(user: user)
-                                .padding(.horizontal, 16)
-                        }
+            LazyVStack(spacing: 10) {
+                if loading {
+                    ForEach(0..<5, id: \.self) { _ in UserSkeleton() }
+                } else if let error {
+                    EmptyStateView(
+                        symbol: "wifi.exclamationmark",
+                        title: "Couldn't load users",
+                        message: error,
+                        action: ("Retry", load)
+                    )
+                    .padding(.top, 60)
+                } else if users.isEmpty {
+                    EmptyStateView(
+                        symbol: "person.2",
+                        title: "No users yet",
+                        message: "Be the first to register a Tribe identity."
+                    )
+                    .padding(.top, 60)
+                } else {
+                    ForEach(users) { user in
+                        UserRow(user: user)
+                            .padding(.horizontal, 16)
                     }
                 }
-
-                Spacer(minLength: TribeMetrics.bottomNavReservedHeight)
             }
+            .padding(.vertical, 8)
         }
         .background(TribeColor.pageBackground)
+        .navigationTitle("Explore")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    SearchView()
+                } label: {
+                    Image(systemName: "magnifyingglass")
+                }
+                .accessibilityLabel("Search")
+            }
+        }
         .refreshable { await refresh() }
         .task { load() }
-        .sheet(isPresented: $showingSearch) {
-            NavigationStack {
-                SearchView()
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("Done") { showingSearch = false }
-                        }
-                    }
-            }
-            .environmentObject(app)
-        }
     }
 
     private func load() {
@@ -96,13 +77,13 @@ private struct UserRow: View {
                 AvatarView(initial: user.initial, size: 44)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(user.displayName)
-                        .font(.system(size: 15, weight: .bold))
+                        .font(.headline)
                     Text(walletShort)
-                        .font(.system(size: 12))
-                        .foregroundStyle(TribeColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                     Text("\(user.followersCount) followers · \(user.followingCount) following")
-                        .font(.system(size: 11))
-                        .foregroundStyle(TribeColor.textTertiary)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
                 }
                 Spacer()
             }

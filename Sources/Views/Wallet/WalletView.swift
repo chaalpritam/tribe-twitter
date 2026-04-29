@@ -16,25 +16,23 @@ struct WalletView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                PageHeader("Wallet", subtitle: "Receive and view tip activity")
-
                 balanceCard
                     .padding(.horizontal, 16)
+                    .padding(.top, 12)
 
                 Text("Recent activity")
-                    .font(.system(size: 12, weight: .heavy))
-                    .tracking(0.4)
-                    .foregroundStyle(TribeColor.textSecondary)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
                     .textCase(.uppercase)
                     .padding(.horizontal, 22)
                     .padding(.top, 4)
 
                 activityList
-
-                Spacer(minLength: TribeMetrics.bottomNavReservedHeight)
             }
+            .padding(.bottom, 16)
         }
         .background(TribeColor.pageBackground)
+        .navigationTitle("Wallet")
         .refreshable { await refresh() }
         .task { load() }
         .sheet(isPresented: $showingReceive) {
