@@ -6,11 +6,18 @@ struct ProfileView: View {
     @State private var tweets: [Tweet] = []
     @State private var karma: KarmaSummary?
     @State private var loading = true
+    @State private var showingWallet = false
+    @State private var showingSettings = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                PageHeader("Profile")
+                PageHeader("Profile") {
+                    HStack(spacing: 8) {
+                        headerButton(symbol: "wallet.pass") { showingWallet = true }
+                        headerButton(symbol: "gearshape") { showingSettings = true }
+                    }
+                }
 
                 if let tid = app.myTID {
                     profileBody(tid: tid)
@@ -29,6 +36,41 @@ struct ProfileView: View {
         .background(TribeColor.pageBackground)
         .refreshable { await refresh() }
         .task { load() }
+        .sheet(isPresented: $showingWallet) {
+            NavigationStack {
+                WalletView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { showingWallet = false }
+                        }
+                    }
+            }
+            .environmentObject(app)
+        }
+        .sheet(isPresented: $showingSettings) {
+            NavigationStack {
+                SettingsView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { showingSettings = false }
+                        }
+                    }
+            }
+            .environmentObject(app)
+        }
+    }
+
+    private func headerButton(symbol: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            ZStack {
+                Circle().fill(TribeColor.chipBackground)
+                Image(systemName: symbol)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(TribeColor.textPrimary)
+            }
+            .frame(width: 36, height: 36)
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
