@@ -12,6 +12,7 @@ struct WalletView: View {
     @State private var received: [Tip] = []
     @State private var loading = true
     @State private var showingReceive = false
+    @State private var showingSend = false
 
     var body: some View {
         List {
@@ -43,6 +44,12 @@ struct WalletView: View {
         .navigationTitle("Wallet")
         .refreshable { await refresh() }
         .task { load() }
+        .sheet(isPresented: $showingSend) {
+            SendTipSheet(onSent: {
+                Task { await refresh() }
+            })
+            .environmentObject(app)
+        }
         .sheet(isPresented: $showingReceive) {
             if let tid = app.myTID {
                 NavigationStack {
@@ -91,14 +98,14 @@ struct WalletView: View {
 
             HStack(spacing: 10) {
                 Button {
-                    // Send is read-only; surface explicit affordance once the path is ported.
+                    showingSend = true
                 } label: {
                     Label("Send", systemImage: "arrow.up.circle")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
-                .disabled(true)
+                .disabled(app.appKey == nil)
 
                 Button {
                     showingReceive = true
@@ -272,5 +279,107 @@ private struct ReceiveSheet: View {
             .padding(.vertical, 16)
         }
         .background(Color(.systemGroupedBackground))
+    }
+}
+
+private struct SendTipSheet: View {
+    @EnvironmentObject private var app: AppState
+    @Environment(\.dismiss) private var dismiss
+    var onSent: (() -> Void)?
+
+    @State private var recipientTid: String = ""
+    @State private var amount: String = ""
+    @State private var currency: String = "SOL"
+    @State private var working = false
+    @State private var error: String?
+
+    private var amountDecimal: Decimal? {
+        let trimmed = amount.replacingOccurrences(of: ",", with: ".").trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, let d = Decimal(string: trimmed), d > 0 else { return nil }
+        return d
+    }
+
+    private var canSend: Bool {
+        !working
+            && Int64(recipientTid.trimmingCharacters(in: .whitespaces)) != nil
+            && amountDecimal != nil
+            && app.appKey != nil
+            && app.myTID != nil
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Recipient TID", text: $recipientTid)
+                        .keyboardType(.numberPad)
+                } header: { Text("Recipient") }
+
+                Section {
+                    TextField("0.00", text: $amount)
+                        .keyboardType(.decimalPad)
+                    Picker("Currency", selection: $currency) {
+                        Text("SOL").tag("SOL")
+                        Text("USDC").tag("USDC")
+                        Text("USD").tag("USD")
+                    }
+                } header: {
+                    Text("Amount")
+                } footer: {
+                    Text("This publishes a TIP_ADD envelope to the hub. Settling tips on Solana through the tip-registry program is a separate flow that needs Solana mobile / WalletConnect integration.")
+                }
+
+                if let error {
+                    Section {
+                        Label(error, systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.red)
+                            .font(.footnote)
+                    }
+                }
+
+                Section {
+                    Button {
+                        Task { await send() }
+                    } label: {
+                        HStack {
+                            if working { ProgressView() }
+                            Text(working ? "Sending…" : "Send tip")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .disabled(!canSend)
+                }
+            }
+            .navigationTitle("Send")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func send() async {
+        guard let key = app.appKey,
+              let tid = app.myTID,
+              let value = amountDecimal,
+              !working else { return }
+        let recipient = recipientTid.trimmingCharacters(in: .whitespaces)
+        working = true
+        defer { working = false }
+        do {
+            _ = try await app.api.publishTip(
+                recipientTid: recipient,
+                amount: value,
+                currency: currency,
+                as: key,
+                tid: tid
+            )
+            onSent?()
+            dismiss()
+        } catch {
+            self.error = error.localizedDescription
+        }
     }
 }
