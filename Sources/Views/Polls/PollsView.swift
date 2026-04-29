@@ -54,6 +54,7 @@ private struct PollCard: View {
 
     @State private var myChoice: Int?
     @State private var voting = false
+    @State private var loadingVote = false
     @State private var error: String?
 
     private var expired: Bool {
@@ -110,6 +111,18 @@ private struct PollCard: View {
             }
         }
         .padding(.vertical, 6)
+        .task(id: poll.id) {
+            await loadMyVote()
+        }
+    }
+
+    private func loadMyVote() async {
+        guard let tid = app.myTID, !loadingVote else { return }
+        loadingVote = true
+        defer { loadingVote = false }
+        if let vote = await app.api.fetchMyPollVote(pollId: poll.id, tid: tid) {
+            myChoice = vote.optionIndex
+        }
     }
 
     private func closesText(_ d: Date) -> String {

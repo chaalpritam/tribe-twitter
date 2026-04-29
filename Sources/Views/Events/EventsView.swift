@@ -67,6 +67,7 @@ private struct EventRow: View {
 
     @State private var myStatus: String?
     @State private var rsvping = false
+    @State private var loadingStatus = false
     @State private var error: String?
 
     var body: some View {
@@ -110,6 +111,18 @@ private struct EventRow: View {
                 }
             }
             .padding(16)
+        }
+        .task(id: event.id) {
+            await loadMyRSVP()
+        }
+    }
+
+    private func loadMyRSVP() async {
+        guard let tid = app.myTID, !loadingStatus else { return }
+        loadingStatus = true
+        defer { loadingStatus = false }
+        if let rsvp = await app.api.fetchMyEventRSVP(eventId: event.id, tid: tid) {
+            myStatus = rsvp.status
         }
     }
 
