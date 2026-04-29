@@ -135,7 +135,7 @@ struct WalletView: View {
         }
     }
 
-    private struct ActivityItem: Identifiable {
+    fileprivate struct ActivityItem: Identifiable {
         let direction: Direction
         let tip: Tip
         var id: String { "\(direction.rawValue)-\(tip.id)" }
