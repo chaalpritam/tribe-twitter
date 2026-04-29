@@ -2,15 +2,21 @@ import SwiftUI
 
 struct TweetCardView: View {
     @EnvironmentObject private var app: AppState
+    @EnvironmentObject private var interactions: InteractionCache
     let tweet: Tweet
     var onReplyTap: (() -> Void)? = nil
     var onDeleted: (() -> Void)? = nil
 
-    @State private var liked = false
-    @State private var bookmarked = false
     @State private var pendingAction = false
     @State private var error: String?
     @State private var presentingReply = false
+
+    /// Read directly from the shared InteractionCache so paginated
+    /// feeds, the search results, the bookmarks tab, and the profile
+    /// timeline all reflect the same live state without each view
+    /// owning its own copy.
+    private var liked: Bool { interactions.contains(liked: tweet.hash) }
+    private var bookmarked: Bool { interactions.contains(bookmarked: tweet.hash) }
 
     private var displayName: String {
         if let u = tweet.username { return "\(u).tribe" }
@@ -81,10 +87,14 @@ struct TweetCardView: View {
             actionRow
         }
         .padding(.vertical, 6)
+        .task {
+            await interactions.ensureLoaded()
+        }
         .sheet(isPresented: $presentingReply) {
             ComposeTweetView(parentHash: tweet.hash)
                 .presentationDetents([.medium, .large])
                 .environmentObject(app)
+                .environmentObject(interactions)
         }
     }
 
@@ -171,7 +181,7 @@ struct TweetCardView: View {
     private func toggleLike() async {
         guard let key = app.appKey, let tid = app.myTID else { return }
         let wasLiked = liked
-        liked.toggle()
+        interactions.setLiked(!wasLiked, hash: tweet.hash)
         pendingAction = true
         defer { pendingAction = false }
         do {
@@ -182,7 +192,7 @@ struct TweetCardView: View {
             }
             error = nil
         } catch {
-            liked = wasLiked
+            interactions.setLiked(wasLiked, hash: tweet.hash)
             self.error = "Like failed: \(error.localizedDescription)"
         }
     }
@@ -190,14 +200,14 @@ struct TweetCardView: View {
     private func toggleBookmark() async {
         guard let key = app.appKey, let tid = app.myTID else { return }
         let wasBookmarked = bookmarked
-        bookmarked.toggle()
+        interactions.setBookmarked(!wasBookmarked, hash: tweet.hash)
         pendingAction = true
         defer { pendingAction = false }
         do {
             try await app.api.bookmark(hash: tweet.hash, as: key, tid: tid, add: !wasBookmarked)
             error = nil
         } catch {
-            bookmarked = wasBookmarked
+            interactions.setBookmarked(wasBookmarked, hash: tweet.hash)
             self.error = "Bookmark failed: \(error.localizedDescription)"
         }
     }
