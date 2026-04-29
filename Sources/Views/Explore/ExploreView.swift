@@ -5,11 +5,25 @@ struct ExploreView: View {
     @State private var users: [User] = []
     @State private var loading = true
     @State private var error: String?
+    @State private var showingSearch = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                PageHeader("Explore", subtitle: "Discover people on the network")
+                PageHeader("Explore", subtitle: "Discover people on the network") {
+                    Button {
+                        showingSearch = true
+                    } label: {
+                        ZStack {
+                            Circle().fill(TribeColor.chipBackground)
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(TribeColor.textPrimary)
+                        }
+                        .frame(width: 36, height: 36)
+                    }
+                    .buttonStyle(.plain)
+                }
 
                 LazyVStack(spacing: 10) {
                     if loading {
@@ -43,6 +57,17 @@ struct ExploreView: View {
         .background(TribeColor.pageBackground)
         .refreshable { await refresh() }
         .task { load() }
+        .sheet(isPresented: $showingSearch) {
+            NavigationStack {
+                SearchView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { showingSearch = false }
+                        }
+                    }
+            }
+            .environmentObject(app)
+        }
     }
 
     private func load() {
