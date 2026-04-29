@@ -22,16 +22,14 @@ struct AvatarView: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
-        .overlay(
-            Circle().stroke(TribeColor.cardStroke, lineWidth: 1)
-        )
+        .overlay(Circle().stroke(TribeColor.cardStroke, lineWidth: 0.5))
     }
 
     private var fallback: some View {
         ZStack {
             Circle().fill(TribeColor.chipBackground)
             Text(initial.prefix(1))
-                .font(.system(size: size * 0.42, weight: .bold))
+                .font(.system(size: size * 0.42, weight: .semibold, design: .rounded))
                 .foregroundStyle(TribeColor.textPrimary)
         }
     }

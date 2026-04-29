@@ -1,5 +1,8 @@
 import SwiftUI
 
+/// Native empty / error state. Wraps `ContentUnavailableView` so every
+/// caller gets the standard iOS look (centered SF Symbol, title, body,
+/// optional action) with adaptive colors and Dynamic Type for free.
 struct EmptyStateView: View {
     let symbol: String
     let title: String
@@ -19,48 +22,17 @@ struct EmptyStateView: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(TribeColor.chipBackground)
-                    .frame(width: 64, height: 64)
-                Image(systemName: symbol)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(TribeColor.textSecondary)
-            }
-            Text(title)
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(TribeColor.textPrimary)
+        ContentUnavailableView {
+            Label(title, systemImage: symbol)
+        } description: {
             if let message {
                 Text(message)
-                    .font(.system(size: 13))
-                    .foregroundStyle(TribeColor.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
             }
+        } actions: {
             if let action {
                 Button(action.label, action: action.run)
-                    .buttonStyle(PrimaryButtonStyle())
-                    .padding(.top, 4)
+                    .buttonStyle(.borderedProminent)
             }
         }
-        .padding(.vertical, 32)
-        .frame(maxWidth: .infinity)
-    }
-}
-
-struct PrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 14, weight: .bold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 18)
-            .padding(.vertical, 10)
-            .background(
-                Capsule()
-                    .fill(TribeColor.primary)
-                    .opacity(configuration.isPressed ? 0.85 : 1)
-            )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
     }
 }
