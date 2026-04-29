@@ -31,8 +31,5 @@ struct PlaceholderView: View {
 }
 
 // Tabs without dedicated screens yet.
-struct ExploreView: View { var body: some View { PlaceholderView("Explore", subtitle: "Discover people on the network.") } }
-struct ProfileView: View { var body: some View { PlaceholderView("Profile", subtitle: "Your TID, karma, and tweets.") } }
 struct MapView: View { var body: some View { PlaceholderView("Map", subtitle: "City-anchored content lands here once channel kind = 2 (city) is wired up.") } }
-struct TribesView: View { var body: some View { PlaceholderView("Tribes", subtitle: "Channels and groups.") } }
 struct ChatView: View { var body: some View { PlaceholderView("Chat", subtitle: "Direct messages and group threads. x25519 + nacl box encryption needs porting from tribe-app.") } }

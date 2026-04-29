@@ -5,11 +5,37 @@ struct HomeFeedView: View {
     @State private var tweets: [Tweet] = []
     @State private var loading = true
     @State private var error: String?
+    @State private var showingNotifications = false
+    @State private var unreadCount = 0
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                PageHeader("Home", subtitle: "Tweets across the network")
+                PageHeader("Home", subtitle: "Tweets across the network") {
+                    Button {
+                        showingNotifications = true
+                    } label: {
+                        ZStack(alignment: .topTrailing) {
+                            ZStack {
+                                Circle().fill(TribeColor.chipBackground)
+                                Image(systemName: "bell")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(TribeColor.textPrimary)
+                            }
+                            .frame(width: 36, height: 36)
+                            if unreadCount > 0 {
+                                Text(unreadCount > 9 ? "9+" : "\(unreadCount)")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 1)
+                                    .background(Capsule().fill(TribeColor.accentRose))
+                                    .offset(x: 4, y: -4)
+                            }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
 
                 LazyVStack(spacing: 12) {
                     if loading {
@@ -42,7 +68,24 @@ struct HomeFeedView: View {
         }
         .background(TribeColor.pageBackground)
         .refreshable { await refresh() }
-        .task { load() }
+        .task {
+            load()
+            if let tid = app.myTID {
+                unreadCount = (try? await app.api.fetchUnreadCount(tid)) ?? 0
+            }
+        }
+        .sheet(isPresented: $showingNotifications) {
+            NavigationStack {
+                NotificationsView()
+                    .navigationTitle("")
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { showingNotifications = false }
+                        }
+                    }
+            }
+            .environmentObject(app)
+        }
     }
 
     private func load() {
