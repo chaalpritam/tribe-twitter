@@ -18,9 +18,3 @@ enum TribeColor {
     static let accentEmerald = Color.green
     static let accentRose = Color.pink
 }
-
-enum TribeMetrics {
-    static let cardCornerRadius: CGFloat = 16
-    static let cardPadding: CGFloat = 16
-    static let bottomNavReservedHeight: CGFloat = 0
-}
