@@ -15,43 +15,40 @@ struct TweetCardView: View {
     }
 
     var body: some View {
-        Card {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .center, spacing: 10) {
-                    AvatarView(initial: initial)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(displayName)
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(TribeColor.textPrimary)
-                        Text("\(RelativeTime.short(tweet.timestamp)) · TID #\(tweet.tid)")
-                            .font(.system(size: 12))
-                            .foregroundStyle(TribeColor.textSecondary)
-                    }
-                    Spacer()
-                    if let channel = tweet.channelId {
-                        Text("#\(channel)")
-                            .font(.system(size: 11, weight: .semibold))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Capsule().fill(TribeColor.chipBackground))
-                            .foregroundStyle(TribeColor.textSecondary)
-                    }
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 10) {
+                AvatarView(initial: initial)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(displayName)
+                        .font(.subheadline.weight(.semibold))
+                    Text("\(RelativeTime.short(tweet.timestamp)) · TID #\(tweet.tid)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-
-                if let text = tweet.text, !text.isEmpty {
-                    Text(text)
-                        .font(.system(size: 15))
-                        .foregroundStyle(TribeColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                if let channel = tweet.channelId {
+                    Text("#\(channel)")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(TribeColor.chipBackground))
                 }
-
-                if let imageURLs = embedImageURLs(), !imageURLs.isEmpty {
-                    embedGrid(imageURLs)
-                }
-
-                actionRow
             }
+
+            if let text = tweet.text, !text.isEmpty {
+                Text(text)
+                    .font(.body)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if let imageURLs = embedImageURLs(), !imageURLs.isEmpty {
+                embedGrid(imageURLs)
+            }
+
+            actionRow
         }
+        .padding(.vertical, 6)
     }
 
     private func embedImageURLs() -> [URL]? {
@@ -71,21 +68,21 @@ struct TweetCardView: View {
                     case .success(let img):
                         img.resizable().scaledToFill()
                     case .failure:
-                        Color(white: 0.95)
+                        Color(.tertiarySystemFill)
                     default:
-                        Color(white: 0.96)
+                        Color(.tertiarySystemFill)
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: urls.count == 1 ? 280 : 160)
+                .frame(height: urls.count == 1 ? 240 : 140)
                 .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         }
     }
 
     private var actionRow: some View {
-        HStack(spacing: 22) {
+        HStack(spacing: 28) {
             actionIcon("bubble.left", count: tweet.replyCount)
             actionIcon("arrow.2.squarepath", count: nil)
             actionIcon("heart", count: nil)
@@ -93,15 +90,15 @@ struct TweetCardView: View {
             Spacer()
             actionIcon("dollarsign.circle", count: nil)
         }
-        .foregroundStyle(TribeColor.textSecondary)
+        .foregroundStyle(.secondary)
     }
 
     private func actionIcon(_ symbol: String, count: Int?) -> some View {
         HStack(spacing: 4) {
             Image(systemName: symbol)
-                .font(.system(size: 14))
+                .font(.subheadline)
             if let n = count, n > 0 {
-                Text("\(n)").font(.system(size: 12))
+                Text("\(n)").font(.caption)
             }
         }
     }

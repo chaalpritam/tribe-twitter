@@ -8,33 +8,44 @@ struct EventsView: View {
     @State private var error: String?
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                Picker("", selection: $upcomingOnly) {
-                    Text("Upcoming").tag(true)
-                    Text("All").tag(false)
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, 16)
-                .onChange(of: upcomingOnly) { _, _ in load() }
+        VStack(spacing: 0) {
+            Picker("Time", selection: $upcomingOnly) {
+                Text("Upcoming").tag(true)
+                Text("All").tag(false)
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .onChange(of: upcomingOnly) { _, _ in load() }
 
-                if loading {
-                    ForEach(0..<3, id: \.self) { _ in EventSkeleton() }
-                } else if let error {
-                    EmptyStateView(symbol: "wifi.exclamationmark", title: "Couldn't load events", message: error, action: ("Retry", load))
-                        .padding(.horizontal, 16)
-                } else if events.isEmpty {
-                    EmptyStateView(symbol: "calendar", title: upcomingOnly ? "No upcoming events" : "No events", message: "Events show meetups and on-chain happenings. Schedule one from tribe-app.")
-                        .padding(.horizontal, 16)
-                } else {
-                    ForEach(events) { ev in
-                        EventCard(event: ev).padding(.horizontal, 16)
+            Group {
+                if loading && events.isEmpty {
+                    List {
+                        ForEach(0..<3, id: \.self) { _ in EventSkeleton() }
                     }
+                    .listStyle(.insetGrouped)
+                } else if let error, events.isEmpty {
+                    EmptyStateView(
+                        symbol: "wifi.exclamationmark",
+                        title: "Couldn't load events",
+                        message: error,
+                        action: ("Retry", load)
+                    )
+                } else if events.isEmpty {
+                    EmptyStateView(
+                        symbol: "calendar",
+                        title: upcomingOnly ? "No upcoming events" : "No events",
+                        message: "Events show meetups and on-chain happenings. Schedule one from tribe-app."
+                    )
+                } else {
+                    List(events) { event in
+                        EventRow(event: event)
+                            .listRowInsets(EdgeInsets())
+                    }
+                    .listStyle(.insetGrouped)
                 }
             }
-            .padding(.top, 6)
         }
-        .background(TribeColor.pageBackground)
         .refreshable { await refresh() }
         .task { load() }
     }
@@ -50,52 +61,47 @@ struct EventsView: View {
     }
 }
 
-private struct EventCard: View {
+private struct EventRow: View {
     @EnvironmentObject private var app: AppState
     let event: Event
 
     var body: some View {
-        Card(padding: 0) {
-            VStack(alignment: .leading, spacing: 0) {
-                if let url = app.api.resolveMediaURL(event.imageUrl) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let img): img.resizable().scaledToFill()
-                        default: Color(white: 0.96)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 160)
-                    .clipped()
-                }
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Pill(text: dateChip, color: TribeColor.accentIndigo)
-                        Spacer()
-                        Text("\(event.yesCount) going")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(TribeColor.textSecondary)
-                    }
-                    Text(event.title)
-                        .font(.system(size: 17, weight: .bold))
-                        .tracking(-0.2)
-                    if let loc = event.locationText, !loc.isEmpty {
-                        HStack(spacing: 4) {
-                            Image(systemName: "mappin.and.ellipse")
-                                .font(.system(size: 11))
-                            Text(loc).font(.system(size: 12))
-                        }
-                        .foregroundStyle(TribeColor.textSecondary)
-                    }
-                    if let d = event.description, !d.isEmpty {
-                        Text(d)
-                            .font(.system(size: 13))
-                            .foregroundStyle(TribeColor.textSecondary)
-                            .lineLimit(3)
+        VStack(alignment: .leading, spacing: 0) {
+            if let url = app.api.resolveMediaURL(event.imageUrl) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let img): img.resizable().scaledToFill()
+                    default: Color(.tertiarySystemFill)
                     }
                 }
-                .padding(18)
+                .frame(maxWidth: .infinity)
+                .frame(height: 160)
+                .clipped()
             }
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Pill(text: dateChip, color: .indigo)
+                    Spacer()
+                    Text("\(event.yesCount) going")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                Text(event.title)
+                    .font(.headline)
+                if let loc = event.locationText, !loc.isEmpty {
+                    Label(loc, systemImage: "mappin.and.ellipse")
+                        .labelStyle(.titleAndIcon)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                if let d = event.description, !d.isEmpty {
+                    Text(d)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                }
+            }
+            .padding(16)
         }
     }
 
@@ -108,17 +114,15 @@ private struct EventCard: View {
 
 private struct EventSkeleton: View {
     var body: some View {
-        Card(padding: 0) {
-            VStack(spacing: 0) {
-                RoundedRectangle(cornerRadius: 0).fill(TribeColor.chipBackground).frame(height: 140)
-                VStack(alignment: .leading, spacing: 8) {
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 110, height: 10)
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(maxWidth: .infinity).frame(height: 16)
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 200, height: 10)
-                }
-                .padding(18)
+        VStack(spacing: 0) {
+            Rectangle().fill(Color(.tertiarySystemFill)).frame(height: 140)
+            VStack(alignment: .leading, spacing: 8) {
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 110, height: 10)
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(maxWidth: .infinity).frame(height: 16)
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 200, height: 10)
             }
+            .padding(16)
         }
-        .padding(.horizontal, 16)
+        .redacted(reason: .placeholder)
     }
 }

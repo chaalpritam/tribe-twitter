@@ -8,35 +8,35 @@ struct HomeFeedView: View {
     @State private var presentingCompose = false
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                if loading {
-                    ForEach(0..<3, id: \.self) { _ in TweetSkeleton() }
-                } else if let error {
-                    EmptyStateView(
-                        symbol: "wifi.exclamationmark",
-                        title: "Couldn't load feed",
-                        message: error,
-                        action: ("Retry", load)
-                    )
-                    .padding(.top, 60)
-                } else if tweets.isEmpty {
-                    EmptyStateView(
-                        symbol: "sparkles",
-                        title: "It's quiet here",
-                        message: "Once people start posting, their tweets will appear here in real time."
-                    )
-                    .padding(.top, 60)
-                } else {
-                    ForEach(tweets) { tweet in
-                        TweetCardView(tweet: tweet)
-                            .padding(.horizontal, 16)
+        Group {
+            if loading && tweets.isEmpty {
+                List {
+                    ForEach(0..<3, id: \.self) { _ in
+                        TweetSkeleton()
                     }
                 }
+                .listStyle(.plain)
+            } else if let error, tweets.isEmpty {
+                EmptyStateView(
+                    symbol: "wifi.exclamationmark",
+                    title: "Couldn't load feed",
+                    message: error,
+                    action: ("Retry", load)
+                )
+            } else if tweets.isEmpty {
+                EmptyStateView(
+                    symbol: "sparkles",
+                    title: "It's quiet here",
+                    message: "Once people start posting, their tweets will appear here in real time."
+                )
+            } else {
+                List(tweets) { tweet in
+                    TweetCardView(tweet: tweet)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                }
+                .listStyle(.plain)
             }
-            .padding(.vertical, 8)
         }
-        .background(TribeColor.pageBackground)
         .navigationTitle("Home")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -75,17 +75,16 @@ struct HomeFeedView: View {
 
 private struct TweetSkeleton: View {
     var body: some View {
-        Card {
-            HStack(alignment: .top, spacing: 12) {
-                Circle().fill(TribeColor.chipBackground).frame(width: 40, height: 40)
-                VStack(alignment: .leading, spacing: 8) {
-                    RoundedRectangle(cornerRadius: 6).fill(TribeColor.chipBackground).frame(width: 120, height: 12)
-                    RoundedRectangle(cornerRadius: 6).fill(TribeColor.chipBackground).frame(maxWidth: .infinity).frame(height: 12)
-                    RoundedRectangle(cornerRadius: 6).fill(TribeColor.chipBackground).frame(width: 200, height: 12)
-                }
+        HStack(alignment: .top, spacing: 12) {
+            Circle().fill(Color(.tertiarySystemFill)).frame(width: 40, height: 40)
+            VStack(alignment: .leading, spacing: 8) {
+                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(width: 120, height: 12)
+                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(maxWidth: .infinity).frame(height: 12)
+                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(width: 200, height: 12)
             }
         }
-        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .redacted(reason: .placeholder)
     }
 }
 

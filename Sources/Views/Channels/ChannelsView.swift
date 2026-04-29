@@ -7,34 +7,32 @@ struct ChannelsView: View {
     @State private var error: String?
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 10) {
-                if loading {
+        Group {
+            if loading && channels.isEmpty {
+                List {
                     ForEach(0..<5, id: \.self) { _ in ChannelSkeleton() }
-                } else if let error {
-                    EmptyStateView(
-                        symbol: "wifi.exclamationmark",
-                        title: "Couldn't load channels",
-                        message: error,
-                        action: ("Retry", load)
-                    )
-                    .padding(.horizontal, 16)
-                } else if channels.isEmpty {
-                    EmptyStateView(
-                        symbol: "number",
-                        title: "No channels yet",
-                        message: "Channels are topic-based feeds. Create one from tribe-app or post a tweet with a channel."
-                    )
-                    .padding(.horizontal, 16)
-                } else {
-                    ForEach(channels) { ch in
-                        ChannelRow(channel: ch)
-                            .padding(.horizontal, 16)
-                    }
                 }
+                .listStyle(.insetGrouped)
+            } else if let error, channels.isEmpty {
+                EmptyStateView(
+                    symbol: "wifi.exclamationmark",
+                    title: "Couldn't load channels",
+                    message: error,
+                    action: ("Retry", load)
+                )
+            } else if channels.isEmpty {
+                EmptyStateView(
+                    symbol: "number",
+                    title: "No channels yet",
+                    message: "Channels are topic-based feeds. Create one from tribe-app or post a tweet with a channel."
+                )
+            } else {
+                List(channels) { channel in
+                    ChannelRow(channel: channel)
+                }
+                .listStyle(.insetGrouped)
             }
         }
-        .background(TribeColor.pageBackground)
         .refreshable { await refresh() }
         .task { load() }
     }
@@ -60,66 +58,62 @@ private struct ChannelRow: View {
     let channel: Channel
 
     var body: some View {
-        Card(padding: 14) {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(TribeColor.chipBackground)
-                    Text("#")
-                        .font(.system(size: 18, weight: .black))
-                        .foregroundStyle(TribeColor.textPrimary)
-                }
-                .frame(width: 44, height: 44)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 6) {
-                        Text(channel.displayName)
-                            .font(.system(size: 15, weight: .bold))
-                        if channel.kind == 2 {
-                            Pill(text: "city", color: TribeColor.accentEmerald)
-                        }
-                    }
-                    Text(channel.description ?? "#\(channel.id)")
-                        .font(.system(size: 12))
-                        .foregroundStyle(TribeColor.textSecondary)
-                        .lineLimit(1)
-                    Text("\(channel.memberCount) members · \(channel.tweetCount) tweets")
-                        .font(.system(size: 11))
-                        .foregroundStyle(TribeColor.textTertiary)
-                }
-                Spacer()
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(TribeColor.chipBackground)
+                Text("#")
+                    .font(.headline)
+                    .foregroundStyle(TribeColor.textPrimary)
             }
+            .frame(width: 40, height: 40)
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(channel.displayName)
+                        .font(.subheadline.weight(.semibold))
+                    if channel.kind == 2 {
+                        Pill(text: "city", color: .green)
+                    }
+                }
+                Text(channel.description ?? "#\(channel.id)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Text("\(channel.memberCount) members · \(channel.tweetCount) tweets")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            Spacer()
         }
+        .padding(.vertical, 4)
     }
 }
 
 struct Pill: View {
     let text: String
-    var color: Color = TribeColor.textSecondary
+    var color: Color = .secondary
     var body: some View {
         Text(text.uppercased())
-            .font(.system(size: 9, weight: .heavy))
-            .tracking(0.6)
+            .font(.caption2.weight(.bold))
             .foregroundStyle(color)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(Capsule().fill(color.opacity(0.12)))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(Capsule().fill(color.opacity(0.15)))
     }
 }
 
 private struct ChannelSkeleton: View {
     var body: some View {
-        Card(padding: 14) {
-            HStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: 14).fill(TribeColor.chipBackground).frame(width: 44, height: 44)
-                VStack(alignment: .leading, spacing: 6) {
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 120, height: 11)
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 200, height: 9)
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 90, height: 9)
-                }
-                Spacer()
+        HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: 10).fill(Color(.tertiarySystemFill)).frame(width: 40, height: 40)
+            VStack(alignment: .leading, spacing: 6) {
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 120, height: 11)
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 200, height: 9)
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 90, height: 9)
             }
+            Spacer()
         }
-        .padding(.horizontal, 16)
+        .redacted(reason: .placeholder)
     }
 }

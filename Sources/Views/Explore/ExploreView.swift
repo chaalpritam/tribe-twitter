@@ -7,35 +7,32 @@ struct ExploreView: View {
     @State private var error: String?
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 10) {
-                if loading {
+        Group {
+            if loading && users.isEmpty {
+                List {
                     ForEach(0..<5, id: \.self) { _ in UserSkeleton() }
-                } else if let error {
-                    EmptyStateView(
-                        symbol: "wifi.exclamationmark",
-                        title: "Couldn't load users",
-                        message: error,
-                        action: ("Retry", load)
-                    )
-                    .padding(.top, 60)
-                } else if users.isEmpty {
-                    EmptyStateView(
-                        symbol: "person.2",
-                        title: "No users yet",
-                        message: "Be the first to register a Tribe identity."
-                    )
-                    .padding(.top, 60)
-                } else {
-                    ForEach(users) { user in
-                        UserRow(user: user)
-                            .padding(.horizontal, 16)
-                    }
                 }
+                .listStyle(.plain)
+            } else if let error, users.isEmpty {
+                EmptyStateView(
+                    symbol: "wifi.exclamationmark",
+                    title: "Couldn't load users",
+                    message: error,
+                    action: ("Retry", load)
+                )
+            } else if users.isEmpty {
+                EmptyStateView(
+                    symbol: "person.2",
+                    title: "No users yet",
+                    message: "Be the first to register a Tribe identity."
+                )
+            } else {
+                List(users) { user in
+                    UserRow(user: user)
+                }
+                .listStyle(.plain)
             }
-            .padding(.vertical, 8)
         }
-        .background(TribeColor.pageBackground)
         .navigationTitle("Explore")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -72,22 +69,21 @@ private struct UserRow: View {
     let user: User
 
     var body: some View {
-        Card(padding: 14) {
-            HStack(spacing: 12) {
-                AvatarView(initial: user.initial, size: 44)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(user.displayName)
-                        .font(.headline)
-                    Text(walletShort)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Text("\(user.followersCount) followers · \(user.followingCount) following")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                }
-                Spacer()
+        HStack(spacing: 12) {
+            AvatarView(initial: user.initial, size: 44)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(user.displayName)
+                    .font(.headline)
+                Text(walletShort)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text("\(user.followersCount) followers · \(user.followingCount) following")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             }
+            Spacer()
         }
+        .padding(.vertical, 4)
     }
 
     private var walletShort: String {
@@ -99,17 +95,15 @@ private struct UserRow: View {
 
 private struct UserSkeleton: View {
     var body: some View {
-        Card(padding: 14) {
-            HStack(spacing: 12) {
-                Circle().fill(TribeColor.chipBackground).frame(width: 44, height: 44)
-                VStack(alignment: .leading, spacing: 6) {
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 140, height: 11)
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 90, height: 9)
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 160, height: 9)
-                }
-                Spacer()
+        HStack(spacing: 12) {
+            Circle().fill(Color(.tertiarySystemFill)).frame(width: 44, height: 44)
+            VStack(alignment: .leading, spacing: 6) {
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 140, height: 11)
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 90, height: 9)
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 160, height: 9)
             }
+            Spacer()
         }
-        .padding(.horizontal, 16)
+        .redacted(reason: .placeholder)
     }
 }

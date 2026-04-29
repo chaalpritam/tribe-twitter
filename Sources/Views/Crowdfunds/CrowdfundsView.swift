@@ -7,23 +7,33 @@ struct CrowdfundsView: View {
     @State private var error: String?
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                if loading {
+        Group {
+            if loading && campaigns.isEmpty {
+                List {
                     ForEach(0..<3, id: \.self) { _ in CrowdfundSkeleton() }
-                } else if let error {
-                    EmptyStateView(symbol: "wifi.exclamationmark", title: "Couldn't load crowdfunds", message: error, action: ("Retry", load))
-                        .padding(.horizontal, 16)
-                } else if campaigns.isEmpty {
-                    EmptyStateView(symbol: "circle.hexagongrid", title: "No crowdfunds yet", message: "Community-funded campaigns. Start one from tribe-app.")
-                        .padding(.horizontal, 16)
-                } else {
-                    ForEach(campaigns) { cf in CrowdfundCard(crowdfund: cf).padding(.horizontal, 16) }
                 }
+                .listStyle(.insetGrouped)
+            } else if let error, campaigns.isEmpty {
+                EmptyStateView(
+                    symbol: "wifi.exclamationmark",
+                    title: "Couldn't load crowdfunds",
+                    message: error,
+                    action: ("Retry", load)
+                )
+            } else if campaigns.isEmpty {
+                EmptyStateView(
+                    symbol: "circle.hexagongrid",
+                    title: "No crowdfunds yet",
+                    message: "Community-funded campaigns. Start one from tribe-app."
+                )
+            } else {
+                List(campaigns) { cf in
+                    CrowdfundRow(crowdfund: cf)
+                        .listRowInsets(EdgeInsets())
+                }
+                .listStyle(.insetGrouped)
             }
-            .padding(.top, 6)
         }
-        .background(TribeColor.pageBackground)
         .refreshable { await refresh() }
         .task { load() }
     }
@@ -39,46 +49,44 @@ struct CrowdfundsView: View {
     }
 }
 
-private struct CrowdfundCard: View {
+private struct CrowdfundRow: View {
     @EnvironmentObject private var app: AppState
     let crowdfund: Crowdfund
 
     var body: some View {
-        Card(padding: 0) {
-            VStack(alignment: .leading, spacing: 0) {
-                if let url = app.api.resolveMediaURL(crowdfund.imageUrl) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let img): img.resizable().scaledToFill()
-                        default: Color(white: 0.96)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 160)
-                    .clipped()
-                }
-                VStack(alignment: .leading, spacing: 10) {
-                    Pill(text: "Crowdfund", color: TribeColor.accentEmerald)
-                    Text(crowdfund.title)
-                        .font(.system(size: 17, weight: .bold))
-                    if let d = crowdfund.description, !d.isEmpty {
-                        Text(d)
-                            .font(.system(size: 13))
-                            .foregroundStyle(TribeColor.textSecondary)
-                            .lineLimit(2)
-                    }
-                    ProgressBar(progress: crowdfund.progress)
-                    HStack {
-                        Text("\(formatted(crowdfund.raisedAmount)) / \(formatted(crowdfund.goalAmount)) \(crowdfund.currency)")
-                            .font(.system(size: 12, weight: .semibold))
-                        Spacer()
-                        Text("by TID #\(crowdfund.creatorTid)")
-                            .font(.system(size: 11))
-                            .foregroundStyle(TribeColor.textTertiary)
+        VStack(alignment: .leading, spacing: 0) {
+            if let url = app.api.resolveMediaURL(crowdfund.imageUrl) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let img): img.resizable().scaledToFill()
+                    default: Color(.tertiarySystemFill)
                     }
                 }
-                .padding(18)
+                .frame(maxWidth: .infinity)
+                .frame(height: 160)
+                .clipped()
             }
+            VStack(alignment: .leading, spacing: 10) {
+                Pill(text: "Crowdfund", color: .green)
+                Text(crowdfund.title)
+                    .font(.headline)
+                if let d = crowdfund.description, !d.isEmpty {
+                    Text(d)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+                ProgressView(value: crowdfund.progress)
+                HStack {
+                    Text("\(formatted(crowdfund.raisedAmount)) / \(formatted(crowdfund.goalAmount)) \(crowdfund.currency)")
+                        .font(.footnote.weight(.semibold))
+                    Spacer()
+                    Text("by TID #\(crowdfund.creatorTid)")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            .padding(16)
         }
     }
 
@@ -91,32 +99,17 @@ private struct CrowdfundCard: View {
     }
 }
 
-private struct ProgressBar: View {
-    let progress: Double
-    var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Capsule().fill(TribeColor.chipBackground)
-                Capsule().fill(TribeColor.primary).frame(width: geo.size.width * progress)
-            }
-        }
-        .frame(height: 6)
-    }
-}
-
 private struct CrowdfundSkeleton: View {
     var body: some View {
-        Card(padding: 0) {
-            VStack(spacing: 0) {
-                RoundedRectangle(cornerRadius: 0).fill(TribeColor.chipBackground).frame(height: 140)
-                VStack(alignment: .leading, spacing: 8) {
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 90, height: 10)
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(maxWidth: .infinity).frame(height: 16)
-                    RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(maxWidth: .infinity).frame(height: 6)
-                }
-                .padding(18)
+        VStack(spacing: 0) {
+            Rectangle().fill(Color(.tertiarySystemFill)).frame(height: 140)
+            VStack(alignment: .leading, spacing: 8) {
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 90, height: 10)
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(maxWidth: .infinity).frame(height: 16)
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(maxWidth: .infinity).frame(height: 6)
             }
+            .padding(16)
         }
-        .padding(.horizontal, 16)
+        .redacted(reason: .placeholder)
     }
 }
