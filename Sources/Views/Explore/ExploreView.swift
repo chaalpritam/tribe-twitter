@@ -82,6 +82,7 @@ private struct UserRow: View {
                     .foregroundStyle(.tertiary)
             }
             Spacer()
+            FollowButton(targetTID: user.tid)
         }
         .padding(.vertical, 4)
     }

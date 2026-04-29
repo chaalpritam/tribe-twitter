@@ -35,6 +35,13 @@ final class AppState: ObservableObject {
         }
     }
 
+    @Published var erBaseURL: URL {
+        didSet {
+            UserDefaults.standard.set(erBaseURL.absoluteString, forKey: Keys.erURL)
+            er = ERClient(baseURL: erBaseURL)
+        }
+    }
+
     @Published var myTID: String? {
         didSet { persistTID(); recomputePhase() }
     }
@@ -47,6 +54,7 @@ final class AppState: ObservableObject {
     @Published var walletAddress: String?
 
     private(set) var api: HubClient
+    private(set) var er: ERClient
     /// Session-scoped like / bookmark sets. Lazy-loaded on first
     /// tweet-card render and kept in sync by the write paths.
     let interactions: InteractionCache
@@ -58,6 +66,8 @@ final class AppState: ObservableObject {
 
         let storedURL = UserDefaults.standard.string(forKey: Keys.hubURL)
             .flatMap(URL.init(string:)) ?? Config.defaultHubURL
+        let storedERURL = UserDefaults.standard.string(forKey: Keys.erURL)
+            .flatMap(URL.init(string:)) ?? Config.defaultERURL
         let storedTID = UserDefaults.standard.string(forKey: Keys.tid)
 
         // Restore the app key from Keychain if we have one.
@@ -71,8 +81,10 @@ final class AppState: ObservableObject {
         }
 
         self.hubBaseURL = storedURL
+        self.erBaseURL = storedERURL
         self.myTID = storedTID
         self.api = HubClient(baseURL: storedURL)
+        self.er = ERClient(baseURL: storedERURL)
         self.appKey = restoredKey
         self.phase = (storedTID != nil && restoredKey != nil) ? .ready : .onboarding
 
@@ -146,6 +158,7 @@ final class AppState: ObservableObject {
 
     private enum Keys {
         static let hubURL = "tribe.hubBaseURL"
+        static let erURL = "tribe.erBaseURL"
         static let tid = "tribe.tid"
     }
 }

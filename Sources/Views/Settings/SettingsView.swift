@@ -3,9 +3,12 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var app: AppState
     @State private var hubInput: String = ""
+    @State private var erInput: String = ""
     @State private var saved = false
+    @State private var savedER = false
     @State private var showingSignOut = false
     @State private var showingAppKey = false
+    @State private var showingProfileEditor = false
 
     var body: some View {
         Form {
@@ -21,6 +24,8 @@ struct SettingsView: View {
                                 .font(.system(.footnote, design: .monospaced))
                         }
                     }
+                    Button("Edit profile") { showingProfileEditor = true }
+                        .disabled(app.appKey == nil)
                     Button("View app key") { showingAppKey = true }
                 } else {
                     Text("Not signed in")
@@ -53,9 +58,31 @@ struct SettingsView: View {
                 Text("Switching hubs reroutes all reads and writes immediately. Defaults to http://127.0.0.1:4000.")
             }
 
+            Section {
+                TextField("ER server URL", text: $erInput)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                Button {
+                    saveER()
+                } label: {
+                    if savedER {
+                        Label("Saved", systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                    } else {
+                        Text("Save")
+                    }
+                }
+            } header: {
+                Text("ER server")
+            } footer: {
+                Text("Sequencer that powers instant follow / unfollow. Defaults to http://127.0.0.1:3003.")
+            }
+
             Section("About") {
                 LabeledContent("Cluster", value: Config.solanaCluster)
                 LabeledContent("Hub", value: app.hubBaseURL.absoluteString)
+                LabeledContent("ER", value: app.erBaseURL.absoluteString)
             }
 
             if app.myTID != nil {
@@ -71,6 +98,7 @@ struct SettingsView: View {
         .navigationTitle("Settings")
         .onAppear {
             hubInput = app.hubBaseURL.absoluteString
+            erInput = app.erBaseURL.absoluteString
         }
         .confirmationDialog(
             "Sign out of this device?",
@@ -86,6 +114,17 @@ struct SettingsView: View {
             AppKeySheet()
                 .environmentObject(app)
         }
+        .sheet(isPresented: $showingProfileEditor) {
+            NavigationStack {
+                ProfileEditorView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { showingProfileEditor = false }
+                        }
+                    }
+            }
+            .environmentObject(app)
+        }
     }
 
     private func saveHub() {
@@ -96,6 +135,18 @@ struct SettingsView: View {
             Task {
                 try? await Task.sleep(nanoseconds: 1_500_000_000)
                 await MainActor.run { saved = false }
+            }
+        }
+    }
+
+    private func saveER() {
+        let trimmed = erInput.trimmingCharacters(in: .whitespaces)
+        if let url = URL(string: trimmed), url.scheme == "http" || url.scheme == "https" {
+            app.erBaseURL = url
+            savedER = true
+            Task {
+                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                await MainActor.run { savedER = false }
             }
         }
     }

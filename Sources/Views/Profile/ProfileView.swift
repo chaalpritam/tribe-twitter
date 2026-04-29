@@ -5,6 +5,7 @@ struct ProfileView: View {
     @State private var user: User?
     @State private var tweets: [Tweet] = []
     @State private var karma: KarmaSummary?
+    @State private var erProfile: ERProfile?
     @State private var loading = true
     @State private var showingWallet = false
     @State private var showingSettings = false
@@ -115,8 +116,8 @@ struct ProfileView: View {
             }
 
             HStack(spacing: 22) {
-                Stat(label: "Following", value: "\(user?.followingCount ?? 0)")
-                Stat(label: "Followers", value: "\(user?.followersCount ?? 0)")
+                Stat(label: "Following", value: "\(erProfile?.followingCount ?? user?.followingCount ?? 0)")
+                Stat(label: "Followers", value: "\(erProfile?.followersCount ?? user?.followersCount ?? 0)")
                 if let k = karma {
                     Stat(label: "Karma · L\(k.level)", value: "\(k.total)")
                 }
@@ -152,9 +153,11 @@ struct ProfileView: View {
         async let userTask = try? app.api.fetchUser(tid)
         async let tweetsTask = try? app.api.fetchTweets(tid: tid)
         async let karmaTask = try? app.api.fetchKarma(tid)
+        async let erTask = try? app.er.profile(tid)
         self.user = await userTask
         self.tweets = (await tweetsTask) ?? []
         self.karma = (await karmaTask) ?? nil
+        self.erProfile = (await erTask) ?? nil
         loading = false
     }
 }
