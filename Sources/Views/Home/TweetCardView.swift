@@ -3,6 +3,14 @@ import SwiftUI
 struct TweetCardView: View {
     @EnvironmentObject private var app: AppState
     let tweet: Tweet
+    var onReplyTap: (() -> Void)? = nil
+    var onDeleted: (() -> Void)? = nil
+
+    @State private var liked = false
+    @State private var bookmarked = false
+    @State private var pendingAction = false
+    @State private var error: String?
+    @State private var presentingReply = false
 
     private var displayName: String {
         if let u = tweet.username { return "\(u).tribe" }
@@ -12,6 +20,11 @@ struct TweetCardView: View {
     private var initial: String {
         if let u = tweet.username, let first = u.first { return String(first).uppercased() }
         return String(tweet.tid.prefix(1))
+    }
+
+    private var isOwnTweet: Bool {
+        guard let myTID = app.myTID else { return false }
+        return tweet.tid == myTID
     }
 
     var body: some View {
@@ -26,7 +39,20 @@ struct TweetCardView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                if let channel = tweet.channelId {
+                if isOwnTweet {
+                    Menu {
+                        Button(role: .destructive) {
+                            Task { await deleteTweet() }
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .foregroundStyle(.secondary)
+                            .frame(width: 32, height: 32)
+                            .contentShape(Rectangle())
+                    }
+                } else if let channel = tweet.channelId {
                     Text("#\(channel)")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
@@ -46,9 +72,20 @@ struct TweetCardView: View {
                 embedGrid(imageURLs)
             }
 
+            if let error {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
             actionRow
         }
         .padding(.vertical, 6)
+        .sheet(isPresented: $presentingReply) {
+            ComposeTweetView(parentHash: tweet.hash)
+                .presentationDetents([.medium, .large])
+                .environmentObject(app)
+        }
     }
 
     private func embedImageURLs() -> [URL]? {
@@ -83,23 +120,97 @@ struct TweetCardView: View {
 
     private var actionRow: some View {
         HStack(spacing: 28) {
-            actionIcon("bubble.left", count: tweet.replyCount)
-            actionIcon("arrow.2.squarepath", count: nil)
-            actionIcon("heart", count: nil)
-            actionIcon("bookmark", count: nil)
+            actionButton(symbol: "bubble.left", count: tweet.replyCount, active: false) {
+                presentingReply = true
+            }
+            actionButton(
+                symbol: liked ? "heart.fill" : "heart",
+                count: nil,
+                active: liked,
+                activeTint: .pink
+            ) {
+                Task { await toggleLike() }
+            }
+            actionButton(
+                symbol: bookmarked ? "bookmark.fill" : "bookmark",
+                count: nil,
+                active: bookmarked,
+                activeTint: .blue
+            ) {
+                Task { await toggleBookmark() }
+            }
             Spacer()
-            actionIcon("dollarsign.circle", count: nil)
         }
         .foregroundStyle(.secondary)
     }
 
-    private func actionIcon(_ symbol: String, count: Int?) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: symbol)
-                .font(.subheadline)
-            if let n = count, n > 0 {
-                Text("\(n)").font(.caption)
+    private func actionButton(
+        symbol: String,
+        count: Int?,
+        active: Bool,
+        activeTint: Color = .accentColor,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: symbol)
+                    .font(.subheadline)
+                if let n = count, n > 0 {
+                    Text("\(n)").font(.caption)
+                }
             }
+            .foregroundStyle(active ? activeTint : .secondary)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(pendingAction || app.appKey == nil || app.myTID == nil)
+    }
+
+    // MARK: - Actions
+
+    private func toggleLike() async {
+        guard let key = app.appKey, let tid = app.myTID else { return }
+        let wasLiked = liked
+        liked.toggle()
+        pendingAction = true
+        defer { pendingAction = false }
+        do {
+            if wasLiked {
+                try await app.api.unlikeTweet(hash: tweet.hash, as: key, tid: tid)
+            } else {
+                try await app.api.likeTweet(hash: tweet.hash, as: key, tid: tid)
+            }
+            error = nil
+        } catch {
+            liked = wasLiked
+            self.error = "Like failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func toggleBookmark() async {
+        guard let key = app.appKey, let tid = app.myTID else { return }
+        let wasBookmarked = bookmarked
+        bookmarked.toggle()
+        pendingAction = true
+        defer { pendingAction = false }
+        do {
+            try await app.api.bookmark(hash: tweet.hash, as: key, tid: tid, add: !wasBookmarked)
+            error = nil
+        } catch {
+            bookmarked = wasBookmarked
+            self.error = "Bookmark failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func deleteTweet() async {
+        guard let key = app.appKey, let tid = app.myTID, isOwnTweet else { return }
+        pendingAction = true
+        defer { pendingAction = false }
+        do {
+            try await app.api.deleteTweet(hash: tweet.hash, as: key, tid: tid)
+            onDeleted?()
+        } catch {
+            self.error = "Delete failed: \(error.localizedDescription)"
         }
     }
 }
