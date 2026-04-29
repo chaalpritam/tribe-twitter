@@ -35,7 +35,10 @@ public extension HubClient {
     // MARK: - Convenience builders
 
     /// Publish a tweet. Optional reply parent hash and channel id
-    /// match what the existing tribe-app composer sends.
+    /// match what the existing tribe-app composer sends. The hub
+    /// requires every TWEET_ADD to carry a channel_id; when the
+    /// caller doesn't have one, fall back to the reserved "general"
+    /// channel, which is what tribe-app's composer does.
     @discardableResult
     func publishTweet(
         text: String,
@@ -45,9 +48,11 @@ public extension HubClient {
         channelId: String? = nil,
         embeds: [String]? = nil
     ) async throws -> String {
-        var body: [String: Any] = ["text": text]
+        var body: [String: Any] = [
+            "text": text,
+            "channel_id": channelId ?? "general",
+        ]
         if let parentHash { body["parent_hash"] = parentHash }
-        if let channelId { body["channel_id"] = channelId }
         if let embeds, !embeds.isEmpty { body["embeds"] = embeds }
         let envelope = try MessageSigner.sign(
             type: MessageType.tweetAdd.rawValue,
