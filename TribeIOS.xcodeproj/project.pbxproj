@@ -22,6 +22,7 @@
 		1D3D205562E37CA1C3638EAA /* EventsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94D28C4EAD28DE3FF3195B5E /* EventsView.swift */; };
 		1F82873AB9093725E2A804E7 /* MessagesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF5A2E260B8FEBBE09E77D0F /* MessagesView.swift */; };
 		23AE1ECF321696F49E63F0E4 /* NotificationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 073AD48D32B1E26B2B64ED79 /* NotificationsView.swift */; };
+		26915A2D2C5C8725B8800FB4 /* ChannelFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5583141E953AC137F804E52 /* ChannelFeedView.swift */; };
 		2745E729A22A44E3712B9DC9 /* TribeColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD2A525C39B064F9AC8C727 /* TribeColors.swift */; };
 		2796E7D3A341F6D6B71E0499 /* PollsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63132C30320F42B2BF55E59 /* PollsView.swift */; };
 		299A987AF92EE450AC8CC252 /* ChannelMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3E95B8DBC898485EBE8B641 /* ChannelMapView.swift */; };
@@ -63,6 +64,7 @@
 		CD78F7E69049146C337190BB /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92277EC005CE1E6E1ECFE932 /* EmptyStateView.swift */; };
 		CEEDF60BBB1DF987E0D34486 /* InteractionReads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5A550964EAD0AAD5AF588F /* InteractionReads.swift */; };
 		D21F3B662F0936785B4258F8 /* InteractionCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9079DDA3342BC33B65D252BF /* InteractionCache.swift */; };
+		D495EA20D0C072BB735100B0 /* TweetDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADF5FD4422513C609DB03B7 /* TweetDetailView.swift */; };
 		E2368A2BC5743D70F2F820CE /* CrowdfundsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFAB23A3DE2D3E2C535CCD0A /* CrowdfundsView.swift */; };
 		E2AA337F2E8CE0533E581D35 /* Crowdfund.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4109E10DB52F71E507369D00 /* Crowdfund.swift */; };
 		E505F8C592C502F8B6E960CE /* TribesHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A88C3D0603D7BDBF06520B87 /* TribesHubView.swift */; };
@@ -92,6 +94,7 @@
 		3DF7E176BDCE10D02CD1008F /* HomeFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeFeedView.swift; sourceTree = "<group>"; };
 		4109E10DB52F71E507369D00 /* Crowdfund.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crowdfund.swift; sourceTree = "<group>"; };
 		41D56B0655BDA4B69453E57B /* Slug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Slug.swift; sourceTree = "<group>"; };
+		4ADF5FD4422513C609DB03B7 /* TweetDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweetDetailView.swift; sourceTree = "<group>"; };
 		4B8FF023E04DF24B14D0EF14 /* DM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DM.swift; sourceTree = "<group>"; };
 		4F05F4485F6FF70CE139A633 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		5318951F43F3AE819F82C4A8 /* RelativeTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelativeTime.swift; sourceTree = "<group>"; };
@@ -114,6 +117,7 @@
 		A096FEE4A66995A887689B88 /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		A31ECED4767F2016DEE9D773 /* NewDMSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewDMSheet.swift; sourceTree = "<group>"; };
 		A47E77BBB5609B5912398F2D /* Tweet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tweet.swift; sourceTree = "<group>"; };
+		A5583141E953AC137F804E52 /* ChannelFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelFeedView.swift; sourceTree = "<group>"; };
 		A784FA6FFFD6D2909A50596B /* NaClBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaClBox.swift; sourceTree = "<group>"; };
 		A88C3D0603D7BDBF06520B87 /* TribesHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TribesHubView.swift; sourceTree = "<group>"; };
 		A9D95ACEA95C61B37375627F /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
@@ -211,6 +215,7 @@
 		3C6B731E7D662B4E52138127 /* Channels */ = {
 			isa = PBXGroup;
 			children = (
+				A5583141E953AC137F804E52 /* ChannelFeedView.swift */,
 				D3E95B8DBC898485EBE8B641 /* ChannelMapView.swift */,
 				69FE6A5ED5902269A7D4AF40 /* ChannelsView.swift */,
 				FF2C916752EC568DA8B523C8 /* CreateChannelSheet.swift */,
@@ -397,6 +402,7 @@
 			children = (
 				3DF7E176BDCE10D02CD1008F /* HomeFeedView.swift */,
 				CDE2890C2C72DA40FCFFFC5A /* TweetCardView.swift */,
+				4ADF5FD4422513C609DB03B7 /* TweetDetailView.swift */,
 			);
 			path = Home;
 			sourceTree = "<group>";
@@ -503,6 +509,7 @@
 				A7BF24787B2293F89CD3B7DB /* AvatarView.swift in Sources */,
 				09353AC83AAC4205DE95399B /* Blake3.swift in Sources */,
 				07BE494413E0A7398EC351DA /* Channel.swift in Sources */,
+				26915A2D2C5C8725B8800FB4 /* ChannelFeedView.swift in Sources */,
 				299A987AF92EE450AC8CC252 /* ChannelMapView.swift in Sources */,
 				CCD37BACA5F162929930A2B8 /* ChannelsView.swift in Sources */,
 				169DF833F63B7EACCD98BC60 /* ComposeTweetView.swift in Sources */,
@@ -559,6 +566,7 @@
 				E505F8C592C502F8B6E960CE /* TribesHubView.swift in Sources */,
 				A15EAA8BB94BCD3950990A53 /* Tweet.swift in Sources */,
 				CBA9642F0B9EC422CEDDAC85 /* TweetCardView.swift in Sources */,
+				D495EA20D0C072BB735100B0 /* TweetDetailView.swift in Sources */,
 				3EDD2B053F6AE8D1385ED7F1 /* User.swift in Sources */,
 				0E7D72785B3D134FB52205E7 /* WalletView.swift in Sources */,
 			);

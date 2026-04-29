@@ -33,8 +33,13 @@ struct HomeFeedView: View {
                 )
             } else {
                 List(tweets) { tweet in
-                    TweetCardView(tweet: tweet)
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                    NavigationLink {
+                        TweetDetailView(tweet: tweet)
+                    } label: {
+                        TweetCardView(tweet: tweet)
+                    }
+                    .buttonStyle(.plain)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 }
                 .listStyle(.plain)
             }

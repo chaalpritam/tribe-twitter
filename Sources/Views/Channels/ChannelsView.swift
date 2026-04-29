@@ -28,7 +28,11 @@ struct ChannelsView: View {
                 )
             } else {
                 List(channels) { channel in
-                    ChannelRow(channel: channel)
+                    NavigationLink {
+                        ChannelFeedView(channel: channel)
+                    } label: {
+                        ChannelRow(channel: channel)
+                    }
                 }
                 .listStyle(.insetGrouped)
             }

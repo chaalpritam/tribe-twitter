@@ -15,31 +15,35 @@ iPhone-only, portrait-only mobile app. iPad and landscape layouts are intentiona
 | Onboarding (Welcome → Configure Hub → Import / Create identity) | — | ✅ |
 | Home feed | ✅ | Compose tweet, reply, delete |
 | Tweet card | ✅ | Like, unlike, bookmark, unbookmark, reply, delete (own) |
-| Explore (people) | ✅ | — |
+| Tweet detail (replies thread) | ✅ | — |
+| Explore (people) | ✅ | Live follow status (read-only — see below) |
 | Search (cross-primitive) | ✅ | — |
-| Tribes → Channels | ✅ | — |
-| Tribes → Polls | ✅ | Vote |
-| Tribes → Events | ✅ | RSVP yes / maybe / no |
-| Tribes → Tasks | ✅ | Claim, complete |
-| Tribes → Crowdfunds | ✅ | Pledge (off-chain envelope) |
-| Activity (notifications) | ✅ | — |
-| Profile | ✅ | — |
+| Tribes → Channels | ✅ | Create channel (interest / city), open channel feed |
+| Tribes → Map | ✅ | — (city channels + located events on MapKit) |
+| Tribes → Polls | ✅ | Create poll, vote |
+| Tribes → Events | ✅ | Create event, RSVP yes / maybe / no |
+| Tribes → Tasks | ✅ | Create task, claim, complete |
+| Tribes → Crowdfunds | ✅ | Create crowdfund, pledge (off-chain envelope) |
+| Activity (notifications, sheet from Home bell) | ✅ | — |
+| Messages (1:1 DMs, NaCl-box encrypted) | ✅ | DM_KEY_REGISTER, DM_SEND |
+| Profile | ✅ | Edit profile (displayName / bio / pfpUrl / location / url) |
 | Wallet → Receive | ✅ | QR + copy |
 | Wallet → Send | — | Off-chain TIP_ADD envelope |
 | Wallet → Activity | ✅ | — |
-| Settings | ✅ | Switch hub, view app key, sign out |
+| Settings | ✅ | Switch hub, switch ER server, view app key, sign out |
 
-Every write builds a signed envelope locally — BLAKE3 hashing (pure-Swift port of the reference implementation, with self-test vectors that run at launch) and ed25519 signing via Apple CryptoKit's `Curve25519`. The seed lives in the iOS Keychain (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`); UserDefaults only stores the hub URL and the public TID number.
+Every write builds a signed envelope locally — BLAKE3 hashing (pure-Swift port of the reference implementation, with self-test vectors that run at launch) and ed25519 signing via Apple CryptoKit's `Curve25519`. The seed lives in the iOS Keychain (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`); UserDefaults only stores the hub URL, the ER server URL, and the public TID number.
+
+DMs use a separate x25519 keypair (also in the Keychain) plus a pure-Swift port of `nacl.box` (Salsa20 core, XSalsa20 stream, Poly1305 MAC) so ciphertext written here is byte-compatible with what tweetnacl produces in tribe-app. `NaClBox.selfTest()` round-trips at launch.
 
 **Still stubbed:**
 
 | Capability | Why |
 |---|---|
 | Register a fresh TID on Solana | The on-chain `tid-registry` program needs a Solana mobile / WalletConnect provider on iOS. Workaround today: register on tribe-app, then import the TID + app-key via the iOS onboarding flow. |
-| On-chain tip settlement | Same — `tip-registry` program calls need the wallet-adapter integration. The off-chain TIP_ADD envelope works and shows up in notifications + karma; no `tx_signature` yet. |
+| Follow / unfollow writes | The ER sequencer's `/v1/follow` requires a signature from the user's Solana custody key, which the iOS app doesn't hold. Read-only follow state still surfaces from the ER server (Follow / Following / Pending labels). The button on tap explains the limitation and points the user at tribe-app on web. |
+| On-chain tip settlement | `tip-registry` program calls need the wallet-adapter integration. The off-chain TIP_ADD envelope works and shows up in notifications + karma; no `tx_signature` yet. |
 | On-chain crowdfund settlement | Same. |
-| Direct messages | x25519 + NaCl-box encryption needs porting from tribe-app's `lib/crypto.ts`. CryptoKit has Curve25519 KeyAgreement but not the XSalsa20-Poly1305 used by tweetnacl. |
-| Map (city-anchored content) | UI placeholder — channel kind = 2 (city) needs surfacing in the Tribes section. |
 
 ## Requirements
 
@@ -80,32 +84,47 @@ TribeIOS/                            Xcode app target
   Assets.xcassets                    AccentColor (black) + AppIcon
 
 Sources/
-  Config.swift                       defaultHubURL + Solana cluster
-  AppState.swift                     persisted hub URL + TID + shared HubClient
+  Config.swift                       defaultHubURL + defaultERURL + Solana cluster
+  State/
+    AppState.swift                   persisted hub URL + TID + shared HubClient + ERClient + DMKey
+    InteractionCache.swift           session-scoped like / bookmark sets
 
   API/
     HubClient.swift                  URLSession + JSONDecoder wrapper
     Endpoints.swift                  read paths matching tribe-app/src/lib/api.ts
+    Publish.swift                    every signed-envelope write path
+    InteractionReads.swift           per-user "have I liked / bookmarked X" helpers
+    ERClient.swift                   ephemeral-rollup follow status reads
+
+  Crypto/
+    AppKey.swift                     ed25519 signing key (CryptoKit Curve25519)
+    Blake3.swift                     pure-Swift Blake3 port + self-test
+    DMKey.swift                      x25519 DM keypair (Keychain-backed)
+    NaClBox.swift                    Salsa20 + Poly1305 + nacl.box / box.open + self-test
+    Keychain.swift                   wrapper around SecItem
+    MessageSigner.swift              builds the canonical envelope JSON
 
   Models/
     Decoding.swift                   bigint / date / decimal / count helpers
-    Tweet, User, Channel, Poll, Event, TaskItem, Crowdfund, Tip, Notification, Karma
+    Tweet, User, Channel, Poll, Event, TaskItem, Crowdfund, Tip, Notification, Karma, DM
 
   Views/
     Shell/        RootView + BottomNavBar (tribeapp.wtf-style pill nav)
-    Home/         HomeFeedView + TweetCardView
-    Explore/      ExploreView (user list, opens Search sheet)
+    Home/         HomeFeedView + TweetCardView + TweetDetailView
+    Explore/      ExploreView (user list with FollowButton)
     Search/       SearchView (cross-primitive)
     Notifications/  NotificationsView (sheet from Home bell)
-    Channels/     TribesHubView + ChannelsView (Tribes tab parent)
-    Polls/        PollsView
-    Events/       EventsView (upcoming/all toggle)
-    Tasks/        TasksView (status filter chips)
-    Crowdfunds/   CrowdfundsView
-    Profile/      ProfileView (user + tweets + karma; opens Wallet/Settings)
+    Channels/     TribesHubView + ChannelsView + ChannelFeedView + ChannelMapView + CreateChannelSheet
+    Polls/        PollsView + CreatePollSheet
+    Events/       EventsView + CreateEventSheet
+    Tasks/        TasksView + CreateTaskSheet
+    Crowdfunds/   CrowdfundsView + CreateCrowdfundSheet
+    Messages/     MessagesView + DMThreadView + NewDMSheet
+    Profile/      ProfileView + ProfileEditorView (opens Wallet/Settings)
     Wallet/       WalletView + QRCodeView + ReceiveSheet
-    Settings/     Hub URL + TID
-    Common/       Card, AvatarView, PageHeader, EmptyStateView, RelativeTime, Pill, …
+    Settings/     Hub URL + ER URL + TID
+    Onboarding/   Welcome → Configure Hub → Pair / Import / Create identity
+    Common/       Card, AvatarView, FollowButton, EmptyStateView, RelativeTime, Pill, Slug, …
 ```
 
 ## Project file: xcodegen + committed `.xcodeproj`
@@ -133,8 +152,8 @@ git commit -m "chore: add tribe-ios submodule"
 ## What's next
 
 - Wrap the Solana on-chain helpers (TID register, follow/unfollow, on-chain tip) using a Solana mobile / WalletConnect provider. Until that lands, on-chain settlement is the only piece left for full feature parity with tribe-app.
-- Implement DM encryption (x25519 + NaCl box) — needs an XSalsa20-Poly1305 implementation since CryptoKit ships ChaCha20-Poly1305 but not the variant tweetnacl uses.
-- Map tab for city-anchored content (channel kind = 2) using MapKit.
+- Group DMs (DM_GROUP_CREATE / DM_GROUP_SEND). The 1:1 path is wired up; group fan-out encryption follows the same pattern (encrypt the same plaintext once per recipient with their x25519 pubkey).
+- Native iOS share sheet → quick-compose tweet from any other app.
 
 ## Crypto
 

@@ -82,9 +82,11 @@ struct ChannelMapView: View {
                 .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
                 .overlay(alignment: .bottom) {
                     if let selection {
-                        PinDetailCard(pin: selection) {
-                            self.selection = nil
-                        }
+                        PinDetailCard(
+                            pin: selection,
+                            channels: channels,
+                            onDismiss: { self.selection = nil }
+                        )
                         .padding(.horizontal, 16)
                         .padding(.bottom, 24)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -171,7 +173,13 @@ struct MapPinModel: Identifiable, Hashable {
 
 private struct PinDetailCard: View {
     let pin: MapPinModel
+    let channels: [Channel]
     var onDismiss: () -> Void
+
+    private var linkedChannel: Channel? {
+        guard let id = pin.channelId else { return nil }
+        return channels.first { $0.id == id }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -197,6 +205,26 @@ private struct PinDetailCard: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
+
+            if let channel = linkedChannel {
+                NavigationLink {
+                    ChannelFeedView(channel: channel)
+                } label: {
+                    HStack {
+                        Text("Open #\(channel.id)")
+                            .font(.subheadline.weight(.semibold))
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color(.tertiarySystemFill))
+                    )
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)

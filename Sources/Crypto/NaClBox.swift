@@ -347,7 +347,7 @@ enum NaClBox {
 
         for j in 0..<17 { g[j] = h[j] }
         // h += -p (mod 2^136), where -p = [5,0,...,0,252]
-        var minusp: [UInt32] = [
+        let minusp: [UInt32] = [
             5, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 252,
         ]
@@ -364,7 +364,6 @@ enum NaClBox {
         for j in 0..<17 {
             h[j] ^= mask & (g[j] ^ h[j])
         }
-        _ = minusp
 
         // Add the second 16 bytes of the key (the s in r||s).
         for j in 0..<16 {

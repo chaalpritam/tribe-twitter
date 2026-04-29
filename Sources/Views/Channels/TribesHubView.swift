@@ -70,18 +70,17 @@ struct TribesHubView: View {
 
     @ViewBuilder
     private var createSheet: some View {
-        let bumpRefresh = { refreshTick += 1 }
         switch section {
         case .channels:
-            CreateChannelSheet(onCreated: { _ in bumpRefresh() })
+            CreateChannelSheet(onCreated: { _ in refreshTick += 1 })
         case .polls:
-            CreatePollSheet(onCreated: bumpRefresh)
+            CreatePollSheet(onCreated: { refreshTick += 1 })
         case .events:
-            CreateEventSheet(onCreated: bumpRefresh)
+            CreateEventSheet(onCreated: { refreshTick += 1 })
         case .tasks:
-            CreateTaskSheet(onCreated: bumpRefresh)
+            CreateTaskSheet(onCreated: { refreshTick += 1 })
         case .crowdfunds:
-            CreateCrowdfundSheet(onCreated: bumpRefresh)
+            CreateCrowdfundSheet(onCreated: { refreshTick += 1 })
         case .map:
             EmptyView()
         }
