@@ -4,7 +4,7 @@ import Foundation
 /// network goes through `POST /v1/submit` carrying a signed envelope.
 /// Wallet-style on-chain transactions (Solana TID register, on-chain
 /// tip) need a separate Solana wallet flow that isn't wired up yet.
-public extension HubClient {
+extension HubClient {
     /// POST a signed envelope to /v1/submit. Returns the new content
     /// hash the hub assigned (base64). Throws `HubError.statusCode`
     /// with the hub's error body on rejection.
