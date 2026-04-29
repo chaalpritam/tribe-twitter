@@ -29,5 +29,3 @@ targets:
         SWIFT_EMIT_LOC_STRINGS: YES
         ENABLE_PREVIEWS: YES
         SUPPORTS_MACCATALYST: NO
-    info:
-      path: TribeIOS/Info.plist
