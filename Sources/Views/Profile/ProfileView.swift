@@ -10,21 +10,45 @@ struct ProfileView: View {
     @State private var showingSettings = false
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                if let tid = app.myTID {
-                    profileBody(tid: tid)
-                } else {
-                    EmptyStateView(
-                        symbol: "person.crop.circle",
-                        title: "No TID set",
-                        message: "Open Settings and enter your TID to see your profile, karma, and tweets."
-                    )
-                    .padding(.top, 60)
+        Group {
+            if let tid = app.myTID {
+                List {
+                    Section {
+                        identityCard(tid: tid)
+                            .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    }
+
+                    if loading && tweets.isEmpty {
+                        Section("Tweets") {
+                            ForEach(0..<2, id: \.self) { _ in
+                                TweetSkeletonRow()
+                            }
+                        }
+                    } else if tweets.isEmpty {
+                        Section("Tweets") {
+                            Text("No tweets yet.")
+                                .font(.subheadline)
+                                .foregroundStyle(.tertiary)
+                        }
+                    } else {
+                        Section("Tweets") {
+                            ForEach(tweets) { tweet in
+                                TweetCardView(tweet: tweet)
+                            }
+                        }
+                    }
                 }
+                .listStyle(.insetGrouped)
+            } else {
+                EmptyStateView(
+                    symbol: "person.crop.circle",
+                    title: "No TID set",
+                    message: "Open Settings and enter your TID to see your profile, karma, and tweets."
+                )
             }
         }
-        .background(TribeColor.pageBackground)
         .navigationTitle("Profile")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -70,77 +94,46 @@ struct ProfileView: View {
         }
     }
 
-    @ViewBuilder
-    private func profileBody(tid: String) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Card {
-                VStack(alignment: .leading, spacing: 14) {
-                    HStack(spacing: 14) {
-                        AvatarView(initial: user?.initial ?? String(tid.prefix(1)), size: 60)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(user?.displayName ?? "TID #\(tid)")
-                                .font(.title2.weight(.semibold))
-                            if let address = user?.custodyAddress {
-                                Text(short(address))
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        Spacer()
-                    }
-
-                    HStack(spacing: 22) {
-                        Stat(label: "Following", value: "\(user?.followingCount ?? 0)")
-                        Stat(label: "Followers", value: "\(user?.followersCount ?? 0)")
-                        if let k = karma {
-                            Stat(label: "Karma · L\(k.level)", value: "\(k.total)")
-                        }
-                    }
-
-                    if let bio = user?.profile?.bio, !bio.isEmpty {
-                        Text(bio)
+    private func identityCard(tid: String) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 14) {
+                AvatarView(initial: user?.initial ?? String(tid.prefix(1)), size: 64)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(user?.displayName ?? "TID #\(tid)")
+                        .font(.title2.weight(.semibold))
+                    if let address = user?.custodyAddress {
+                        Text(short(address))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("TID #\(tid)")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
                 }
-            }
-            .padding(.horizontal, 16)
-
-            HStack {
-                Text("Tweets")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
                 Spacer()
             }
-            .padding(.horizontal, 22)
-            .padding(.top, 6)
 
-            if loading {
-                ForEach(0..<2, id: \.self) { _ in
-                    Card {
-                        VStack(alignment: .leading, spacing: 8) {
-                            RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(maxWidth: .infinity).frame(height: 12)
-                            RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 200, height: 12)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                }
-            } else if tweets.isEmpty {
-                Text("No tweets yet.")
-                    .font(.subheadline)
-                    .foregroundStyle(.tertiary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
-            } else {
-                VStack(spacing: 12) {
-                    ForEach(tweets) { tweet in
-                        TweetCardView(tweet: tweet).padding(.horizontal, 16)
-                    }
+            HStack(spacing: 22) {
+                Stat(label: "Following", value: "\(user?.followingCount ?? 0)")
+                Stat(label: "Followers", value: "\(user?.followersCount ?? 0)")
+                if let k = karma {
+                    Stat(label: "Karma · L\(k.level)", value: "\(k.total)")
                 }
             }
+
+            if let bio = user?.profile?.bio, !bio.isEmpty {
+                Text(bio)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
-        .padding(.vertical, 8)
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
     }
 
     private func short(_ s: String) -> String {
@@ -177,5 +170,16 @@ private struct Stat: View {
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.secondary)
         }
+    }
+}
+
+private struct TweetSkeletonRow: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(maxWidth: .infinity).frame(height: 12)
+            RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 200, height: 12)
+        }
+        .padding(.vertical, 4)
+        .redacted(reason: .placeholder)
     }
 }
