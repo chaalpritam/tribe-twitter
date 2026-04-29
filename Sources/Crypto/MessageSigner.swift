@@ -98,12 +98,24 @@ enum MessageType: Int {
     case reactionAdd = 3
     case reactionRemove = 4
     case userDataAdd = 7
+    case channelAdd = 9
+    case channelJoin = 10
+    case channelLeave = 11
+    case dmKeyRegister = 12
+    case dmSend = 13
     case bookmarkAdd = 14
     case bookmarkRemove = 15
+    case pollAdd = 16
     case pollVote = 17
+    case eventAdd = 18
     case eventRSVP = 19
+    case taskAdd = 20
     case taskClaim = 21
     case taskComplete = 22
+    case crowdfundAdd = 23
     case crowdfundPledge = 24
     case tipAdd = 25
+    case dmGroupCreate = 26
+    case dmGroupSend = 27
+    case dmRead = 28
 }

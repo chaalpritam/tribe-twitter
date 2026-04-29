@@ -26,12 +26,16 @@
 		37C777E5813FD800E612FFE9 /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D95ACEA95C61B37375627F /* OnboardingFlow.swift */; };
 		3A6DEDB1980C2F7BB35BD2D4 /* PairFromDesktopView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C0AD95A073D57A334FD849 /* PairFromDesktopView.swift */; };
 		3EDD2B053F6AE8D1385ED7F1 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57C8E03FF2B34F1012414A80 /* User.swift */; };
+		4D00178FB94E5228ED9DE693 /* CreateChannelSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2C916752EC568DA8B523C8 /* CreateChannelSheet.swift */; };
 		533A09BE2495EF5B5DDCBC95 /* QRCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B868C6072E1DA00FBC6624F /* QRCodeView.swift */; };
 		56D6D7AB4E87DA43505CD611 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C3B6141F56126AE089BF4D /* Keychain.swift */; };
 		58626016C53DC79B7A0C3EE3 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9376976CC0A1932FB06560 /* Config.swift */; };
+		5897DDC2E40088CF4AC95207 /* CreateTaskSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE58FAA8CAE49D8076851FB1 /* CreateTaskSheet.swift */; };
 		6DD36106971F4999D743B256 /* HomeFeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF7E176BDCE10D02CD1008F /* HomeFeedView.swift */; };
 		713770619D7FC2CD4547615F /* HubClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D67483EEA0DDC81F426E07 /* HubClient.swift */; };
 		72C17593A75872F7CA3651EF /* Publish.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0970F0A5C412F7668FF5E8B6 /* Publish.swift */; };
+		775E0D19FC585A8D7A8FA367 /* CreatePollSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C40371549BD48A16ABC6F07 /* CreatePollSheet.swift */; };
+		79ACB4A6FF5E8F2CECCD08C5 /* Slug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D56B0655BDA4B69453E57B /* Slug.swift */; };
 		8437CBF8565D3E056BD7B743 /* TribeIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8398D1268391B6F311E823CE /* TribeIOSApp.swift */; };
 		8B0B7CC778DA7B462F038A69 /* RelativeTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5318951F43F3AE819F82C4A8 /* RelativeTime.swift */; };
 		958B0CDA8F7E1309C99D5ABF /* TasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5127EC451359DB6BAD38D6B /* TasksView.swift */; };
@@ -55,9 +59,11 @@
 		E2368A2BC5743D70F2F820CE /* CrowdfundsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFAB23A3DE2D3E2C535CCD0A /* CrowdfundsView.swift */; };
 		E2AA337F2E8CE0533E581D35 /* Crowdfund.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4109E10DB52F71E507369D00 /* Crowdfund.swift */; };
 		E505F8C592C502F8B6E960CE /* TribesHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A88C3D0603D7BDBF06520B87 /* TribesHubView.swift */; };
+		E594982ACEC54F06BE0BE6B8 /* CreateCrowdfundSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA60A4FC2FF600F459C56FD8 /* CreateCrowdfundSheet.swift */; };
 		E61797F964B1975651F9F576 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D422B604A75747DAF5FE76A /* RootView.swift */; };
 		EFD6BC65FC43B81C8FEF9A3E /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13A3A37FAA4984A1EB9B1EAC /* Notification.swift */; };
 		F215E6B681F1F6EF60039593 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B711AF2803F4AFA0B9EDAA3F /* SearchView.swift */; };
+		F5545D7CBC93702D43884BA2 /* CreateEventSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 690C871CA0E94B5C5C084C97 /* CreateEventSheet.swift */; };
 		FB7318C2D0E67F6390B1D17A /* Karma.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6092E5CE3E4555A9ED18863 /* Karma.swift */; };
 /* End PBXBuildFile section */
 
@@ -68,6 +74,7 @@
 		09A8248E5AD9F1420848EDBA /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		0EBADF3A3BEFEAD22D576F12 /* Endpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoints.swift; sourceTree = "<group>"; };
 		13A3A37FAA4984A1EB9B1EAC /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
+		1C40371549BD48A16ABC6F07 /* CreatePollSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreatePollSheet.swift; sourceTree = "<group>"; };
 		23BEDDEC2EF40CAEF9B437A1 /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		2B868C6072E1DA00FBC6624F /* QRCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeView.swift; sourceTree = "<group>"; };
 		2FBBD0964179A4D7E7921CC8 /* Blake3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Blake3.swift; sourceTree = "<group>"; };
@@ -75,10 +82,12 @@
 		3C6F939BEBA1914F7D4C3EB5 /* FollowButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowButton.swift; sourceTree = "<group>"; };
 		3DF7E176BDCE10D02CD1008F /* HomeFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeFeedView.swift; sourceTree = "<group>"; };
 		4109E10DB52F71E507369D00 /* Crowdfund.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crowdfund.swift; sourceTree = "<group>"; };
+		41D56B0655BDA4B69453E57B /* Slug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Slug.swift; sourceTree = "<group>"; };
 		4F05F4485F6FF70CE139A633 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		5318951F43F3AE819F82C4A8 /* RelativeTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelativeTime.swift; sourceTree = "<group>"; };
 		57C8E03FF2B34F1012414A80 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		5D422B604A75747DAF5FE76A /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		690C871CA0E94B5C5C084C97 /* CreateEventSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateEventSheet.swift; sourceTree = "<group>"; };
 		69FE6A5ED5902269A7D4AF40 /* ChannelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelsView.swift; sourceTree = "<group>"; };
 		7900DA744B0356B07AE49BEF /* ERClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ERClient.swift; sourceTree = "<group>"; };
 		8328AA08EE6A950A553A2F56 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
@@ -96,12 +105,14 @@
 		A47E77BBB5609B5912398F2D /* Tweet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tweet.swift; sourceTree = "<group>"; };
 		A88C3D0603D7BDBF06520B87 /* TribesHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TribesHubView.swift; sourceTree = "<group>"; };
 		A9D95ACEA95C61B37375627F /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
+		AA60A4FC2FF600F459C56FD8 /* CreateCrowdfundSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCrowdfundSheet.swift; sourceTree = "<group>"; };
 		B711AF2803F4AFA0B9EDAA3F /* SearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchView.swift; sourceTree = "<group>"; };
 		B97AD4934032892393B9155F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B9C0AD95A073D57A334FD849 /* PairFromDesktopView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairFromDesktopView.swift; sourceTree = "<group>"; };
 		C0D67483EEA0DDC81F426E07 /* HubClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubClient.swift; sourceTree = "<group>"; };
 		C5127EC451359DB6BAD38D6B /* TasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksView.swift; sourceTree = "<group>"; };
 		CDE2890C2C72DA40FCFFFC5A /* TweetCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweetCardView.swift; sourceTree = "<group>"; };
+		CE58FAA8CAE49D8076851FB1 /* CreateTaskSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTaskSheet.swift; sourceTree = "<group>"; };
 		CFAB23A3DE2D3E2C535CCD0A /* CrowdfundsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrowdfundsView.swift; sourceTree = "<group>"; };
 		D0C3B6141F56126AE089BF4D /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		D253657D78BBF3E902095116 /* Tip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tip.swift; sourceTree = "<group>"; };
@@ -116,6 +127,7 @@
 		F6092E5CE3E4555A9ED18863 /* Karma.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Karma.swift; sourceTree = "<group>"; };
 		FC2A95741FA0580E9F08C53F /* ProfileEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorView.swift; sourceTree = "<group>"; };
 		FDD2A525C39B064F9AC8C727 /* TribeColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TribeColors.swift; sourceTree = "<group>"; };
+		FF2C916752EC568DA8B523C8 /* CreateChannelSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateChannelSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -176,6 +188,7 @@
 			isa = PBXGroup;
 			children = (
 				69FE6A5ED5902269A7D4AF40 /* ChannelsView.swift */,
+				FF2C916752EC568DA8B523C8 /* CreateChannelSheet.swift */,
 				A88C3D0603D7BDBF06520B87 /* TribesHubView.swift */,
 			);
 			path = Channels;
@@ -203,6 +216,7 @@
 		6855637D33F4863B66D855F6 /* Events */ = {
 			isa = PBXGroup;
 			children = (
+				690C871CA0E94B5C5C084C97 /* CreateEventSheet.swift */,
 				94D28C4EAD28DE3FF3195B5E /* EventsView.swift */,
 			);
 			path = Events;
@@ -244,6 +258,7 @@
 		88E49998BB6244422D2C2E43 /* Polls */ = {
 			isa = PBXGroup;
 			children = (
+				1C40371549BD48A16ABC6F07 /* CreatePollSheet.swift */,
 				D63132C30320F42B2BF55E59 /* PollsView.swift */,
 			);
 			path = Polls;
@@ -269,6 +284,7 @@
 		9887FCEC3FED928F62026A36 /* Crowdfunds */ = {
 			isa = PBXGroup;
 			children = (
+				AA60A4FC2FF600F459C56FD8 /* CreateCrowdfundSheet.swift */,
 				CFAB23A3DE2D3E2C535CCD0A /* CrowdfundsView.swift */,
 			);
 			path = Crowdfunds;
@@ -295,6 +311,7 @@
 		A9E36B81DE4D82ACB7868A40 /* Tasks */ = {
 			isa = PBXGroup;
 			children = (
+				CE58FAA8CAE49D8076851FB1 /* CreateTaskSheet.swift */,
 				C5127EC451359DB6BAD38D6B /* TasksView.swift */,
 			);
 			path = Tasks;
@@ -331,6 +348,7 @@
 				92277EC005CE1E6E1ECFE932 /* EmptyStateView.swift */,
 				3C6F939BEBA1914F7D4C3EB5 /* FollowButton.swift */,
 				5318951F43F3AE819F82C4A8 /* RelativeTime.swift */,
+				41D56B0655BDA4B69453E57B /* Slug.swift */,
 				FDD2A525C39B064F9AC8C727 /* TribeColors.swift */,
 			);
 			path = Common;
@@ -459,6 +477,11 @@
 				CCD37BACA5F162929930A2B8 /* ChannelsView.swift in Sources */,
 				169DF833F63B7EACCD98BC60 /* ComposeTweetView.swift in Sources */,
 				58626016C53DC79B7A0C3EE3 /* Config.swift in Sources */,
+				4D00178FB94E5228ED9DE693 /* CreateChannelSheet.swift in Sources */,
+				E594982ACEC54F06BE0BE6B8 /* CreateCrowdfundSheet.swift in Sources */,
+				F5545D7CBC93702D43884BA2 /* CreateEventSheet.swift in Sources */,
+				775E0D19FC585A8D7A8FA367 /* CreatePollSheet.swift in Sources */,
+				5897DDC2E40088CF4AC95207 /* CreateTaskSheet.swift in Sources */,
 				E2AA337F2E8CE0533E581D35 /* Crowdfund.swift in Sources */,
 				E2368A2BC5743D70F2F820CE /* CrowdfundsView.swift in Sources */,
 				B499C5527FEED1ADB63E8E42 /* Decoding.swift in Sources */,
@@ -491,6 +514,7 @@
 				E61797F964B1975651F9F576 /* RootView.swift in Sources */,
 				F215E6B681F1F6EF60039593 /* SearchView.swift in Sources */,
 				B8F5B24B898568BC227DBE29 /* SettingsView.swift in Sources */,
+				79ACB4A6FF5E8F2CECCD08C5 /* Slug.swift in Sources */,
 				C971BB9B1FF1C15E8A61665D /* TaskItem.swift in Sources */,
 				958B0CDA8F7E1309C99D5ABF /* TasksView.swift in Sources */,
 				0DF09BEC04CC574FCC4A0BAE /* Tip.swift in Sources */,

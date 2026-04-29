@@ -1,10 +1,13 @@
 import SwiftUI
 
-/// Tribes tab. Five sub-sections (Channels, Polls, Events, Tasks,
-/// Crowdfunds) selected via a segmented Picker in the toolbar so the
-/// section switch reads as a system control.
+/// Tribes tab. Six sub-sections (Channels, Map, Polls, Events, Tasks,
+/// Crowdfunds) selected via a segmented Picker. The toolbar carries a
+/// "+" button whose sheet adapts to the active section so creating a
+/// new poll / event / task / channel / crowdfund only takes one tap.
 struct TribesHubView: View {
     @State private var section: Section = .channels
+    @State private var showingCreate = false
+    @State private var refreshTick = 0
 
     enum Section: String, CaseIterable, Identifiable {
         case channels, polls, events, tasks, crowdfunds
@@ -35,17 +38,47 @@ struct TribesHubView: View {
 
             Group {
                 switch section {
-                case .channels: ChannelsView()
-                case .polls: PollsView()
-                case .events: EventsView()
-                case .tasks: TasksView()
-                case .crowdfunds: CrowdfundsView()
+                case .channels: ChannelsView().id(refreshTick)
+                case .polls: PollsView().id(refreshTick)
+                case .events: EventsView().id(refreshTick)
+                case .tasks: TasksView().id(refreshTick)
+                case .crowdfunds: CrowdfundsView().id(refreshTick)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .background(TribeColor.pageBackground)
         .navigationTitle("Tribes")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingCreate = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .accessibilityLabel("New \(section.label.lowercased())")
+            }
+        }
+        .sheet(isPresented: $showingCreate) {
+            createSheet
+        }
+    }
+
+    @ViewBuilder
+    private var createSheet: some View {
+        let bumpRefresh = { refreshTick += 1 }
+        switch section {
+        case .channels:
+            CreateChannelSheet(onCreated: { _ in bumpRefresh() })
+        case .polls:
+            CreatePollSheet(onCreated: bumpRefresh)
+        case .events:
+            CreateEventSheet(onCreated: bumpRefresh)
+        case .tasks:
+            CreateTaskSheet(onCreated: bumpRefresh)
+        case .crowdfunds:
+            CreateCrowdfundSheet(onCreated: bumpRefresh)
+        }
     }
 }
 

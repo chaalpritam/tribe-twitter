@@ -238,6 +238,184 @@ extension HubClient {
         return try await submit(envelope: envelope)
     }
 
+    // MARK: - Channel / poll / event / task / crowdfund creation
+
+    /// Create a new channel. Hub validates `channelId` against
+    /// `^[a-z0-9-]{1,64}$`, rejects the reserved id "general", and
+    /// requires kind to be CITY (2) or INTEREST (3) — GENERAL (1) is
+    /// not user-creatable. lat/lng only persist for CITY.
+    @discardableResult
+    func createChannel(
+        channelId: String,
+        name: String,
+        description: String?,
+        kind: Int,
+        latitude: Double? = nil,
+        longitude: Double? = nil,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> String {
+        var body: [String: Any] = [
+            "channel_id": channelId,
+            "name": name,
+            "kind": kind,
+        ]
+        if let description, !description.isEmpty { body["description"] = description }
+        if kind == 2 {
+            if let latitude { body["latitude"] = latitude }
+            if let longitude { body["longitude"] = longitude }
+        }
+        let envelope = try MessageSigner.sign(
+            type: MessageType.channelAdd.rawValue,
+            tid: tid,
+            body: body,
+            appKey: appKey
+        )
+        return try await submit(envelope: envelope)
+    }
+
+    @discardableResult
+    func joinChannel(_ channelId: String, as appKey: AppKey, tid: String) async throws -> String {
+        let envelope = try MessageSigner.sign(
+            type: MessageType.channelJoin.rawValue,
+            tid: tid,
+            body: ["channel_id": channelId],
+            appKey: appKey
+        )
+        return try await submit(envelope: envelope)
+    }
+
+    @discardableResult
+    func leaveChannel(_ channelId: String, as appKey: AppKey, tid: String) async throws -> String {
+        let envelope = try MessageSigner.sign(
+            type: MessageType.channelLeave.rawValue,
+            tid: tid,
+            body: ["channel_id": channelId],
+            appKey: appKey
+        )
+        return try await submit(envelope: envelope)
+    }
+
+    @discardableResult
+    func createPoll(
+        pollId: String,
+        question: String,
+        options: [String],
+        expiresAt: Date?,
+        channelId: String?,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> String {
+        var body: [String: Any] = [
+            "poll_id": pollId,
+            "question": question,
+            "options": options,
+        ]
+        if let expiresAt { body["expires_at"] = Int(expiresAt.timeIntervalSince1970) }
+        if let channelId, !channelId.isEmpty { body["channel_id"] = channelId }
+        let envelope = try MessageSigner.sign(
+            type: MessageType.pollAdd.rawValue,
+            tid: tid,
+            body: body,
+            appKey: appKey
+        )
+        return try await submit(envelope: envelope)
+    }
+
+    @discardableResult
+    func createEvent(
+        eventId: String,
+        title: String,
+        description: String?,
+        startsAt: Date,
+        endsAt: Date?,
+        locationText: String?,
+        latitude: Double? = nil,
+        longitude: Double? = nil,
+        channelId: String?,
+        imageURL: String?,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> String {
+        var body: [String: Any] = [
+            "event_id": eventId,
+            "title": title,
+            "starts_at": Int(startsAt.timeIntervalSince1970),
+        ]
+        if let description, !description.isEmpty { body["description"] = description }
+        if let endsAt { body["ends_at"] = Int(endsAt.timeIntervalSince1970) }
+        if let locationText, !locationText.isEmpty { body["location_text"] = locationText }
+        if let latitude { body["latitude"] = latitude }
+        if let longitude { body["longitude"] = longitude }
+        if let channelId, !channelId.isEmpty { body["channel_id"] = channelId }
+        if let imageURL, !imageURL.isEmpty { body["image_url"] = imageURL }
+        let envelope = try MessageSigner.sign(
+            type: MessageType.eventAdd.rawValue,
+            tid: tid,
+            body: body,
+            appKey: appKey
+        )
+        return try await submit(envelope: envelope)
+    }
+
+    @discardableResult
+    func createTask(
+        taskId: String,
+        title: String,
+        description: String?,
+        rewardText: String?,
+        channelId: String?,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> String {
+        var body: [String: Any] = [
+            "task_id": taskId,
+            "title": title,
+        ]
+        if let description, !description.isEmpty { body["description"] = description }
+        if let rewardText, !rewardText.isEmpty { body["reward_text"] = rewardText }
+        if let channelId, !channelId.isEmpty { body["channel_id"] = channelId }
+        let envelope = try MessageSigner.sign(
+            type: MessageType.taskAdd.rawValue,
+            tid: tid,
+            body: body,
+            appKey: appKey
+        )
+        return try await submit(envelope: envelope)
+    }
+
+    @discardableResult
+    func createCrowdfund(
+        crowdfundId: String,
+        title: String,
+        description: String?,
+        goalAmount: Double,
+        currency: String?,
+        deadline: Date?,
+        imageURL: String?,
+        channelId: String?,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> String {
+        var body: [String: Any] = [
+            "crowdfund_id": crowdfundId,
+            "title": title,
+            "goal_amount": goalAmount,
+        ]
+        if let description, !description.isEmpty { body["description"] = description }
+        if let currency, !currency.isEmpty { body["currency"] = currency }
+        if let deadline { body["deadline_at"] = Int(deadline.timeIntervalSince1970) }
+        if let imageURL, !imageURL.isEmpty { body["image_url"] = imageURL }
+        if let channelId, !channelId.isEmpty { body["channel_id"] = channelId }
+        let envelope = try MessageSigner.sign(
+            type: MessageType.crowdfundAdd.rawValue,
+            tid: tid,
+            body: body,
+            appKey: appKey
+        )
+        return try await submit(envelope: envelope)
+    }
+
     /// Push a single profile field (USER_DATA_ADD type 7). Used by
     /// the Settings screen to update displayName / bio / pfpUrl.
     @discardableResult

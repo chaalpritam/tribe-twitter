@@ -40,5 +40,7 @@
     </dict>
     <key>NSCameraUsageDescription</key>
     <string>Tribe uses the camera to scan a sign-in QR shown by tribe-app on your desktop.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Tribe uses your location to anchor city channels and events to a place near you. Coordinates are only attached when you opt in on the create form.</string>
 </dict>
 </plist>
