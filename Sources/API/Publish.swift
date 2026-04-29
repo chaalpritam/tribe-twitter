@@ -238,6 +238,77 @@ extension HubClient {
         return try await submit(envelope: envelope)
     }
 
+    // MARK: - Direct messages
+
+    /// Register the user's x25519 public key with the hub so other
+    /// clients can encrypt DMs to this TID. Idempotent — overwrites
+    /// any previous key for the same TID. Posts to /v1/dm/register-key
+    /// rather than /v1/submit (the dedicated route validates the
+    /// envelope shape exactly the same way but writes to the
+    /// `dm_keys` table directly).
+    @discardableResult
+    func registerDMKey(
+        publicKey x25519Pub: Data,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> Data {
+        let envelope = try MessageSigner.sign(
+            type: MessageType.dmKeyRegister.rawValue,
+            tid: tid,
+            body: ["x25519_pubkey": x25519Pub.base64EncodedString()],
+            appKey: appKey
+        )
+        return try await postRaw(path: "v1/dm/register-key", envelope: envelope)
+    }
+
+    /// Send an encrypted DM. Caller is responsible for producing the
+    /// ciphertext (`nacl.box(plaintext, nonce, recipientPub, ourPriv)`)
+    /// and the matching 24-byte nonce.
+    @discardableResult
+    func sendDM(
+        recipientTID: String,
+        ciphertext: Data,
+        nonce: Data,
+        senderX25519: Data,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> Data {
+        let body: [String: Any] = [
+            "recipient_tid": recipientTID.numericIfFitsInt(),
+            "ciphertext": ciphertext.base64EncodedString(),
+            "nonce": nonce.base64EncodedString(),
+            "sender_x25519": senderX25519.base64EncodedString(),
+        ]
+        let envelope = try MessageSigner.sign(
+            type: MessageType.dmSend.rawValue,
+            tid: tid,
+            body: body,
+            appKey: appKey
+        )
+        return try await postRaw(path: "v1/dm/send", envelope: envelope)
+    }
+
+    /// Internal — POST a signed envelope to a non-/v1/submit route
+    /// and return the raw response body so the caller can parse the
+    /// route-specific reply (e.g. the conversation_id for DM_SEND).
+    private func postRaw(path: String, envelope: Data) async throws -> Data {
+        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = 20
+        request.httpBody = envelope
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw HubError.invalidResponse
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            throw HubError.statusCode(http.statusCode, body: String(data: data, encoding: .utf8) ?? "")
+        }
+        return data
+    }
+
     // MARK: - Channel / poll / event / task / crowdfund creation
 
     /// Create a new channel. Hub validates `channelId` against
@@ -442,4 +513,8 @@ private extension String {
         }
         return self
     }
+
+    /// Same as numericIfFits but typed Any so JSONSerialization keeps
+    /// emitting a JSON number rather than wrapping in NSNumber.
+    func numericIfFitsInt() -> Any { numericIfFits() }
 }

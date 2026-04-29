@@ -6,6 +6,8 @@ struct HomeFeedView: View {
     @State private var loading = true
     @State private var error: String?
     @State private var presentingCompose = false
+    @State private var presentingNotifications = false
+    @State private var unreadCount = 0
 
     var body: some View {
         Group {
@@ -39,6 +41,22 @@ struct HomeFeedView: View {
         }
         .navigationTitle("Home")
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    presentingNotifications = true
+                } label: {
+                    Image(systemName: "bell")
+                        .overlay(alignment: .topTrailing) {
+                            if unreadCount > 0 {
+                                Circle()
+                                    .fill(Color.pink)
+                                    .frame(width: 8, height: 8)
+                                    .offset(x: 4, y: -2)
+                            }
+                        }
+                }
+                .accessibilityLabel("Activity")
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     presentingCompose = true
@@ -49,12 +67,26 @@ struct HomeFeedView: View {
             }
         }
         .refreshable { await refresh() }
-        .task { load() }
+        .task {
+            load()
+            await refreshUnread()
+        }
         .sheet(isPresented: $presentingCompose) {
             ComposeTweetView(onPublished: { _ in
                 Task { await refresh() }
             })
             .presentationDetents([.medium, .large])
+            .environmentObject(app)
+        }
+        .sheet(isPresented: $presentingNotifications) {
+            NavigationStack {
+                NotificationsView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { presentingNotifications = false }
+                        }
+                    }
+            }
             .environmentObject(app)
         }
     }
@@ -73,6 +105,12 @@ struct HomeFeedView: View {
             self.error = error.localizedDescription
         }
         loading = false
+    }
+
+    @MainActor
+    private func refreshUnread() async {
+        guard let tid = app.myTID else { return }
+        unreadCount = (try? await app.api.fetchUnreadCount(tid)) ?? 0
     }
 }
 

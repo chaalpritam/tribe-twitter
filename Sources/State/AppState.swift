@@ -50,6 +50,12 @@ final class AppState: ObservableObject {
         didSet { recomputePhase() }
     }
 
+    /// x25519 keypair used for DM encryption. Lazy-loaded the first
+    /// time something asks for it; nil until the user opens the DMs
+    /// surface so the app launch doesn't generate a key just to throw
+    /// it away on a user who never sends a DM.
+    @Published private(set) var dmKey: DMKey?
+
     @Published var myUsername: String?
     @Published var walletAddress: String?
 
@@ -60,9 +66,12 @@ final class AppState: ObservableObject {
     let interactions: InteractionCache
 
     init() {
-        // One-time correctness gate: trap fast on startup if an
-        // OS-level integer / endianness assumption ever breaks Blake3.
+        // One-time correctness gates: trap fast on startup if an
+        // OS-level integer / endianness assumption ever breaks Blake3,
+        // or if a refactor knocks the NaCl-box port off the
+        // tweetnacl-compatible byte path.
         Blake3.selfTest()
+        NaClBox.selfTest()
 
         let storedURL = UserDefaults.standard.string(forKey: Keys.hubURL)
             .flatMap(URL.init(string:)) ?? Config.defaultHubURL
@@ -119,11 +128,35 @@ final class AppState: ObservableObject {
     /// re-enter it on a re-onboard. Routes back to onboarding.
     func signOut() {
         try? KeychainStore.delete(.appKeySeed)
+        DMKey.clearKeychain()
         appKey = nil
+        dmKey = nil
         myTID = nil
         myUsername = nil
         walletAddress = nil
         interactions.clear()
+    }
+
+    /// Lazy-load (or create + persist) the DM keypair. UI surfaces
+    /// that need to encrypt or decrypt DMs call this; first call also
+    /// publishes a DM_KEY_REGISTER envelope so peers can encrypt to
+    /// us.
+    @discardableResult
+    func ensureDMKey() async throws -> DMKey {
+        if let dm = dmKey { return dm }
+        let key = try DMKey.loadOrCreate()
+        await MainActor.run { self.dmKey = key }
+        // Best-effort registration. If the hub is offline this will
+        // surface to the caller; we don't trap because the app key
+        // can still decrypt incoming DMs that arrive later.
+        if let appKey, let myTID {
+            _ = try? await api.registerDMKey(
+                publicKey: key.publicKey,
+                as: appKey,
+                tid: myTID
+            )
+        }
+        return key
     }
 
     func refreshIdentityMetadata() async {

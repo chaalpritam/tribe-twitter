@@ -173,6 +173,39 @@ public extension HubClient {
         return res.crowdfunds
     }
 
+    // MARK: - Direct messages
+
+    /// Look up another TID's registered x25519 pubkey so we can
+    /// encrypt to them. Returns nil if the user hasn't registered yet.
+    func fetchDMPublicKey(_ tid: String) async throws -> Data? {
+        struct R: Decodable {
+            let x25519_pubkey: String?
+            let x25519Pubkey: String?
+        }
+        do {
+            let r: R = try await get("v1/dm/key/\(tid)")
+            let raw = r.x25519_pubkey ?? r.x25519Pubkey
+            return raw.flatMap { Data(base64Encoded: $0) }
+        } catch {
+            return nil
+        }
+    }
+
+    func fetchConversations(_ tid: String) async throws -> [DMConversation] {
+        struct R: Decodable { let conversations: [DMConversation] }
+        let r: R = try await get("v1/dm/conversations/\(tid)")
+        return r.conversations
+    }
+
+    func fetchDMMessages(conversationId: String, tid: String) async throws -> [DMMessage] {
+        struct R: Decodable { let messages: [DMMessage] }
+        let r: R = try await get(
+            "v1/dm/messages/\(conversationId)",
+            query: ["tid": tid]
+        )
+        return r.messages
+    }
+
     // MARK: - Media URL resolver
 
     /// `media:<hash>` and absolute `/v1/media/<hash>` references both

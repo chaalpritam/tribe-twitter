@@ -10,6 +10,10 @@ enum KeychainStore {
     enum Key: String {
         /// Raw 32-byte ed25519 seed used to sign every envelope.
         case appKeySeed = "tribe.appKey.seed"
+        /// Raw 32-byte x25519 seed used for nacl.box DM encryption.
+        /// Survives sign-out so a returning user can still read past
+        /// messages encrypted to their public DM key.
+        case dmKeySeed = "tribe.dmKey.seed"
     }
 
     enum Error: Swift.Error {

@@ -31,8 +31,8 @@ private struct MainTabs: View {
             NavigationStack { TribesView() }
                 .tabItem { Label("Tribes", systemImage: "person.3") }
 
-            NavigationStack { NotificationsView() }
-                .tabItem { Label("Activity", systemImage: "bell") }
+            NavigationStack { MessagesView() }
+                .tabItem { Label("Messages", systemImage: "envelope") }
 
             NavigationStack { ProfileView() }
                 .tabItem { Label("Profile", systemImage: "person.crop.circle") }
