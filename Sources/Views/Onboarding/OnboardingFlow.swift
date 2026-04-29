@@ -20,6 +20,8 @@ struct OnboardingFlow: View {
                         CreateIdentityView()
                     case .importIdentity:
                         ImportIdentityView()
+                    case .pairFromDesktop:
+                        PairFromDesktopView()
                     }
                 }
         }
@@ -30,6 +32,7 @@ struct OnboardingFlow: View {
         case identity
         case createIdentity
         case importIdentity
+        case pairFromDesktop
     }
 }
 
@@ -166,6 +169,29 @@ struct IdentityChoiceView: View {
             Spacer(minLength: 16)
 
             VStack(spacing: 12) {
+                Button {
+                    path.append(OnboardingFlow.Step.pairFromDesktop)
+                } label: {
+                    HStack {
+                        Image(systemName: "qrcode.viewfinder")
+                        VStack(alignment: .leading) {
+                            Text("Scan QR from desktop").font(.headline)
+                            Text("Open tribe-app → Settings → Log in on mobile")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color(.secondarySystemGroupedBackground))
+                    )
+                }
+                .buttonStyle(.plain)
+
                 Button {
                     path.append(OnboardingFlow.Step.importIdentity)
                 } label: {
