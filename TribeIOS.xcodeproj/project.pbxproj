@@ -45,6 +45,8 @@
 		CBA9642F0B9EC422CEDDAC85 /* TweetCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDE2890C2C72DA40FCFFFC5A /* TweetCardView.swift */; };
 		CCD37BACA5F162929930A2B8 /* ChannelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69FE6A5ED5902269A7D4AF40 /* ChannelsView.swift */; };
 		CD78F7E69049146C337190BB /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92277EC005CE1E6E1ECFE932 /* EmptyStateView.swift */; };
+		CEEDF60BBB1DF987E0D34486 /* InteractionReads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5A550964EAD0AAD5AF588F /* InteractionReads.swift */; };
+		D21F3B662F0936785B4258F8 /* InteractionCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9079DDA3342BC33B65D252BF /* InteractionCache.swift */; };
 		E2368A2BC5743D70F2F820CE /* CrowdfundsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFAB23A3DE2D3E2C535CCD0A /* CrowdfundsView.swift */; };
 		E2AA337F2E8CE0533E581D35 /* Crowdfund.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4109E10DB52F71E507369D00 /* Crowdfund.swift */; };
 		E505F8C592C502F8B6E960CE /* TribesHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A88C3D0603D7BDBF06520B87 /* TribesHubView.swift */; };
@@ -74,6 +76,8 @@
 		69FE6A5ED5902269A7D4AF40 /* ChannelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelsView.swift; sourceTree = "<group>"; };
 		8398D1268391B6F311E823CE /* TribeIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TribeIOSApp.swift; sourceTree = "<group>"; };
 		8BB7815D3E89E15F732CDD99 /* TribeIOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TribeIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8E5A550964EAD0AAD5AF588F /* InteractionReads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionReads.swift; sourceTree = "<group>"; };
+		9079DDA3342BC33B65D252BF /* InteractionCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionCache.swift; sourceTree = "<group>"; };
 		92277EC005CE1E6E1ECFE932 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		94D28C4EAD28DE3FF3195B5E /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		96B868A0DAEFFF9B5213D256 /* Channel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Channel.swift; sourceTree = "<group>"; };
@@ -110,6 +114,7 @@
 			children = (
 				0EBADF3A3BEFEAD22D576F12 /* Endpoints.swift */,
 				C0D67483EEA0DDC81F426E07 /* HubClient.swift */,
+				8E5A550964EAD0AAD5AF588F /* InteractionReads.swift */,
 				0970F0A5C412F7668FF5E8B6 /* Publish.swift */,
 			);
 			path = API;
@@ -119,6 +124,7 @@
 			isa = PBXGroup;
 			children = (
 				09A8248E5AD9F1420848EDBA /* AppState.swift */,
+				9079DDA3342BC33B65D252BF /* InteractionCache.swift */,
 			);
 			path = State;
 			sourceTree = "<group>";
@@ -448,6 +454,8 @@
 				12899E75389FE208AAFF8AE5 /* ExploreView.swift in Sources */,
 				6DD36106971F4999D743B256 /* HomeFeedView.swift in Sources */,
 				713770619D7FC2CD4547615F /* HubClient.swift in Sources */,
+				D21F3B662F0936785B4258F8 /* InteractionCache.swift in Sources */,
+				CEEDF60BBB1DF987E0D34486 /* InteractionReads.swift in Sources */,
 				FB7318C2D0E67F6390B1D17A /* Karma.swift in Sources */,
 				56D6D7AB4E87DA43505CD611 /* Keychain.swift in Sources */,
 				BF4C378D6630F4E5351B3B61 /* MessageSigner.swift in Sources */,
