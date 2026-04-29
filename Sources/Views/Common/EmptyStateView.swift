@@ -3,18 +3,18 @@ import SwiftUI
 struct EmptyStateView: View {
     let symbol: String
     let title: String
-    let body: String?
+    let message: String?
     var action: (label: String, run: () -> Void)?
 
     init(
         symbol: String = "tray",
         title: String,
-        body: String? = nil,
+        message: String? = nil,
         action: (label: String, run: () -> Void)? = nil
     ) {
         self.symbol = symbol
         self.title = title
-        self.body = body
+        self.message = message
         self.action = action
     }
 
@@ -31,8 +31,8 @@ struct EmptyStateView: View {
             Text(title)
                 .font(.system(size: 17, weight: .bold))
                 .foregroundStyle(TribeColor.textPrimary)
-            if let body {
-                Text(body)
+            if let message {
+                Text(message)
                     .font(.system(size: 13))
                     .foregroundStyle(TribeColor.textSecondary)
                     .multilineTextAlignment(.center)

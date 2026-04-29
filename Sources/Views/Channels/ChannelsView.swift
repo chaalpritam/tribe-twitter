@@ -15,7 +15,7 @@ struct ChannelsView: View {
                     EmptyStateView(
                         symbol: "wifi.exclamationmark",
                         title: "Couldn't load channels",
-                        body: error,
+                        message: error,
                         action: ("Retry", load)
                     )
                     .padding(.horizontal, 16)
@@ -23,7 +23,7 @@ struct ChannelsView: View {
                     EmptyStateView(
                         symbol: "number",
                         title: "No channels yet",
-                        body: "Channels are topic-based feeds. Create one from tribe-app or post a tweet with a channel."
+                        message: "Channels are topic-based feeds. Create one from tribe-app or post a tweet with a channel."
                     )
                     .padding(.horizontal, 16)
                 } else {

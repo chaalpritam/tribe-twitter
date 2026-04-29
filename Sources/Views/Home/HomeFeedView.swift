@@ -44,7 +44,7 @@ struct HomeFeedView: View {
                         EmptyStateView(
                             symbol: "wifi.exclamationmark",
                             title: "Couldn't load feed",
-                            body: error,
+                            message: error,
                             action: ("Retry", load)
                         )
                         .padding(.horizontal, 16)
@@ -52,7 +52,7 @@ struct HomeFeedView: View {
                         EmptyStateView(
                             symbol: "sparkles",
                             title: "It's quiet here",
-                            body: "Once people start posting, their tweets will appear here in real time."
+                            message: "Once people start posting, their tweets will appear here in real time."
                         )
                         .padding(.horizontal, 16)
                     } else {

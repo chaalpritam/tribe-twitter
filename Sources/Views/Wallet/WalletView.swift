@@ -123,7 +123,7 @@ struct WalletView: View {
             EmptyStateView(symbol: "wallet.pass", title: "Sign in to see activity")
                 .padding(.horizontal, 16)
         } else if combined.isEmpty {
-            EmptyStateView(symbol: "tray", title: "No tip activity yet", body: "Tips sent or received will appear here.")
+            EmptyStateView(symbol: "tray", title: "No tip activity yet", message: "Tips sent or received will appear here.")
                 .padding(.horizontal, 16)
         } else {
             VStack(spacing: 6) {

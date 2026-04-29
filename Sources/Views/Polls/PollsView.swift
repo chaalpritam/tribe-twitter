@@ -12,10 +12,10 @@ struct PollsView: View {
                 if loading {
                     ForEach(0..<3, id: \.self) { _ in PollSkeleton() }
                 } else if let error {
-                    EmptyStateView(symbol: "wifi.exclamationmark", title: "Couldn't load polls", body: error, action: ("Retry", load))
+                    EmptyStateView(symbol: "wifi.exclamationmark", title: "Couldn't load polls", message: error, action: ("Retry", load))
                         .padding(.horizontal, 16)
                 } else if polls.isEmpty {
-                    EmptyStateView(symbol: "chart.bar", title: "No polls yet", body: "Polls give the network a quick vote. Create one from tribe-app.")
+                    EmptyStateView(symbol: "chart.bar", title: "No polls yet", message: "Polls give the network a quick vote. Create one from tribe-app.")
                         .padding(.horizontal, 16)
                 } else {
                     ForEach(polls) { p in

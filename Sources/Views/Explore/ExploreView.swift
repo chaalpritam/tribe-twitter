@@ -32,7 +32,7 @@ struct ExploreView: View {
                         EmptyStateView(
                             symbol: "wifi.exclamationmark",
                             title: "Couldn't load users",
-                            body: error,
+                            message: error,
                             action: ("Retry", load)
                         )
                         .padding(.horizontal, 16)
@@ -40,7 +40,7 @@ struct ExploreView: View {
                         EmptyStateView(
                             symbol: "person.2",
                             title: "No users yet",
-                            body: "Be the first to register a Tribe identity."
+                            message: "Be the first to register a Tribe identity."
                         )
                         .padding(.horizontal, 16)
                     } else {

@@ -12,10 +12,10 @@ struct CrowdfundsView: View {
                 if loading {
                     ForEach(0..<3, id: \.self) { _ in CrowdfundSkeleton() }
                 } else if let error {
-                    EmptyStateView(symbol: "wifi.exclamationmark", title: "Couldn't load crowdfunds", body: error, action: ("Retry", load))
+                    EmptyStateView(symbol: "wifi.exclamationmark", title: "Couldn't load crowdfunds", message: error, action: ("Retry", load))
                         .padding(.horizontal, 16)
                 } else if campaigns.isEmpty {
-                    EmptyStateView(symbol: "circle.hexagongrid", title: "No crowdfunds yet", body: "Community-funded campaigns. Start one from tribe-app.")
+                    EmptyStateView(symbol: "circle.hexagongrid", title: "No crowdfunds yet", message: "Community-funded campaigns. Start one from tribe-app.")
                         .padding(.horizontal, 16)
                 } else {
                     ForEach(campaigns) { cf in CrowdfundCard(crowdfund: cf).padding(.horizontal, 16) }

@@ -37,10 +37,10 @@ struct TasksView: View {
                 if loading {
                     ForEach(0..<3, id: \.self) { _ in TaskSkeleton() }
                 } else if let error {
-                    EmptyStateView(symbol: "wifi.exclamationmark", title: "Couldn't load tasks", body: error, action: ("Retry", load))
+                    EmptyStateView(symbol: "wifi.exclamationmark", title: "Couldn't load tasks", message: error, action: ("Retry", load))
                         .padding(.horizontal, 16)
                 } else if tasks.isEmpty {
-                    EmptyStateView(symbol: "checkmark.seal", title: "No \(filter == "all" ? "" : filter) tasks", body: "Things people post for the network to pick up.")
+                    EmptyStateView(symbol: "checkmark.seal", title: "No \(filter == "all" ? "" : filter) tasks", message: "Things people post for the network to pick up.")
                         .padding(.horizontal, 16)
                 } else {
                     ForEach(tasks) { t in TaskCard(task: t).padding(.horizontal, 16) }

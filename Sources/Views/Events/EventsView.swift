@@ -21,10 +21,10 @@ struct EventsView: View {
                 if loading {
                     ForEach(0..<3, id: \.self) { _ in EventSkeleton() }
                 } else if let error {
-                    EmptyStateView(symbol: "wifi.exclamationmark", title: "Couldn't load events", body: error, action: ("Retry", load))
+                    EmptyStateView(symbol: "wifi.exclamationmark", title: "Couldn't load events", message: error, action: ("Retry", load))
                         .padding(.horizontal, 16)
                 } else if events.isEmpty {
-                    EmptyStateView(symbol: "calendar", title: upcomingOnly ? "No upcoming events" : "No events", body: "Events show meetups and on-chain happenings. Schedule one from tribe-app.")
+                    EmptyStateView(symbol: "calendar", title: upcomingOnly ? "No upcoming events" : "No events", message: "Events show meetups and on-chain happenings. Schedule one from tribe-app.")
                         .padding(.horizontal, 16)
                 } else {
                     ForEach(events) { ev in

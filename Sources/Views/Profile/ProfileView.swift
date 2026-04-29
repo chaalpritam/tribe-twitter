@@ -25,7 +25,7 @@ struct ProfileView: View {
                     EmptyStateView(
                         symbol: "person.crop.circle",
                         title: "No TID set",
-                        body: "Open Settings and enter your TID to see your profile, karma, and tweets."
+                        message: "Open Settings and enter your TID to see your profile, karma, and tweets."
                     )
                     .padding(.horizontal, 16)
                 }

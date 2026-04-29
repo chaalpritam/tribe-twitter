@@ -15,7 +15,7 @@ struct NotificationsView: View {
                     EmptyStateView(
                         symbol: "person.crop.circle.badge.exclamationmark",
                         title: "Sign in required",
-                        body: "Set your TID in Settings to see notifications addressed to you."
+                        message: "Set your TID in Settings to see notifications addressed to you."
                     )
                     .padding(.horizontal, 16)
                 } else if loading {
@@ -26,7 +26,7 @@ struct NotificationsView: View {
                     EmptyStateView(
                         symbol: "wifi.exclamationmark",
                         title: "Couldn't load notifications",
-                        body: error,
+                        message: error,
                         action: ("Retry", load)
                     )
                     .padding(.horizontal, 16)
@@ -34,7 +34,7 @@ struct NotificationsView: View {
                     EmptyStateView(
                         symbol: "bell",
                         title: "All caught up",
-                        body: "Replies, reactions, tips, RSVPs, and other activity will appear here."
+                        message: "Replies, reactions, tips, RSVPs, and other activity will appear here."
                     )
                     .padding(.horizontal, 16)
                 } else {

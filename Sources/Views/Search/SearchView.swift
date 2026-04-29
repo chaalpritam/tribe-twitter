@@ -29,7 +29,7 @@ struct SearchView: View {
                     EmptyStateView(
                         symbol: "magnifyingglass",
                         title: "Search Tribe",
-                        body: "People, tweets, channels, polls, events, tasks and crowdfunds — all in one place."
+                        message: "People, tweets, channels, polls, events, tasks and crowdfunds — all in one place."
                     )
                     .padding(.horizontal, 16)
                 } else if loading {
@@ -37,7 +37,7 @@ struct SearchView: View {
                         .padding(.vertical, 32)
                         .frame(maxWidth: .infinity)
                 } else if totalCount == 0 {
-                    EmptyStateView(symbol: "tray", title: "No results", body: "Nothing matched \"\(debouncedQuery)\".")
+                    EmptyStateView(symbol: "tray", title: "No results", message: "Nothing matched \"\(debouncedQuery)\".")
                         .padding(.horizontal, 16)
                 } else {
                     LazyVStack(alignment: .leading, spacing: 16) {
