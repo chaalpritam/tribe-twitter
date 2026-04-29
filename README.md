@@ -37,6 +37,14 @@ open TribeIOS.xcodeproj
 # In Xcode: pick an iPhone simulator (16 / 15 / SE / etc.) and ⌘R
 ```
 
+If Xcode opens but doesn't show iPhone simulators in the destination menu, your active developer directory is probably set to Command Line Tools instead of Xcode itself. Fix it with:
+
+```sh
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+```
+
+Re-running `xcodegen generate` is safe to do any time — the `.xcodeproj` is gitignored (`Project.yml` is the source of truth) and the shared scheme is regenerated alongside it.
+
 If the hub is on a different machine, open the app, tap the gear in the Profile tab, and set the hub URL. The app persists this in `UserDefaults`, so you don't need to set it again.
 
 To wire the app to your TID, paste it into the same Settings sheet. The notifications badge, profile, and wallet activity are gated on this.
