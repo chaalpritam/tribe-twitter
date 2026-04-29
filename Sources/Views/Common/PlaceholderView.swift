@@ -33,3 +33,5 @@ struct PlaceholderView: View {
 // Tabs without dedicated screens yet.
 struct MapView: View { var body: some View { PlaceholderView("Map", subtitle: "City-anchored content lands here once channel kind = 2 (city) is wired up.") } }
 struct ChatView: View { var body: some View { PlaceholderView("Chat", subtitle: "Direct messages and group threads. x25519 + nacl box encryption needs porting from tribe-app.") } }
+struct WalletView: View { var body: some View { PlaceholderView("Wallet", subtitle: "Receive QR + activity coming next.") } }
+struct SearchView: View { var body: some View { PlaceholderView("Search", subtitle: "Cross-primitive search lands shortly.") } }
