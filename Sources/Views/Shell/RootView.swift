@@ -1,9 +1,25 @@
 import SwiftUI
 
-/// Top-level shell. Five-tab TabView following Apple HIG: Home,
-/// Explore, Tribes, Activity, Profile. Each tab owns its own
-/// NavigationStack so push transitions stay isolated per-tab.
+/// Top-level shell. Routes between Onboarding and the main TabView
+/// based on AppState.phase. Each tab owns its own NavigationStack so
+/// push transitions stay isolated per-tab.
 struct RootView: View {
+    @EnvironmentObject private var app: AppState
+
+    var body: some View {
+        Group {
+            switch app.phase {
+            case .onboarding:
+                OnboardingFlow()
+            case .ready:
+                MainTabs()
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: app.phase)
+    }
+}
+
+private struct MainTabs: View {
     var body: some View {
         TabView {
             NavigationStack { HomeFeedView() }
