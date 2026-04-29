@@ -14,24 +14,32 @@ struct WalletView: View {
     @State private var showingReceive = false
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                balanceCard
-                    .padding(.horizontal, 16)
-                    .padding(.top, 12)
-
-                Text("Recent activity")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .padding(.horizontal, 22)
-                    .padding(.top, 4)
-
-                activityList
+        List {
+            Section {
+                identityCard
+                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             }
-            .padding(.bottom, 16)
+
+            if !combined.isEmpty {
+                Section("Recent Activity") {
+                    ForEach(combined, id: \.id) { row in
+                        ActivityRow(direction: row.direction, tip: row.tip)
+                    }
+                }
+            } else if !loading && app.myTID != nil {
+                Section {
+                    ContentUnavailableView(
+                        "No tip activity yet",
+                        systemImage: "tray",
+                        description: Text("Tips sent or received will appear here.")
+                    )
+                    .listRowBackground(Color.clear)
+                }
+            }
         }
-        .background(TribeColor.pageBackground)
+        .listStyle(.insetGrouped)
         .navigationTitle("Wallet")
         .refreshable { await refresh() }
         .task { load() }
@@ -43,94 +51,72 @@ struct WalletView: View {
                         username: app.myUsername,
                         address: app.walletAddress
                     )
+                    .navigationTitle("Receive")
+                    .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button("Done") { showingReceive = false }
                         }
                     }
                 }
+                .environmentObject(app)
             }
         }
     }
 
-    private var balanceCard: some View {
-        Card {
-            VStack(alignment: .leading, spacing: 14) {
-                Text("Tribe identity")
-                    .font(.system(size: 11, weight: .heavy))
-                    .tracking(0.4)
-                    .textCase(.uppercase)
-                    .foregroundStyle(TribeColor.textSecondary)
+    private var identityCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Tribe identity")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
 
-                if let tid = app.myTID {
+            if let tid = app.myTID {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(app.myUsername.map { "\($0).tribe" } ?? "TID #\(tid)")
-                        .font(.system(size: 24, weight: .black))
-                        .tracking(-0.4)
+                        .font(.title.weight(.bold))
                     Text("TID #\(tid)")
-                        .font(.system(size: 12))
-                        .foregroundStyle(TribeColor.textSecondary)
-                } else {
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("No TID set")
-                        .font(.system(size: 18, weight: .bold))
+                        .font(.title3.weight(.semibold))
                     Text("Open Settings and enter your TID to enable wallet features.")
-                        .font(.system(size: 12))
-                        .foregroundStyle(TribeColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
+            }
 
-                HStack(spacing: 8) {
-                    Button {
-                        // Send is read-only — show a notice instead of attempting.
-                    } label: {
-                        Text("Send").frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(SecondaryButtonStyle())
-                    .disabled(true)
-
-                    Button {
-                        showingReceive = true
-                    } label: {
-                        Text("Receive").frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(WalletPrimaryStyle())
-                    .disabled(app.myTID == nil)
+            HStack(spacing: 10) {
+                Button {
+                    // Send is read-only; surface explicit affordance once the path is ported.
+                } label: {
+                    Label("Send", systemImage: "arrow.up.circle")
+                        .frame(maxWidth: .infinity)
                 }
-                .padding(.top, 4)
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .disabled(true)
+
+                Button {
+                    showingReceive = true
+                } label: {
+                    Label("Receive", systemImage: "arrow.down.circle")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(app.myTID == nil)
             }
         }
-    }
-
-    @ViewBuilder
-    private var activityList: some View {
-        if loading {
-            VStack(spacing: 6) {
-                ForEach(0..<3, id: \.self) { _ in
-                    Card(padding: 12) {
-                        HStack {
-                            Circle().fill(TribeColor.chipBackground).frame(width: 32, height: 32)
-                            VStack(alignment: .leading, spacing: 4) {
-                                RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 140, height: 10)
-                                RoundedRectangle(cornerRadius: 4).fill(TribeColor.chipBackground).frame(width: 90, height: 8)
-                            }
-                            Spacer()
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                }
-            }
-        } else if app.myTID == nil {
-            EmptyStateView(symbol: "wallet.pass", title: "Sign in to see activity")
-                .padding(.horizontal, 16)
-        } else if combined.isEmpty {
-            EmptyStateView(symbol: "tray", title: "No tip activity yet", message: "Tips sent or received will appear here.")
-                .padding(.horizontal, 16)
-        } else {
-            VStack(spacing: 6) {
-                ForEach(combined, id: \.id) { row in
-                    ActivityRow(direction: row.direction, tip: row.tip)
-                        .padding(.horizontal, 16)
-                }
-            }
-        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
     }
 
     fileprivate struct ActivityItem: Identifiable {
@@ -168,38 +154,39 @@ private struct ActivityRow: View {
     let tip: Tip
 
     var body: some View {
-        Card(padding: 12) {
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle().fill(TribeColor.chipBackground)
-                    Image(systemName: direction == .sent ? "arrow.up.right" : "arrow.down.left")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(direction == .sent ? TribeColor.textPrimary : TribeColor.accentEmerald)
-                }
-                .frame(width: 32, height: 32)
+        HStack(spacing: 12) {
+            ZStack {
+                Circle().fill(direction == .received ? Color.green.opacity(0.15) : Color(.tertiarySystemFill))
+                Image(systemName: direction == .sent ? "arrow.up.right" : "arrow.down.left")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(direction == .sent ? Color.primary : .green)
+            }
+            .frame(width: 36, height: 36)
 
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("\(direction.rawValue.capitalized) \(direction == .sent ? "to" : "from") TID #\(direction == .sent ? tip.recipientTid : tip.senderTid)")
-                        .font(.system(size: 13, weight: .semibold))
-                    Text(tip.sentAt, style: .relative)
-                        .font(.system(size: 11))
-                        .foregroundStyle(TribeColor.textSecondary)
-                }
+            VStack(alignment: .leading, spacing: 1) {
+                Text("\(direction.rawValue.capitalized) \(direction == .sent ? "to" : "from") TID #\(direction == .sent ? tip.recipientTid : tip.senderTid)")
+                    .font(.subheadline.weight(.medium))
+                Text(tip.sentAt, style: .relative)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
-                Spacer()
+            Spacer()
 
-                VStack(alignment: .trailing, spacing: 1) {
-                    Text("\(direction == .sent ? "−" : "+")\(formattedAmount) \(tip.currency)")
-                        .font(.system(size: 13, weight: .heavy))
-                        .foregroundStyle(direction == .received ? TribeColor.accentEmerald : TribeColor.textPrimary)
-                    if let sig = tip.txSignature {
-                        Link("Tx ↗", destination: explorerURL(sig))
-                            .font(.system(size: 10))
-                            .foregroundStyle(TribeColor.accentIndigo)
+            VStack(alignment: .trailing, spacing: 1) {
+                Text("\(direction == .sent ? "−" : "+")\(formattedAmount) \(tip.currency)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(direction == .received ? .green : .primary)
+                if let sig = tip.txSignature {
+                    Link(destination: explorerURL(sig)) {
+                        Label("Tx", systemImage: "arrow.up.right.square")
+                            .labelStyle(.titleAndIcon)
+                            .font(.caption2)
                     }
                 }
             }
         }
+        .padding(.vertical, 4)
     }
 
     private var formattedAmount: String {
@@ -213,103 +200,77 @@ private struct ActivityRow: View {
 }
 
 private struct ReceiveSheet: View {
+    @EnvironmentObject private var app: AppState
     let tid: String
     let username: String?
     let address: String?
 
-    @State private var copyToast = false
+    @State private var copied = false
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 18) {
-                Text("Receive")
-                    .font(.system(size: 24, weight: .black))
-                    .tracking(-0.4)
-                    .padding(.top, 16)
-
-                Card {
-                    VStack(spacing: 16) {
-                        QRCodeView(value: address ?? "TID:\(tid)", size: 220)
-                        VStack(spacing: 4) {
-                            Text(username.map { "\($0).tribe" } ?? "TID #\(tid)")
-                                .font(.system(size: 17, weight: .bold))
-                            Text("TID #\(tid)")
-                                .font(.system(size: 12))
-                                .foregroundStyle(TribeColor.textSecondary)
-                        }
-                        if let a = address {
-                            Text(a)
-                                .font(.system(size: 11, weight: .medium, design: .monospaced))
-                                .foregroundStyle(TribeColor.textSecondary)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .fill(TribeColor.chipBackground)
-                                )
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                        } else {
-                            Text("Set your wallet address in Settings to share a Solana QR.")
-                                .font(.system(size: 11))
-                                .foregroundStyle(TribeColor.textTertiary)
-                                .multilineTextAlignment(.center)
-                        }
+            VStack(spacing: 24) {
+                VStack(spacing: 16) {
+                    QRCodeView(value: address ?? "TID:\(tid)", size: 220)
+                    VStack(spacing: 4) {
+                        Text(username.map { "\($0).tribe" } ?? "TID #\(tid)")
+                            .font(.title3.weight(.semibold))
+                        Text("TID #\(tid)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    if let a = address {
+                        Text(a)
+                            .font(.footnote.monospaced())
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(Color(.tertiarySystemFill))
+                            )
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    } else {
+                        Text("Set your wallet address in Settings to share a Solana QR.")
+                            .font(.footnote)
+                            .foregroundStyle(.tertiary)
+                            .multilineTextAlignment(.center)
                     }
                 }
+                .padding(20)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
                 .padding(.horizontal, 16)
 
                 if let a = address {
                     Button {
                         UIPasteboard.general.string = a
-                        copyToast = true
+                        copied = true
                         Task {
                             try? await Task.sleep(nanoseconds: 1_500_000_000)
-                            await MainActor.run { copyToast = false }
+                            await MainActor.run { copied = false }
                         }
                     } label: {
-                        Label(copyToast ? "Copied!" : "Copy address", systemImage: "doc.on.doc")
+                        Label(copied ? "Copied" : "Copy address", systemImage: copied ? "checkmark" : "doc.on.doc")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(WalletPrimaryStyle())
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .padding(.horizontal, 16)
                 }
 
                 Text("Senders inside Tribe can use your TID instead of pasting the full address.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(TribeColor.textTertiary)
-                    .padding(.horizontal, 32)
+                    .font(.footnote)
+                    .foregroundStyle(.tertiary)
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
             }
-            .padding(.bottom, 32)
+            .padding(.vertical, 16)
         }
-        .background(TribeColor.pageBackground)
-    }
-}
-
-struct WalletPrimaryStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 14, weight: .bold))
-            .foregroundStyle(.white)
-            .padding(.vertical, 12)
-            .background(
-                Capsule().fill(TribeColor.primary).opacity(configuration.isPressed ? 0.85 : 1)
-            )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-    }
-}
-
-struct SecondaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 14, weight: .bold))
-            .foregroundStyle(TribeColor.textPrimary)
-            .padding(.vertical, 12)
-            .background(
-                Capsule()
-                    .fill(TribeColor.chipBackground)
-                    .opacity(configuration.isPressed ? 0.7 : 1)
-            )
+        .background(Color(.systemGroupedBackground))
     }
 }

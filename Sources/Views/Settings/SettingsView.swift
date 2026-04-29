@@ -8,23 +8,25 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Identity") {
+            Section {
                 TextField("Your TID", text: $tidInput)
                     .keyboardType(.numberPad)
                     .textInputAutocapitalization(.never)
+            } header: {
+                Text("Identity")
+            } footer: {
                 Text("Your TID is the on-chain identity created during onboarding in tribe-app. The iOS app uses it to fetch notifications, karma, and your activity. Onboarding (registering a fresh TID) is not implemented here yet — it needs the Solana program calls ported.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
             }
 
-            Section("Hub") {
+            Section {
                 TextField("Hub base URL", text: $hubInput)
                     .keyboardType(.URL)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+            } header: {
+                Text("Hub")
+            } footer: {
                 Text("Defaults to http://127.0.0.1:4000. Override when running against a peer's hub or a deployed seed node.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
             }
 
             Section {
@@ -33,6 +35,7 @@ struct SettingsView: View {
                 } label: {
                     if saved {
                         Label("Saved", systemImage: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
                     } else {
                         Text("Save")
                     }
