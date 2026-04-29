@@ -58,20 +58,23 @@ final class AppState: ObservableObject {
 
         let storedURL = UserDefaults.standard.string(forKey: Keys.hubURL)
             .flatMap(URL.init(string:)) ?? Config.defaultHubURL
-        self.hubBaseURL = storedURL
-        self.myTID = UserDefaults.standard.string(forKey: Keys.tid)
-        self.api = HubClient(baseURL: storedURL)
+        let storedTID = UserDefaults.standard.string(forKey: Keys.tid)
 
         // Restore the app key from Keychain if we have one.
+        let restoredKey: AppKey?
         if let seed = try? KeychainStore.load(.appKeySeed),
            seed.count == 32,
            let restored = try? AppKey.restore(seedBase64: seed.base64EncodedString()) {
-            self.appKey = restored
+            restoredKey = restored
         } else {
-            self.appKey = nil
+            restoredKey = nil
         }
 
-        self.phase = (myTID != nil && self.appKey != nil) ? .ready : .onboarding
+        self.hubBaseURL = storedURL
+        self.myTID = storedTID
+        self.api = HubClient(baseURL: storedURL)
+        self.appKey = restoredKey
+        self.phase = (storedTID != nil && restoredKey != nil) ? .ready : .onboarding
 
         // Cache is created empty and immediately attached. The cache
         // holds a weak ref back to self so it can read `api` and
@@ -81,7 +84,7 @@ final class AppState: ObservableObject {
 
         // Best-effort fetch of profile metadata so the UI shows the
         // right name / wallet on first paint after a relaunch.
-        if let tid = myTID {
+        if let tid = storedTID {
             Task { [weak self] in await self?.refreshIdentityMetadata(tid: tid) }
         }
     }
