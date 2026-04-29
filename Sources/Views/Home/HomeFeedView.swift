@@ -51,8 +51,11 @@ struct HomeFeedView: View {
         .refreshable { await refresh() }
         .task { load() }
         .sheet(isPresented: $presentingCompose) {
-            ComposePlaceholderView()
-                .presentationDetents([.medium, .large])
+            ComposeTweetView(onPublished: { _ in
+                Task { await refresh() }
+            })
+            .presentationDetents([.medium, .large])
+            .environmentObject(app)
         }
     }
 
@@ -88,23 +91,3 @@ private struct TweetSkeleton: View {
     }
 }
 
-private struct ComposePlaceholderView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            ContentUnavailableView {
-                Label("Compose", systemImage: "square.and.pencil")
-            } description: {
-                Text("Tweets, polls, events, tasks and crowdfunds. Wiring this up needs the signed-envelope path ported from tribe-app.")
-            }
-            .navigationTitle("New Post")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
-        }
-    }
-}
