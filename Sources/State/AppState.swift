@@ -47,6 +47,9 @@ final class AppState: ObservableObject {
     @Published var walletAddress: String?
 
     private(set) var api: HubClient
+    /// Session-scoped like / bookmark sets. Lazy-loaded on first
+    /// tweet-card render and kept in sync by the write paths.
+    let interactions: InteractionCache
 
     init() {
         // One-time correctness gate: trap fast on startup if an
@@ -70,6 +73,12 @@ final class AppState: ObservableObject {
 
         self.phase = (myTID != nil && self.appKey != nil) ? .ready : .onboarding
 
+        // Cache is created empty and immediately attached. The cache
+        // holds a weak ref back to self so it can read `api` and
+        // `myTID` lazily without an init-order cycle.
+        self.interactions = InteractionCache()
+        self.interactions.attach(to: self)
+
         // Best-effort fetch of profile metadata so the UI shows the
         // right name / wallet on first paint after a relaunch.
         if let tid = myTID {
@@ -85,7 +94,10 @@ final class AppState: ObservableObject {
         try KeychainStore.save(appKey.privateKey.rawRepresentation, for: .appKeySeed)
         self.appKey = appKey
         self.myTID = tid
-        Task { [weak self] in await self?.refreshIdentityMetadata(tid: tid) }
+        Task { [weak self] in
+            await self?.refreshIdentityMetadata(tid: tid)
+            await self?.interactions.refresh()
+        }
     }
 
     /// Wipe the identity. Hub URL stays so the user doesn't have to
@@ -96,6 +108,7 @@ final class AppState: ObservableObject {
         myTID = nil
         myUsername = nil
         walletAddress = nil
+        interactions.clear()
     }
 
     func refreshIdentityMetadata() async {
