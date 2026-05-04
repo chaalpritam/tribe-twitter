@@ -56,14 +56,7 @@ struct TweetCardView: View {
             }
 
             HStack(alignment: .center, spacing: 10) {
-                AvatarView(initial: initial)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(displayName)
-                        .font(.subheadline.weight(.semibold))
-                    Text("\(RelativeTime.short(tweet.timestamp)) · TID #\(tweet.tid)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                authorChip
                 Spacer()
                 if isOwnTweet {
                     Menu {
@@ -115,6 +108,37 @@ struct TweetCardView: View {
                 .presentationDetents([.medium, .large])
                 .environmentObject(app)
                 .environmentObject(interactions)
+        }
+    }
+
+    /// Avatar + display name + meta line. Wrapped in a NavigationLink
+    /// when the row belongs to somebody else so tapping it pushes
+    /// their profile; rendered as plain text on own-tweets to avoid
+    /// a self-pushing nav cycle that just duplicates the Profile tab.
+    @ViewBuilder
+    private var authorChip: some View {
+        let stack = HStack(alignment: .center, spacing: 10) {
+            AvatarView(initial: initial)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(displayName)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                Text("\(RelativeTime.short(tweet.timestamp)) · TID #\(tweet.tid)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .contentShape(Rectangle())
+
+        if isOwnTweet {
+            stack
+        } else {
+            NavigationLink {
+                ProfileView(tid: tweet.tid)
+            } label: {
+                stack
+            }
+            .buttonStyle(.plain)
         }
     }
 

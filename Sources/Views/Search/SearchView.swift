@@ -36,7 +36,14 @@ struct SearchView: View {
                 List {
                     if !users.isEmpty {
                         SwiftUI.Section("People") {
-                            ForEach(users) { u in MiniUserRow(user: u) }
+                            ForEach(users) { u in
+                                NavigationLink {
+                                    ProfileView(tid: u.tid)
+                                } label: {
+                                    MiniUserRow(user: u)
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
                     }
                     if !channels.isEmpty {
@@ -136,13 +143,16 @@ private struct MiniUserRow: View {
         HStack(spacing: 12) {
             AvatarView(initial: user.initial, size: 36)
             VStack(alignment: .leading, spacing: 1) {
-                Text(user.displayName).font(.subheadline.weight(.medium))
+                Text(user.displayName)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.primary)
                 Text("\(user.followersCount) followers")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Spacer()
         }
+        .contentShape(Rectangle())
     }
 }
 

@@ -162,8 +162,14 @@ private struct ActivityRowView: View {
             if row.peerTid != nil || (row.preview?.isEmpty == false) {
                 HStack(spacing: 6) {
                     if let peer = row.peerTid {
-                        Text("TID #\(peer)")
-                            .font(.footnote.weight(.medium))
+                        NavigationLink {
+                            ProfileView(tid: peer)
+                        } label: {
+                            Text("TID #\(peer)")
+                                .font(.footnote.weight(.medium))
+                                .foregroundStyle(.primary)
+                        }
+                        .buttonStyle(.plain)
                     }
                     if row.peerTid != nil, row.preview?.isEmpty == false {
                         Text("·").foregroundStyle(.tertiary)

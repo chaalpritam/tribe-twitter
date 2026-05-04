@@ -69,30 +69,38 @@ private struct NotifRow: View {
     let row: TribeNotification
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            ZStack {
-                Circle().fill(TribeColor.chipBackground)
-                Image(systemName: row.type.symbol)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(TribeColor.textPrimary)
-            }
-            .frame(width: 36, height: 36)
-
-            VStack(alignment: .leading, spacing: 3) {
-                Text("TID #\(row.actorTid) \(row.type.label)")
-                    .font(.subheadline.weight(.medium))
-                if let preview = row.preview, !preview.isEmpty {
-                    Text(preview)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
+        NavigationLink {
+            ProfileView(tid: row.actorTid)
+        } label: {
+            HStack(alignment: .top, spacing: 12) {
+                ZStack {
+                    Circle().fill(TribeColor.chipBackground)
+                    Image(systemName: row.type.symbol)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(TribeColor.textPrimary)
                 }
-                Text(RelativeTime.short(row.createdAt))
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                .frame(width: 36, height: 36)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("TID #\(row.actorTid) \(row.type.label)")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.primary)
+                    if let preview = row.preview, !preview.isEmpty {
+                        Text(preview)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+                    Text(RelativeTime.short(row.createdAt))
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+                Spacer(minLength: 0)
             }
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
         }
-        .padding(.vertical, 4)
+        .buttonStyle(.plain)
     }
 }
 

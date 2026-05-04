@@ -70,18 +70,30 @@ private struct UserRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView(initial: user.initial, size: 44)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(user.displayName)
-                    .font(.headline)
-                Text(walletShort)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text("\(user.followersCount) followers · \(user.followingCount) following")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+            // Avatar + name area pushes the user's profile. Kept as a
+            // sibling of FollowButton (rather than wrapping the whole
+            // row) so the follow button stays independently tappable.
+            NavigationLink {
+                ProfileView(tid: user.tid)
+            } label: {
+                HStack(spacing: 12) {
+                    AvatarView(initial: user.initial, size: 44)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(user.displayName)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        Text(walletShort)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Text("\(user.followersCount) followers · \(user.followingCount) following")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .contentShape(Rectangle())
             }
-            Spacer()
+            .buttonStyle(.plain)
             FollowButton(targetTID: user.tid)
         }
         .padding(.vertical, 4)
