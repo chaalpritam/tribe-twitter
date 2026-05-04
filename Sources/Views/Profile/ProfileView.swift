@@ -20,6 +20,7 @@ struct ProfileView: View {
     @State private var loading = true
     @State private var showingWallet = false
     @State private var showingSettings = false
+    @State private var showingProfileEditor = false
 
     init(tid: String? = nil) {
         self.targetTID = tid
@@ -139,6 +140,23 @@ struct ProfileView: View {
             }
             .environmentObject(app)
         }
+        .sheet(isPresented: $showingProfileEditor) {
+            NavigationStack {
+                ProfileEditorView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { showingProfileEditor = false }
+                        }
+                    }
+            }
+            .environmentObject(app)
+        }
+        .onChange(of: showingProfileEditor) { _, isShown in
+            // Reload after the editor closes so any field edits the
+            // user just published show up in the card without
+            // needing to pull-to-refresh.
+            if !isShown { Task { await refresh() } }
+        }
     }
 
     /// Title shown when looking at someone else's profile. Prefers
@@ -169,7 +187,20 @@ struct ProfileView: View {
                     }
                 }
                 Spacer()
-                if !isOwnProfile {
+                if isOwnProfile {
+                    Button {
+                        showingProfileEditor = true
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                            .labelStyle(.titleAndIcon)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(TribeColor.chipBackground))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(app.appKey == nil)
+                } else {
                     followPill
                 }
             }
@@ -186,6 +217,22 @@ struct ProfileView: View {
                 Text(bio)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+            }
+
+            HStack(spacing: 16) {
+                if let location = user?.profile?.location, !location.isEmpty {
+                    Label(location, systemImage: "mappin.and.ellipse")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                if let urlString = user?.profile?.url,
+                   !urlString.isEmpty,
+                   let url = URL(string: urlString) {
+                    Link(destination: url) {
+                        Label(displayHost(urlString), systemImage: "link")
+                            .font(.caption.weight(.medium))
+                    }
+                }
             }
         }
         .padding(20)
@@ -227,6 +274,15 @@ struct ProfileView: View {
     private func short(_ s: String) -> String {
         guard s.count > 10 else { return s }
         return "\(s.prefix(5))…\(s.suffix(5))"
+    }
+
+    /// Drop the scheme so the link chip on the profile card reads
+    /// `example.com/path` rather than `https://example.com/path`.
+    /// Falls through to the original string if URL parsing fails.
+    private func displayHost(_ s: String) -> String {
+        guard let url = URL(string: s), let host = url.host else { return s }
+        let path = url.path.isEmpty || url.path == "/" ? "" : url.path
+        return host + path
     }
 
     private func load() {
