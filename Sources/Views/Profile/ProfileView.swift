@@ -159,7 +159,10 @@ struct ProfileView: View {
         guard let tid = app.myTID else { loading = false; return }
         loading = true
         async let userTask = try? app.api.fetchUser(tid)
-        async let tweetsTask = try? app.api.fetchTweets(tid: tid)
+        // Profile feed (rather than fetchTweets) so the rows include
+        // retweets the user did, with retweeted_by_* metadata so the
+        // card can render an "X retweeted" header.
+        async let tweetsTask = try? app.api.fetchFeed(tid: tid)
         async let karmaTask = try? app.api.fetchKarma(tid)
         async let erTask = try? app.er.profile(tid)
         self.user = await userTask

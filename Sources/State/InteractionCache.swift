@@ -14,6 +14,7 @@ import SwiftUI
 final class InteractionCache: ObservableObject {
     @Published private(set) var likedHashes: Set<String> = []
     @Published private(set) var bookmarkedHashes: Set<String> = []
+    @Published private(set) var retweetedHashes: Set<String> = []
     @Published private(set) var loaded = false
 
     /// Set by AppState immediately after init. Weak so the cache
@@ -28,6 +29,7 @@ final class InteractionCache: ObservableObject {
 
     func contains(liked hash: String) -> Bool { likedHashes.contains(hash) }
     func contains(bookmarked hash: String) -> Bool { bookmarkedHashes.contains(hash) }
+    func contains(retweeted hash: String) -> Bool { retweetedHashes.contains(hash) }
 
     func setLiked(_ liked: Bool, hash: String) {
         if liked { likedHashes.insert(hash) } else { likedHashes.remove(hash) }
@@ -37,10 +39,14 @@ final class InteractionCache: ObservableObject {
         if bookmarked { bookmarkedHashes.insert(hash) } else { bookmarkedHashes.remove(hash) }
     }
 
-    /// Pulls the user's like + bookmark sets from the hub. Idempotent
-    /// — safe to call repeatedly on view appear; bails fast when the
-    /// user has no TID and replaces the in-memory sets atomically on
-    /// success.
+    func setRetweeted(_ retweeted: Bool, hash: String) {
+        if retweeted { retweetedHashes.insert(hash) } else { retweetedHashes.remove(hash) }
+    }
+
+    /// Pulls the user's like + retweet + bookmark sets from the hub.
+    /// Idempotent — safe to call repeatedly on view appear; bails fast
+    /// when the user has no TID and replaces the in-memory sets
+    /// atomically on success.
     func ensureLoaded() async {
         guard !loaded else { return }
         await refresh()
@@ -50,13 +56,16 @@ final class InteractionCache: ObservableObject {
         guard let app, let tid = app.myTID else {
             likedHashes = []
             bookmarkedHashes = []
+            retweetedHashes = []
             loaded = false
             return
         }
-        async let reactionsTask = (try? await app.api.fetchMyReactions(tid: tid, type: "1")) ?? []
+        async let likesTask = (try? await app.api.fetchMyReactions(tid: tid, type: "1")) ?? []
+        async let retweetsTask = (try? await app.api.fetchMyReactions(tid: tid, type: "2")) ?? []
         async let bookmarksTask = (try? await app.api.fetchMyBookmarks(tid: tid)) ?? []
-        let (reactions, bookmarks) = await (reactionsTask, bookmarksTask)
-        self.likedHashes = Set(reactions.map(\.targetHash))
+        let (likes, retweets, bookmarks) = await (likesTask, retweetsTask, bookmarksTask)
+        self.likedHashes = Set(likes.map(\.targetHash))
+        self.retweetedHashes = Set(retweets.map(\.targetHash))
         self.bookmarkedHashes = Set(bookmarks.map(\.targetHash))
         self.loaded = true
     }
@@ -65,6 +74,7 @@ final class InteractionCache: ObservableObject {
     func clear() {
         likedHashes = []
         bookmarkedHashes = []
+        retweetedHashes = []
         loaded = false
     }
 }

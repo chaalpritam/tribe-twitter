@@ -17,6 +17,16 @@ struct TweetCardView: View {
     /// owning its own copy.
     private var liked: Bool { interactions.contains(liked: tweet.hash) }
     private var bookmarked: Bool { interactions.contains(bookmarked: tweet.hash) }
+    private var retweeted: Bool { interactions.contains(retweeted: tweet.hash) }
+
+    /// Label for the "X retweeted" header that profile feeds surface
+    /// when a row is somebody else's tweet that the profile owner
+    /// retweeted. Nil for organic tweets so the header collapses.
+    private var retweeterLabel: String? {
+        if let u = tweet.retweetedByUsername { return "\(u).tribe" }
+        if let t = tweet.retweetedByTid { return "TID #\(t)" }
+        return nil
+    }
 
     private var displayName: String {
         if let u = tweet.username { return "\(u).tribe" }
@@ -35,6 +45,16 @@ struct TweetCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            if let retweeterLabel {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.2.squarepath")
+                        .font(.caption)
+                    Text("\(retweeterLabel) retweeted")
+                        .font(.caption.weight(.medium))
+                }
+                .foregroundStyle(.secondary)
+            }
+
             HStack(alignment: .center, spacing: 10) {
                 AvatarView(initial: initial)
                 VStack(alignment: .leading, spacing: 1) {
@@ -134,6 +154,14 @@ struct TweetCardView: View {
                 presentingReply = true
             }
             actionButton(
+                symbol: "arrow.2.squarepath",
+                count: nil,
+                active: retweeted,
+                activeTint: Color(red: 0.16, green: 0.65, blue: 0.42)
+            ) {
+                Task { await toggleRetweet() }
+            }
+            actionButton(
                 symbol: liked ? "heart.fill" : "heart",
                 count: nil,
                 active: liked,
@@ -194,6 +222,25 @@ struct TweetCardView: View {
         } catch {
             interactions.setLiked(wasLiked, hash: tweet.hash)
             self.error = "Like failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func toggleRetweet() async {
+        guard let key = app.appKey, let tid = app.myTID else { return }
+        let wasRetweeted = retweeted
+        interactions.setRetweeted(!wasRetweeted, hash: tweet.hash)
+        pendingAction = true
+        defer { pendingAction = false }
+        do {
+            if wasRetweeted {
+                try await app.api.unretweet(hash: tweet.hash, as: key, tid: tid)
+            } else {
+                try await app.api.retweet(hash: tweet.hash, as: key, tid: tid)
+            }
+            error = nil
+        } catch {
+            interactions.setRetweeted(wasRetweeted, hash: tweet.hash)
+            self.error = "Retweet failed: \(error.localizedDescription)"
         }
     }
 
