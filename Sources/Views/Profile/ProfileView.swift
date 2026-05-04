@@ -53,6 +53,14 @@ struct ProfileView: View {
         .navigationTitle("Profile")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    BookmarksView()
+                } label: {
+                    Image(systemName: "bookmark")
+                }
+                .accessibilityLabel("Bookmarks")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     showingWallet = true
                 } label: {

@@ -53,6 +53,61 @@ public extension HubClient {
         return r.bookmarks
     }
 
+    /// Same endpoint as `fetchMyBookmarks`, but decodes the joined
+    /// tweet payload — author_tid, text, timestamp, embeds, … — so
+    /// the bookmarks view can render full TweetCards without making
+    /// a second round-trip per row. Bookmarks whose target tweet
+    /// isn't on this hub are skipped (the hub returns them with
+    /// nulls for the joined fields).
+    func fetchBookmarkedTweets(tid: String) async throws -> [Tweet] {
+        struct Row: Decodable {
+            let targetHash: String
+            let authorTid: String?
+            let text: String?
+            let timestamp: Date?
+            let parentHash: String?
+            let channelId: String?
+            let embeds: [String]?
+            let username: String?
+
+            enum CodingKeys: String, CodingKey {
+                case targetHash = "target_hash"
+                case authorTid = "author_tid"
+                case text, timestamp, embeds, username
+                case parentHash = "parent_hash"
+                case channelId = "channel_id"
+            }
+
+            init(from decoder: Decoder) throws {
+                let c = try decoder.container(keyedBy: CodingKeys.self)
+                self.targetHash = try c.decode(String.self, forKey: .targetHash)
+                self.authorTid = try? HubDecode.bigInt(c, forKey: .authorTid)
+                self.text = try c.decodeIfPresent(String.self, forKey: .text)
+                self.timestamp = try? HubDecode.date(c, forKey: .timestamp)
+                self.parentHash = try c.decodeIfPresent(String.self, forKey: .parentHash)
+                self.channelId = try c.decodeIfPresent(String.self, forKey: .channelId)
+                self.embeds = try c.decodeIfPresent([String].self, forKey: .embeds)
+                self.username = try c.decodeIfPresent(String.self, forKey: .username)
+            }
+        }
+        struct R: Decodable { let bookmarks: [Row] }
+        let r: R = try await get("v1/bookmarks/\(tid)")
+        return r.bookmarks.compactMap { row in
+            guard let authorTid = row.authorTid, let ts = row.timestamp else { return nil }
+            return Tweet(
+                hash: row.targetHash,
+                tid: authorTid,
+                text: row.text,
+                parentHash: row.parentHash,
+                channelId: row.channelId,
+                embeds: row.embeds,
+                timestamp: ts,
+                username: row.username,
+                replyCount: nil
+            )
+        }
+    }
+
     // MARK: - Per-poll vote
 
     public struct PollVote: Decodable {

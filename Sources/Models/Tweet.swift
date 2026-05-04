@@ -33,6 +33,31 @@ public struct Tweet: Decodable, Identifiable, Hashable {
         self.replyCount = try c.decodeIfPresent(Int.self, forKey: .replyCount)
         self.timestamp = try HubDecode.date(c, forKey: .timestamp)
     }
+
+    /// Memberwise init for synthesizing a Tweet from rows that don't
+    /// arrive as a plain `/v1/tweet` payload (e.g. the bookmarks join
+    /// returns `target_hash` + `author_tid` instead of `hash` + `tid`).
+    public init(
+        hash: String,
+        tid: String,
+        text: String?,
+        parentHash: String?,
+        channelId: String?,
+        embeds: [String]?,
+        timestamp: Date,
+        username: String?,
+        replyCount: Int?
+    ) {
+        self.hash = hash
+        self.tid = tid
+        self.text = text
+        self.parentHash = parentHash
+        self.channelId = channelId
+        self.embeds = embeds
+        self.timestamp = timestamp
+        self.username = username
+        self.replyCount = replyCount
+    }
 }
 
 public extension ISO8601DateFormatter {
