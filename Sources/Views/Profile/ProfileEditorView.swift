@@ -79,6 +79,8 @@ struct ProfileEditorView: View {
             displayName = user.profile?.displayName ?? ""
             bio = user.profile?.bio ?? ""
             pfpURL = user.profile?.pfpUrl ?? ""
+            location = user.profile?.location ?? ""
+            url = user.profile?.url ?? ""
         }
     }
 

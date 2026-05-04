@@ -48,6 +48,8 @@ public struct UserProfile: Decodable, Hashable {
     public let displayName: String?
     public let bio: String?
     public let pfpUrl: String?
+    public let location: String?
+    public let url: String?
 }
 
 public struct UserListResponse: Decodable {
