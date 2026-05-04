@@ -54,6 +54,14 @@ struct ProfileView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink {
+                    ActivityView()
+                } label: {
+                    Image(systemName: "list.bullet.clipboard")
+                }
+                .accessibilityLabel("Activity")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
                     BookmarksView()
                 } label: {
                     Image(systemName: "bookmark")

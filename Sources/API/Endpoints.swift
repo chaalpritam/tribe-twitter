@@ -136,6 +136,20 @@ public extension HubClient {
         try? await get("v1/users/\(tid)/karma")
     }
 
+    // MARK: - Activity
+
+    /// Per-account activity log: every signed envelope plus every
+    /// follow / unfollow op the ER has touched for this TID. Newest
+    /// first. Powers the iOS Activity transparency view.
+    func fetchActivity(_ tid: String, limit: Int = 200) async throws -> [ActivityRow] {
+        struct R: Decodable { let activity: [ActivityRow] }
+        let r: R = try await get(
+            "v1/users/\(tid)/activity",
+            query: ["limit": String(limit)]
+        )
+        return r.activity
+    }
+
     // MARK: - Search
 
     func searchTweets(_ query: String) async throws -> [Tweet] {
