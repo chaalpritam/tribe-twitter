@@ -78,20 +78,27 @@ extension HubClient {
         return try await submit(envelope: envelope)
     }
 
-    /// Like a tweet (REACTION_ADD with reaction.type = 1).
+    /// Subtypes of a REACTION envelope. Matches the web client's
+    /// `ReactionSubtype` in tribe-app/src/lib/messages.ts and what the
+    /// hub stores in `messages.text` for type=3 / type=4 rows.
+    ///
+    /// Note: REACTION_REMOVE on the hub clears EVERY reaction the user
+    /// has on a target regardless of subtype, so toggling off a retweet
+    /// also clears a like on the same tweet. Acceptable for v1 — matches
+    /// the web behavior.
+    enum ReactionSubtype: Int {
+        case like = 1
+        case retweet = 2
+    }
+
+    /// Like a tweet (REACTION_ADD with body.type = 1).
     @discardableResult
     func likeTweet(
         hash: String,
         as appKey: AppKey,
         tid: String
     ) async throws -> String {
-        let envelope = try MessageSigner.sign(
-            type: MessageType.reactionAdd.rawValue,
-            tid: tid,
-            body: ["parent_hash": hash, "reaction": ["type": 1]],
-            appKey: appKey
-        )
-        return try await submit(envelope: envelope)
+        try await react(targetHash: hash, subtype: .like, add: true, as: appKey, tid: tid)
     }
 
     @discardableResult
@@ -100,10 +107,47 @@ extension HubClient {
         as appKey: AppKey,
         tid: String
     ) async throws -> String {
+        try await react(targetHash: hash, subtype: .like, add: false, as: appKey, tid: tid)
+    }
+
+    /// Retweet (REACTION_ADD with body.type = 2). Profile feeds project
+    /// retweeted tweets under the original's body with retweeted_by_*
+    /// metadata so the recipient can render an "X retweeted" header.
+    @discardableResult
+    func retweet(
+        hash: String,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> String {
+        try await react(targetHash: hash, subtype: .retweet, add: true, as: appKey, tid: tid)
+    }
+
+    @discardableResult
+    func unretweet(
+        hash: String,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> String {
+        try await react(targetHash: hash, subtype: .retweet, add: false, as: appKey, tid: tid)
+    }
+
+    /// Internal: build + submit a signed REACTION envelope. Wire body
+    /// shape is `{type: <subtype>, target_hash: <hash>}` — flat —
+    /// matching what the hub's submit.ts validates against. Subtype is
+    /// included on REMOVE too so the wire shape stays consistent even
+    /// though the hub ignores it on remove.
+    @discardableResult
+    private func react(
+        targetHash hash: String,
+        subtype: ReactionSubtype,
+        add: Bool,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> String {
         let envelope = try MessageSigner.sign(
-            type: MessageType.reactionRemove.rawValue,
+            type: (add ? MessageType.reactionAdd : MessageType.reactionRemove).rawValue,
             tid: tid,
-            body: ["parent_hash": hash, "reaction": ["type": 1]],
+            body: ["type": subtype.rawValue, "target_hash": hash],
             appKey: appKey
         )
         return try await submit(envelope: envelope)

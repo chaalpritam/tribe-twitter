@@ -81,9 +81,9 @@ public extension HubClient {
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 self.targetHash = try c.decode(String.self, forKey: .targetHash)
-                self.authorTid = try? HubDecode.bigInt(c, forKey: .authorTid)
+                self.authorTid = try HubDecode.bigIntIfPresent(c, forKey: .authorTid)
                 self.text = try c.decodeIfPresent(String.self, forKey: .text)
-                self.timestamp = try? HubDecode.date(c, forKey: .timestamp)
+                self.timestamp = try HubDecode.dateIfPresent(c, forKey: .timestamp)
                 self.parentHash = try c.decodeIfPresent(String.self, forKey: .parentHash)
                 self.channelId = try c.decodeIfPresent(String.self, forKey: .channelId)
                 self.embeds = try c.decodeIfPresent([String].self, forKey: .embeds)
