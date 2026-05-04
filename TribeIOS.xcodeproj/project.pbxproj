@@ -68,6 +68,7 @@
 		D21F3B662F0936785B4258F8 /* InteractionCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9079DDA3342BC33B65D252BF /* InteractionCache.swift */; };
 		D495EA20D0C072BB735100B0 /* TweetDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADF5FD4422513C609DB03B7 /* TweetDetailView.swift */; };
 		DA9EF4466C4BBC72615701D0 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80C7199BB3E3E23CCEB0D97 /* ActivityView.swift */; };
+		E197EE1055521978558393EC /* TipSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3451A786E7E0BE7C82E6E3A /* TipSheet.swift */; };
 		E2368A2BC5743D70F2F820CE /* CrowdfundsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFAB23A3DE2D3E2C535CCD0A /* CrowdfundsView.swift */; };
 		E2AA337F2E8CE0533E581D35 /* Crowdfund.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4109E10DB52F71E507369D00 /* Crowdfund.swift */; };
 		E505F8C592C502F8B6E960CE /* TribesHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A88C3D0603D7BDBF06520B87 /* TribesHubView.swift */; };
@@ -121,6 +122,7 @@
 		9F2AEB2CE6F29DADB2CC9457 /* Decoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Decoding.swift; sourceTree = "<group>"; };
 		A096FEE4A66995A887689B88 /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
 		A31ECED4767F2016DEE9D773 /* NewDMSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewDMSheet.swift; sourceTree = "<group>"; };
+		A3451A786E7E0BE7C82E6E3A /* TipSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipSheet.swift; sourceTree = "<group>"; };
 		A47E77BBB5609B5912398F2D /* Tweet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tweet.swift; sourceTree = "<group>"; };
 		A5583141E953AC137F804E52 /* ChannelFeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelFeedView.swift; sourceTree = "<group>"; };
 		A784FA6FFFD6D2909A50596B /* NaClBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaClBox.swift; sourceTree = "<group>"; };
@@ -418,6 +420,7 @@
 			isa = PBXGroup;
 			children = (
 				3DF7E176BDCE10D02CD1008F /* HomeFeedView.swift */,
+				A3451A786E7E0BE7C82E6E3A /* TipSheet.swift */,
 				CDE2890C2C72DA40FCFFFC5A /* TweetCardView.swift */,
 				4ADF5FD4422513C609DB03B7 /* TweetDetailView.swift */,
 			);
@@ -589,6 +592,7 @@
 				C971BB9B1FF1C15E8A61665D /* TaskItem.swift in Sources */,
 				958B0CDA8F7E1309C99D5ABF /* TasksView.swift in Sources */,
 				0DF09BEC04CC574FCC4A0BAE /* Tip.swift in Sources */,
+				E197EE1055521978558393EC /* TipSheet.swift in Sources */,
 				2745E729A22A44E3712B9DC9 /* TribeColors.swift in Sources */,
 				8437CBF8565D3E056BD7B743 /* TribeIOSApp.swift in Sources */,
 				E505F8C592C502F8B6E960CE /* TribesHubView.swift in Sources */,

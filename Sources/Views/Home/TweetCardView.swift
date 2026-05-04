@@ -10,6 +10,7 @@ struct TweetCardView: View {
     @State private var pendingAction = false
     @State private var error: String?
     @State private var presentingReply = false
+    @State private var presentingTip = false
 
     /// Read directly from the shared InteractionCache so paginated
     /// feeds, the search results, the bookmarks tab, and the profile
@@ -109,6 +110,15 @@ struct TweetCardView: View {
                 .environmentObject(app)
                 .environmentObject(interactions)
         }
+        .sheet(isPresented: $presentingTip) {
+            TipSheet(
+                recipientTid: tweet.tid,
+                recipientName: displayName,
+                tweetHash: tweet.hash
+            )
+            .presentationDetents([.medium])
+            .environmentObject(app)
+        }
     }
 
     /// Avatar + display name + meta line. Wrapped in a NavigationLink
@@ -200,6 +210,16 @@ struct TweetCardView: View {
                 activeTint: .blue
             ) {
                 Task { await toggleBookmark() }
+            }
+            if !isOwnTweet {
+                actionButton(
+                    symbol: "dollarsign.circle",
+                    count: nil,
+                    active: false,
+                    activeTint: .orange
+                ) {
+                    presentingTip = true
+                }
             }
             Spacer()
         }
