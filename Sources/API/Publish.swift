@@ -5,6 +5,42 @@ import Foundation
 /// Wallet-style on-chain transactions (Solana TID register, on-chain
 /// tip) need a separate Solana wallet flow that isn't wired up yet.
 extension HubClient {
+    /// POST a binary blob to /v1/upload. Returns the SHA-256 hex hash
+    /// the hub assigned, which callers stitch into a tweet's `embeds`
+    /// array as `"media:<hash>"`. Hub enforces ≤5 MB and only accepts
+    /// the four common image MIME types — caller is responsible for
+    /// downscaling / re-encoding before calling. Constructs a minimal
+    /// multipart/form-data body by hand to avoid pulling in a
+    /// dependency just for one call.
+    func uploadMedia(data: Data, contentType: String, filename: String = "upload") async throws -> String {
+        let boundary = "----TribeIOSBoundary-\(UUID().uuidString)"
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append(
+            "Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n"
+                .data(using: .utf8)!
+        )
+        body.append("Content-Type: \(contentType)\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        var request = URLRequest(url: baseURL.appendingPathComponent("v1/upload"))
+        request.httpMethod = "POST"
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = 60
+        request.httpBody = body
+
+        let (respData, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse else { throw HubError.invalidResponse }
+        guard (200..<300).contains(http.statusCode) else {
+            throw HubError.statusCode(http.statusCode, body: String(data: respData, encoding: .utf8) ?? "")
+        }
+        struct Reply: Decodable { let hash: String }
+        let reply = try JSONDecoder().decode(Reply.self, from: respData)
+        return reply.hash
+    }
+
     /// POST a signed envelope to /v1/submit. Returns the new content
     /// hash the hub assigned (base64). Throws `HubError.statusCode`
     /// with the hub's error body on rejection.
