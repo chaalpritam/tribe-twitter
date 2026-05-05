@@ -70,7 +70,7 @@ private struct NotifRow: View {
 
     var body: some View {
         NavigationLink {
-            ProfileView(tid: row.actorTid)
+            destination
         } label: {
             HStack(alignment: .top, spacing: 12) {
                 ZStack(alignment: .bottomTrailing) {
@@ -119,6 +119,60 @@ private struct NotifRow: View {
     private var avatarInitial: String {
         if let u = row.actorUsername, let first = u.first { return String(first).uppercased() }
         return String(row.actorTid.prefix(1))
+    }
+
+    @ViewBuilder
+    private var destination: some View {
+        // Tweet-related events have a target_hash pointing at the
+        // tweet that was reacted to, replied to, mentioned in, or
+        // tipped — push the thread view so the user lands on the
+        // actual content. Everything else falls back to the actor's
+        // profile (poll/event/task/crowdfund detail views don't
+        // exist yet).
+        switch row.type {
+        case .reaction, .reply, .mention, .tip:
+            if let hash = row.targetHash, !hash.isEmpty {
+                TweetByHashView(hash: hash)
+            } else {
+                ProfileView(tid: row.actorTid)
+            }
+        case .follow, .pollVote, .eventRsvp, .taskClaim, .taskComplete, .crowdfundPledge:
+            ProfileView(tid: row.actorTid)
+        }
+    }
+}
+
+/// Loader view: fetches a tweet by hash and shows the detail view.
+/// Used by notification rows where we only carry the target_hash and
+/// don't want to pre-fetch every tweet at list-load time.
+private struct TweetByHashView: View {
+    @EnvironmentObject private var app: AppState
+    let hash: String
+
+    @State private var tweet: Tweet?
+    @State private var error: String?
+
+    var body: some View {
+        Group {
+            if let tweet {
+                TweetDetailView(tweet: tweet)
+            } else if let error {
+                EmptyStateView(
+                    symbol: "wifi.exclamationmark",
+                    title: "Couldn't load tweet",
+                    message: error
+                )
+            } else {
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .task {
+            do {
+                tweet = try await app.api.fetchTweet(hash: hash)
+            } catch {
+                self.error = error.localizedDescription
+            }
+        }
     }
 }
 
