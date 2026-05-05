@@ -73,16 +73,24 @@ private struct NotifRow: View {
             ProfileView(tid: row.actorTid)
         } label: {
             HStack(alignment: .top, spacing: 12) {
-                ZStack {
-                    Circle().fill(TribeColor.chipBackground)
+                ZStack(alignment: .bottomTrailing) {
+                    AvatarView(
+                        initial: avatarInitial,
+                        size: 40,
+                        pfpURL: row.actorPfpUrl.flatMap(URL.init(string:))
+                    )
                     Image(systemName: row.type.symbol)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(TribeColor.textPrimary)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(4)
+                        .background(Circle().fill(Color.accentColor))
+                        .overlay(Circle().stroke(TribeColor.pageBackground, lineWidth: 2))
+                        .offset(x: 4, y: 4)
                 }
-                .frame(width: 36, height: 36)
+                .frame(width: 44, height: 44)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("TID #\(row.actorTid) \(row.type.label)")
+                    Text("\(actorDisplay) \(row.type.label)")
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.primary)
                     if let preview = row.preview, !preview.isEmpty {
@@ -101,6 +109,16 @@ private struct NotifRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    private var actorDisplay: String {
+        if let u = row.actorUsername, !u.isEmpty { return "\(u).tribe" }
+        return "TID #\(row.actorTid)"
+    }
+
+    private var avatarInitial: String {
+        if let u = row.actorUsername, let first = u.first { return String(first).uppercased() }
+        return String(row.actorTid.prefix(1))
     }
 }
 

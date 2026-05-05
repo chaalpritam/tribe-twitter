@@ -46,6 +46,8 @@ public enum NotificationType: String, Decodable, CaseIterable {
 public struct TribeNotification: Decodable, Hashable, Identifiable {
     public let type: NotificationType
     public let actorTid: String
+    public let actorUsername: String?
+    public let actorPfpUrl: String?
     public let targetHash: String?
     public let preview: String?
     public let createdAt: Date
@@ -59,6 +61,8 @@ public struct TribeNotification: Decodable, Hashable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case type, preview
         case actorTid = "actor_tid"
+        case actorUsername = "actor_username"
+        case actorPfpUrl = "actor_pfp_url"
         case targetHash = "target_hash"
         case createdAt = "created_at"
     }
@@ -67,6 +71,8 @@ public struct TribeNotification: Decodable, Hashable, Identifiable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         self.type = try c.decode(NotificationType.self, forKey: .type)
         self.actorTid = try HubDecode.bigInt(c, forKey: .actorTid)
+        self.actorUsername = try c.decodeIfPresent(String.self, forKey: .actorUsername)
+        self.actorPfpUrl = try c.decodeIfPresent(String.self, forKey: .actorPfpUrl)
         self.targetHash = try c.decodeIfPresent(String.self, forKey: .targetHash)
         self.preview = try c.decodeIfPresent(String.self, forKey: .preview)
         self.createdAt = try HubDecode.date(c, forKey: .createdAt)
