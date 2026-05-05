@@ -189,9 +189,28 @@ final class AppState: ObservableObject {
         phase = (myTID != nil && appKey != nil) ? .ready : .onboarding
     }
 
+    /// The wall-clock moment this TID last opened the notifications
+    /// screen. Backed by UserDefaults so it survives relaunches; nil
+    /// the first time the user looks at notifications. Per-TID so
+    /// switching accounts on one device doesn't bleed state across.
+    func lastNotificationsReadAt(tid: String) -> Date? {
+        let raw = UserDefaults.standard.double(forKey: Keys.notificationsReadAt(tid))
+        return raw > 0 ? Date(timeIntervalSince1970: raw) : nil
+    }
+
+    /// Stamp "now" as the read mark — called when NotificationsView
+    /// appears so the bell badge resets to zero until something new
+    /// lands.
+    func markNotificationsRead(tid: String) {
+        UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: Keys.notificationsReadAt(tid))
+    }
+
     private enum Keys {
         static let hubURL = "tribe.hubBaseURL"
         static let erURL = "tribe.erBaseURL"
         static let tid = "tribe.tid"
+        static func notificationsReadAt(_ tid: String) -> String {
+            "tribe.notificationsReadAt.\(tid)"
+        }
     }
 }

@@ -187,7 +187,8 @@ struct HomeFeedView: View {
     @MainActor
     private func refreshUnread() async {
         guard let tid = app.myTID else { return }
-        unreadCount = (try? await app.api.fetchUnreadCount(tid)) ?? 0
+        let since = app.lastNotificationsReadAt(tid: tid)
+        unreadCount = (try? await app.api.fetchUnreadCount(tid, since: since)) ?? 0
     }
 }
 

@@ -135,8 +135,15 @@ public extension HubClient {
         return res.notifications
     }
 
-    func fetchUnreadCount(_ tid: String) async throws -> Int {
-        let res: NotificationCountResponse = try await get("v1/notifications/\(tid)/count")
+    func fetchUnreadCount(_ tid: String, since: Date? = nil) async throws -> Int {
+        var query: [String: String] = [:]
+        if let since {
+            query["since"] = ISO8601DateFormatter().string(from: since)
+        }
+        let res: NotificationCountResponse = try await get(
+            "v1/notifications/\(tid)/count",
+            query: query
+        )
         return res.count
     }
 

@@ -58,6 +58,9 @@ struct NotificationsView: View {
         error = nil
         do {
             rows = try await app.api.fetchNotifications(tid)
+            // Stamp the read mark only after a successful fetch so a
+            // network error doesn't silently mark everything read.
+            app.markNotificationsRead(tid: tid)
         } catch {
             self.error = error.localizedDescription
         }
