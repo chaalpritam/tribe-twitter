@@ -11,12 +11,24 @@ struct TweetDetailView: View {
     @EnvironmentObject private var app: AppState
     let tweet: Tweet
 
+    @State private var parent: Tweet?
     @State private var replies: [Tweet] = []
     @State private var loading = true
     @State private var error: String?
 
     var body: some View {
         List {
+            if let parent {
+                Section("In reply to") {
+                    NavigationLink {
+                        TweetDetailView(tweet: parent)
+                    } label: {
+                        TweetCardView(tweet: parent)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
             Section {
                 TweetCardView(tweet: tweet)
                     .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
@@ -63,10 +75,17 @@ struct TweetDetailView: View {
     private func refresh() async {
         loading = replies.isEmpty
         defer { loading = false }
+        async let repliesTask = app.api.fetchReplies(hash: tweet.hash)
+        async let parentTask: Tweet? = {
+            guard let parentHash = tweet.parentHash else { return nil }
+            return try? await app.api.fetchTweet(hash: parentHash)
+        }()
         do {
-            replies = try await app.api.fetchReplies(hash: tweet.hash)
+            replies = try await repliesTask
+            parent = await parentTask
         } catch {
             self.error = error.localizedDescription
+            parent = await parentTask
         }
     }
 }
