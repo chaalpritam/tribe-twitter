@@ -368,6 +368,29 @@ extension HubClient {
         return try await postRaw(path: "v1/dm/send", envelope: envelope)
     }
 
+    /// Mark progress through a conversation by recording the most
+    /// recent message hash the user has seen. Posts a DM_READ envelope
+    /// to /v1/dm/read; the hub upserts a row in `dm_read_receipts`
+    /// keyed by (tid, conversation_id).
+    @discardableResult
+    func markDMRead(
+        conversationId: String,
+        lastReadHash: String,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> Data {
+        let envelope = try MessageSigner.sign(
+            type: MessageType.dmRead.rawValue,
+            tid: tid,
+            body: [
+                "conversation_id": conversationId,
+                "last_read_hash": lastReadHash,
+            ],
+            appKey: appKey
+        )
+        return try await postRaw(path: "v1/dm/read", envelope: envelope)
+    }
+
     /// Internal — POST a signed envelope to a non-/v1/submit route
     /// and return the raw response body so the caller can parse the
     /// route-specific reply (e.g. the conversation_id for DM_SEND).

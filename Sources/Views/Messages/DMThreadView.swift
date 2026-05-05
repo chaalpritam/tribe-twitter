@@ -110,9 +110,27 @@ struct DMThreadView: View {
                 tid: tid
             )
             await decryptMissing()
+            await markRead(tid: tid)
         } catch {
             self.error = error.localizedDescription
         }
+    }
+
+    @MainActor
+    private func markRead(tid: String) async {
+        // Best-effort: post a DM_READ envelope for the latest message
+        // we've rendered so the hub can compute unread counts. Failures
+        // here are silent — the receipt is purely cosmetic.
+        guard
+            let key = app.appKey,
+            let last = messages.last
+        else { return }
+        _ = try? await app.api.markDMRead(
+            conversationId: conversation.id,
+            lastReadHash: last.hash,
+            as: key,
+            tid: tid
+        )
     }
 
     @MainActor
