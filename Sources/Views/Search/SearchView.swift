@@ -49,7 +49,12 @@ struct SearchView: View {
                     if !channels.isEmpty {
                         SwiftUI.Section("Channels") {
                             ForEach(channels) { c in
-                                MiniRow(title: c.displayName, subtitle: "\(c.memberCount) members")
+                                NavigationLink {
+                                    ChannelFeedView(channel: c)
+                                } label: {
+                                    MiniRow(title: c.displayName, subtitle: "\(c.memberCount) members")
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
