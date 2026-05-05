@@ -8,6 +8,7 @@ public struct DMConversation: Decodable, Identifiable, Hashable {
     public let peerTid: String
     public let peerUsername: String?
     public let messageCount: Int
+    public let unreadCount: Int
     public let lastMessageAt: Date?
 
     enum CodingKeys: String, CodingKey {
@@ -15,6 +16,7 @@ public struct DMConversation: Decodable, Identifiable, Hashable {
         case peerTid = "peer_tid"
         case peerUsername = "peer_username"
         case messageCount = "message_count"
+        case unreadCount = "unread_count"
         case lastMessageAt = "last_message_at"
     }
 
@@ -24,6 +26,7 @@ public struct DMConversation: Decodable, Identifiable, Hashable {
         self.peerTid = try HubDecode.bigInt(c, forKey: .peerTid)
         self.peerUsername = try c.decodeIfPresent(String.self, forKey: .peerUsername)
         self.messageCount = HubDecode.intCount(c, forKey: .messageCount)
+        self.unreadCount = HubDecode.intCount(c, forKey: .unreadCount)
         self.lastMessageAt = try HubDecode.dateIfPresent(c, forKey: .lastMessageAt)
     }
 }

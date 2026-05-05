@@ -105,10 +105,20 @@ private struct ConversationRow: View {
                     .foregroundStyle(.tertiary)
             }
             Spacer()
-            if let last = conversation.lastMessageAt {
-                Text(RelativeTime.short(last))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            VStack(alignment: .trailing, spacing: 4) {
+                if let last = conversation.lastMessageAt {
+                    Text(RelativeTime.short(last))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                if conversation.unreadCount > 0 {
+                    Text("\(conversation.unreadCount)")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.accentColor))
+                }
             }
         }
         .padding(.vertical, 4)
