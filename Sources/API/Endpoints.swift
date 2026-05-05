@@ -16,6 +16,16 @@ public extension HubClient {
         return res.tweets
     }
 
+    /// Cursor-paginated read of `/v1/feed`. Pass `nil` for the first
+    /// page; pass back the response's `cursor` to walk further into
+    /// history. The hub serves a full page (default 20 rows) on each
+    /// hit and returns a nil cursor once the tail is reached.
+    func fetchFeedPage(cursor: String? = nil, limit: Int = 20) async throws -> FeedPage {
+        var query: [String: String] = ["limit": String(limit)]
+        if let cursor { query["cursor"] = cursor }
+        return try await get("v1/feed", query: query)
+    }
+
     func fetchTweets(tid: String? = nil) async throws -> [Tweet] {
         if let tid {
             let res: TweetListResponse = try await get("v1/tweets/\(tid)")

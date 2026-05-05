@@ -103,3 +103,12 @@ public extension ISO8601DateFormatter {
 public struct TweetListResponse: Decodable {
     public let tweets: [Tweet]
 }
+
+/// Paginated feed reply. The hub returns `cursor` only when it
+/// served a full page; nil means there's nothing past this point.
+/// Carry the cursor along on the next fetch as `?cursor=…` to walk
+/// backward in time.
+public struct FeedPage: Decodable {
+    public let tweets: [Tweet]
+    public let cursor: String?
+}
