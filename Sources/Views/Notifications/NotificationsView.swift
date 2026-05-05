@@ -35,8 +35,8 @@ struct NotificationsView: View {
                     message: "Replies, reactions, tips, RSVPs, and other activity will appear here."
                 )
             } else {
-                List(rows) { row in
-                    NotifRow(row: row)
+                List(aggregate(rows)) { agg in
+                    NotifRow(agg: agg)
                 }
                 .listStyle(.plain)
             }
@@ -68,8 +68,55 @@ struct NotificationsView: View {
     }
 }
 
+/// One row in the rendered notifications list. Holds the most recent
+/// underlying event as `primary` plus a count of additional actors
+/// that were folded in by aggregation. `additionalActorCount` is 0
+/// when the row stands alone.
+private struct AggregatedNotification: Identifiable {
+    let primary: TribeNotification
+    let additionalActorCount: Int
+    var id: String { "\(primary.id)|+\(additionalActorCount)" }
+}
+
+/// Collapse same-kind events on the same target into a single row,
+/// e.g. five reactions on one tweet become "@alice and 4 others
+/// reacted to your tweet". Replies and mentions stay un-aggregated
+/// because each one carries distinct content the user likely wants
+/// to see individually. Input must be sorted newest-first.
+private func aggregate(_ rows: [TribeNotification]) -> [AggregatedNotification] {
+    var result: [AggregatedNotification] = []
+    var indexByGroup: [String: Int] = [:]
+    for row in rows {
+        let groupable: Bool
+        switch row.type {
+        case .reply, .mention:
+            groupable = false
+        case .reaction, .tip, .follow, .pollVote,
+             .eventRsvp, .taskClaim, .taskComplete, .crowdfundPledge:
+            groupable = true
+        }
+        // Follow has no target_hash so all follows aggregate into one
+        // bucket. Other groupable types key on (type, target_hash) so
+        // separate tweets / polls / events stay independent.
+        let key = groupable
+            ? "\(row.type.rawValue)|\(row.targetHash ?? "")"
+            : row.id
+        if let idx = indexByGroup[key] {
+            result[idx] = AggregatedNotification(
+                primary: result[idx].primary,
+                additionalActorCount: result[idx].additionalActorCount + 1
+            )
+        } else {
+            indexByGroup[key] = result.count
+            result.append(AggregatedNotification(primary: row, additionalActorCount: 0))
+        }
+    }
+    return result
+}
+
 private struct NotifRow: View {
-    let row: TribeNotification
+    let agg: AggregatedNotification
+    private var row: TribeNotification { agg.primary }
 
     var body: some View {
         NavigationLink {
@@ -93,7 +140,7 @@ private struct NotifRow: View {
                 .frame(width: 44, height: 44)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("\(actorDisplay) \(row.type.label)")
+                    Text(headline)
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.primary)
                     if let preview = row.preview, !preview.isEmpty {
@@ -122,6 +169,14 @@ private struct NotifRow: View {
     private var avatarInitial: String {
         if let u = row.actorUsername, let first = u.first { return String(first).uppercased() }
         return String(row.actorTid.prefix(1))
+    }
+
+    private var headline: String {
+        if agg.additionalActorCount == 0 {
+            return "\(actorDisplay) \(row.type.label)"
+        }
+        let others = agg.additionalActorCount
+        return "\(actorDisplay) and \(others) other\(others == 1 ? "" : "s") \(row.type.label)"
     }
 
     @ViewBuilder
