@@ -24,6 +24,8 @@ struct GroupInfoView: View {
     @State private var showAddMember = false
     @State private var newMemberInput: String = ""
     @State private var addingMember = false
+    @State private var confirmDelete = false
+    @State private var deleting = false
 
     private var isCreator: Bool {
         guard let me = app.myTID, let d = details else { return false }
@@ -90,8 +92,19 @@ struct GroupInfoView: View {
                         Text("You'll stop receiving messages and won't appear in the member list. Re-joining requires the creator to add you back.")
                     }
                 } else {
-                    Section {} footer: {
-                        Text("You created this group. Ownership transfer isn't supported yet — leaving will land in a follow-up.")
+                    Section {
+                        Button(role: .destructive) {
+                            confirmDelete = true
+                        } label: {
+                            HStack {
+                                Spacer()
+                                Text(deleting ? "Deleting…" : "Delete group")
+                                Spacer()
+                            }
+                        }
+                        .disabled(deleting)
+                    } footer: {
+                        Text("Deletes the group for every member and removes all messages. This can't be undone.")
                     }
                 }
             }
@@ -110,6 +123,16 @@ struct GroupInfoView: View {
             ) {
                 Button("Leave", role: .destructive) {
                     Task { await leave() }
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+            .confirmationDialog(
+                "Delete \(group.name)?",
+                isPresented: $confirmDelete,
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    Task { await deleteGroup() }
                 }
                 Button("Cancel", role: .cancel) {}
             }
@@ -227,6 +250,26 @@ struct GroupInfoView: View {
             await load()
         } catch {
             self.error = "Couldn't add: \(error.localizedDescription)"
+        }
+    }
+
+    @MainActor
+    private func deleteGroup() async {
+        guard
+            let key = app.appKey,
+            let tid = app.myTID
+        else { return }
+        deleting = true
+        error = nil
+        defer { deleting = false }
+        do {
+            _ = try await app.api.deleteGroup(groupId: group.id, as: key, tid: tid)
+            dismiss()
+            // Same callback path as leave: the viewer is no longer in
+            // the group, so the parent thread should pop to the inbox.
+            onLeft()
+        } catch {
+            self.error = "Couldn't delete: \(error.localizedDescription)"
         }
     }
 

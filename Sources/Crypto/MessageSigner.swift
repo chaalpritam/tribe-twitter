@@ -121,4 +121,5 @@ enum MessageType: Int {
     case dmGroupLeave = 29
     case dmGroupAddMember = 30
     case dmGroupRemoveMember = 31
+    case dmGroupDelete = 32
 }

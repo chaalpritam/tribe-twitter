@@ -468,6 +468,23 @@ extension HubClient {
         return try await postRaw(path: "v1/dm/groups/add-member", envelope: envelope)
     }
 
+    /// Delete a group entirely. Creator-only on the hub; cascades
+    /// members + messages so the inbox drops it for everyone.
+    @discardableResult
+    func deleteGroup(
+        groupId: String,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> Data {
+        let envelope = try MessageSigner.sign(
+            type: MessageType.dmGroupDelete.rawValue,
+            tid: tid,
+            body: ["group_id": groupId],
+            appKey: appKey
+        )
+        return try await postRaw(path: "v1/dm/groups/delete", envelope: envelope)
+    }
+
     /// Remove a member from a group. Creator-only on the hub; the
     /// creator themselves can't be removed.
     @discardableResult
