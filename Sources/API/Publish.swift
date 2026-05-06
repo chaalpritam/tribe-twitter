@@ -430,6 +430,23 @@ extension HubClient {
         return try await postRaw(path: "v1/dm/groups/send", envelope: envelope)
     }
 
+    /// Remove ourselves from a group. Hub deletes the dm_group_members
+    /// row; subsequent fetches no longer include the group.
+    @discardableResult
+    func leaveGroup(
+        groupId: String,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> Data {
+        let envelope = try MessageSigner.sign(
+            type: MessageType.dmGroupLeave.rawValue,
+            tid: tid,
+            body: ["group_id": groupId],
+            appKey: appKey
+        )
+        return try await postRaw(path: "v1/dm/groups/leave", envelope: envelope)
+    }
+
     /// Mark progress through a conversation by recording the most
     /// recent message hash the user has seen. Posts a DM_READ envelope
     /// to /v1/dm/read; the hub upserts a row in `dm_read_receipts`

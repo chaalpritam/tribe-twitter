@@ -118,4 +118,5 @@ enum MessageType: Int {
     case dmGroupCreate = 26
     case dmGroupSend = 27
     case dmRead = 28
+    case dmGroupLeave = 29
 }

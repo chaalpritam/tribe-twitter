@@ -14,6 +14,7 @@ import SwiftUI
 /// outgoing group messages lands in a follow-up.
 struct DMThreadView: View {
     @EnvironmentObject private var app: AppState
+    @Environment(\.dismiss) private var dismiss
     let target: DMTarget
 
     @State private var messages: [DMMessage] = []
@@ -24,6 +25,7 @@ struct DMThreadView: View {
     @State private var error: String?
     @State private var recipientPub: Data?
     @State private var groupMemberKeys: [(tid: String, pub: Data)] = []
+    @State private var showingGroupInfo = false
 
     private var isGroup: Bool {
         if case .group = target { return true }
@@ -66,6 +68,26 @@ struct DMThreadView: View {
         }
         .navigationTitle(target.displayTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if case .group = target {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingGroupInfo = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingGroupInfo) {
+            if case .group(let group) = target {
+                GroupInfoView(group: group) {
+                    // Member left — pop back to the inbox so they don't
+                    // sit in a thread they can no longer post to.
+                    dismiss()
+                }
+            }
+        }
         .task {
             await refresh()
             switch target {
