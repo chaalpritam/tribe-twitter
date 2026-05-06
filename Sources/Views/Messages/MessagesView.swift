@@ -1,42 +1,62 @@
 import SwiftUI
 
-/// Inbox of 1:1 DM conversations. Tapping a row pushes the thread
-/// view; the toolbar carries a New Message button.
+/// Inbox combining 1:1 DM conversations and groups the user belongs
+/// to. Tapping a row pushes the shared thread view (DMThreadView,
+/// switched on a DMTarget enum). The toolbar carries a New Message
+/// button for 1:1; group creation lands in a follow-up.
 ///
-/// Conversations are pulled from the hub; ordering by last_message_at
-/// already happens server-side. The list shows the peer's username
-/// (when known) and the count of messages so the user can spot
-/// unread chatter at a glance.
+/// Both lists are pulled from the hub; ordering by last_message_at /
+/// created_at already happens server-side.
 struct MessagesView: View {
     @EnvironmentObject private var app: AppState
     @State private var conversations: [DMConversation] = []
+    @State private var groups: [DMGroup] = []
     @State private var loading = true
     @State private var error: String?
     @State private var presentingNew = false
 
+    private var isEmpty: Bool { conversations.isEmpty && groups.isEmpty }
+
     var body: some View {
         Group {
-            if loading && conversations.isEmpty {
+            if loading && isEmpty {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let error, conversations.isEmpty {
+            } else if let error, isEmpty {
                 EmptyStateView(
                     symbol: "wifi.exclamationmark",
                     title: "Couldn't load messages",
                     message: error,
                     action: ("Retry", { Task { await refresh() } })
                 )
-            } else if conversations.isEmpty {
+            } else if isEmpty {
                 EmptyStateView(
                     symbol: "envelope",
                     title: "No conversations yet",
                     message: "DMs are end-to-end encrypted with nacl.box. Tap + to start a new one."
                 )
             } else {
-                List(conversations) { c in
-                    NavigationLink {
-                        DMThreadView(conversation: c)
-                    } label: {
-                        ConversationRow(conversation: c)
+                List {
+                    if !groups.isEmpty {
+                        SwiftUI.Section("Groups") {
+                            ForEach(groups) { g in
+                                NavigationLink {
+                                    DMThreadView(target: .group(g))
+                                } label: {
+                                    GroupRow(group: g)
+                                }
+                            }
+                        }
+                    }
+                    if !conversations.isEmpty {
+                        SwiftUI.Section(groups.isEmpty ? "" : "Direct Messages") {
+                            ForEach(conversations) { c in
+                                NavigationLink {
+                                    DMThreadView(target: .oneOnOne(c))
+                                } label: {
+                                    ConversationRow(conversation: c)
+                                }
+                            }
+                        }
                     }
                 }
                 .listStyle(.plain)
@@ -80,14 +100,45 @@ struct MessagesView: View {
             loading = false
             return
         }
-        loading = conversations.isEmpty
+        loading = isEmpty
         defer { loading = false }
         error = nil
+        async let convs = app.api.fetchConversations(tid)
+        async let grps = app.api.fetchGroups(tid)
         do {
-            conversations = try await app.api.fetchConversations(tid)
+            conversations = try await convs
         } catch {
             self.error = error.localizedDescription
         }
+        // Groups are best-effort — failure here shouldn't kill the inbox.
+        groups = (try? await grps) ?? []
+    }
+}
+
+private struct GroupRow: View {
+    let group: DMGroup
+
+    var body: some View {
+        HStack(spacing: 12) {
+            AvatarView(initial: initial, size: 44)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(group.name)
+                    .font(.headline)
+                Text("\(group.memberCount) member\(group.memberCount == 1 ? "" : "s")")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            Spacer()
+            Image(systemName: "person.3.fill")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var initial: String {
+        if let first = group.name.first { return String(first).uppercased() }
+        return "#"
     }
 }
 

@@ -60,3 +60,55 @@ public struct DMMessage: Decodable, Identifiable, Hashable {
         self.timestamp = try HubDecode.date(c, forKey: .timestamp)
     }
 }
+
+/// What a thread view is pointed at. 1:1 conversations and groups
+/// share the same UI shell (scrolling list of decrypted bubbles,
+/// optional composer); the differences live in fetch/decrypt/send,
+/// which the view branches on this enum.
+public enum DMTarget: Hashable {
+    case oneOnOne(DMConversation)
+    case group(DMGroup)
+
+    public var id: String {
+        switch self {
+        case .oneOnOne(let c): return c.id
+        case .group(let g): return g.id
+        }
+    }
+
+    public var displayTitle: String {
+        switch self {
+        case .oneOnOne(let c):
+            if let u = c.peerUsername, !u.isEmpty { return "\(u).tribe" }
+            return "TID #\(c.peerTid)"
+        case .group(let g): return g.name
+        }
+    }
+}
+
+/// One row from `/v1/dm/groups/member/:tid`. Groups have a stable
+/// human-readable id (matches /^[a-z0-9-]{1,64}$/) plus a name and a
+/// member count joined in by the hub.
+public struct DMGroup: Decodable, Identifiable, Hashable {
+    public let id: String
+    public let name: String
+    public let creatorTid: String
+    public let memberCount: Int
+    public let createdAt: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id, name
+        case creatorTid = "creator_tid"
+        case memberCount = "member_count"
+        case createdAt = "created_at"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try c.decode(String.self, forKey: .id)
+        self.name = try c.decode(String.self, forKey: .name)
+        self.creatorTid = try HubDecode.bigInt(c, forKey: .creatorTid)
+        self.memberCount = HubDecode.intCount(c, forKey: .memberCount)
+        self.createdAt = try HubDecode.date(c, forKey: .createdAt)
+    }
+}

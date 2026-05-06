@@ -228,6 +228,21 @@ public extension HubClient {
         return r.conversations
     }
 
+    func fetchGroups(_ tid: String) async throws -> [DMGroup] {
+        struct R: Decodable { let groups: [DMGroup] }
+        let r: R = try await get("v1/dm/groups/member/\(tid)")
+        return r.groups
+    }
+
+    func fetchGroupMessages(groupId: String, tid: String) async throws -> [DMMessage] {
+        struct R: Decodable { let messages: [DMMessage] }
+        let r: R = try await get(
+            "v1/dm/groups/\(groupId)/messages",
+            query: ["tid": tid]
+        )
+        return r.messages
+    }
+
     func fetchDMMessages(conversationId: String, tid: String) async throws -> [DMMessage] {
         struct R: Decodable { let messages: [DMMessage] }
         let r: R = try await get(
