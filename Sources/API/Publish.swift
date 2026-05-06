@@ -368,6 +368,41 @@ extension HubClient {
         return try await postRaw(path: "v1/dm/send", envelope: envelope)
     }
 
+    /// Send an encrypted group message. Caller produces one nacl.box
+    /// ciphertext per recipient (including themselves, so they see
+    /// their own messages on refresh). Each entry is a tuple of
+    /// (recipient TID, ciphertext, nonce). The hub fans out to one
+    /// `dm_group_ciphertexts` row per recipient and joins back on
+    /// the caller's TID when listing the thread.
+    @discardableResult
+    func sendGroupMessage(
+        groupId: String,
+        ciphertexts: [(recipientTid: String, ciphertext: Data, nonce: Data)],
+        senderX25519: Data,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> Data {
+        let entries: [[String: Any]] = ciphertexts.map { c in
+            [
+                "recipient_tid": c.recipientTid.numericIfFitsInt(),
+                "ciphertext": c.ciphertext.base64EncodedString(),
+                "nonce": c.nonce.base64EncodedString(),
+            ]
+        }
+        let body: [String: Any] = [
+            "group_id": groupId,
+            "sender_x25519": senderX25519.base64EncodedString(),
+            "ciphertexts": entries,
+        ]
+        let envelope = try MessageSigner.sign(
+            type: MessageType.dmGroupSend.rawValue,
+            tid: tid,
+            body: body,
+            appKey: appKey
+        )
+        return try await postRaw(path: "v1/dm/groups/send", envelope: envelope)
+    }
+
     /// Mark progress through a conversation by recording the most
     /// recent message hash the user has seen. Posts a DM_READ envelope
     /// to /v1/dm/read; the hub upserts a row in `dm_read_receipts`

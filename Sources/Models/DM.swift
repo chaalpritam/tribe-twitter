@@ -112,3 +112,47 @@ public struct DMGroup: Decodable, Identifiable, Hashable {
         self.createdAt = try HubDecode.date(c, forKey: .createdAt)
     }
 }
+
+public struct DMGroupMember: Decodable, Identifiable, Hashable {
+    public let tid: String
+    public let joinedAt: Date
+
+    public var id: String { tid }
+
+    enum CodingKeys: String, CodingKey {
+        case tid
+        case joinedAt = "joined_at"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.tid = try HubDecode.bigInt(c, forKey: .tid)
+        self.joinedAt = try HubDecode.date(c, forKey: .joinedAt)
+    }
+}
+
+/// Reply from `/v1/dm/groups/:groupId` — group metadata plus the
+/// full member list. Used by the composer to look up each member's
+/// x25519 pubkey before per-recipient encryption.
+public struct DMGroupDetails: Decodable, Hashable {
+    public let id: String
+    public let name: String
+    public let creatorTid: String
+    public let createdAt: Date
+    public let members: [DMGroupMember]
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, members
+        case creatorTid = "creator_tid"
+        case createdAt = "created_at"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try c.decode(String.self, forKey: .id)
+        self.name = try c.decode(String.self, forKey: .name)
+        self.creatorTid = try HubDecode.bigInt(c, forKey: .creatorTid)
+        self.createdAt = try HubDecode.date(c, forKey: .createdAt)
+        self.members = try c.decode([DMGroupMember].self, forKey: .members)
+    }
+}

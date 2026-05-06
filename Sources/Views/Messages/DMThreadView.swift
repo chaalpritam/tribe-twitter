@@ -23,6 +23,7 @@ struct DMThreadView: View {
     @State private var sending = false
     @State private var error: String?
     @State private var recipientPub: Data?
+    @State private var groupMemberKeys: [(tid: String, pub: Data)] = []
 
     private var isGroup: Bool {
         if case .group = target { return true }
@@ -61,24 +62,18 @@ struct DMThreadView: View {
                     .padding(.bottom, 4)
             }
 
-            if isGroup {
-                Text("Group sending coming soon")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color(.systemBackground).ignoresSafeArea(edges: .bottom))
-            } else {
-                composer
-            }
+            composer
         }
         .navigationTitle(target.displayTitle)
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await refresh()
-            // Only 1:1 needs the peer's pubkey for own-message decryption.
-            if case .oneOnOne(let conv) = target {
+            switch target {
+            case .oneOnOne(let conv):
+                // 1:1 needs the peer's pubkey for own-message decryption.
                 recipientPub = try? await app.api.fetchDMPublicKey(conv.peerTid)
+            case .group(let group):
+                await loadGroupMemberKeys(groupId: group.id)
             }
         }
         .refreshable { await refresh() }
@@ -111,12 +106,17 @@ struct DMThreadView: View {
     }
 
     private var canSend: Bool {
-        !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && !sending
-            && app.appKey != nil
-            && app.myTID != nil
-            && recipientPub != nil
-            && app.dmKey != nil
+        guard
+            !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            !sending,
+            app.appKey != nil,
+            app.myTID != nil,
+            app.dmKey != nil
+        else { return false }
+        switch target {
+        case .oneOnOne: return recipientPub != nil
+        case .group: return !groupMemberKeys.isEmpty
+        }
     }
 
     @MainActor
@@ -227,40 +227,88 @@ struct DMThreadView: View {
 
     @MainActor
     private func send() async {
-        guard case .oneOnOne(let conv) = target else { return }
         guard
             let key = app.appKey,
             let tid = app.myTID,
             let dm = app.dmKey,
-            let peerPub = recipientPub,
             !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         else { return }
         sending = true
         error = nil
         defer { sending = false }
+        let plaintext = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+            .data(using: .utf8) ?? Data()
         do {
-            let plaintext = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-                .data(using: .utf8) ?? Data()
-            let nonce = NaClBox.randomNonce()
-            let cipher = try NaClBox.box(
-                plaintext,
-                nonce: nonce,
-                recipientPublicKey: peerPub,
-                senderPrivateKey: dm.privateKey
-            )
-            _ = try await app.api.sendDM(
-                recipientTID: conv.peerTid,
-                ciphertext: cipher,
-                nonce: nonce,
-                senderX25519: dm.publicKey,
-                as: key,
-                tid: tid
-            )
+            switch target {
+            case .oneOnOne(let conv):
+                guard let peerPub = recipientPub else { return }
+                let nonce = NaClBox.randomNonce()
+                let cipher = try NaClBox.box(
+                    plaintext,
+                    nonce: nonce,
+                    recipientPublicKey: peerPub,
+                    senderPrivateKey: dm.privateKey
+                )
+                _ = try await app.api.sendDM(
+                    recipientTID: conv.peerTid,
+                    ciphertext: cipher,
+                    nonce: nonce,
+                    senderX25519: dm.publicKey,
+                    as: key,
+                    tid: tid
+                )
+            case .group(let group):
+                guard !groupMemberKeys.isEmpty else { return }
+                // Encrypt the same plaintext separately for every
+                // member (including ourselves so we can read our own
+                // echo on refresh — the hub joins the thread on our
+                // recipient_tid). Each box uses a fresh nonce.
+                let entries = try groupMemberKeys.map { member -> (String, Data, Data) in
+                    let nonce = NaClBox.randomNonce()
+                    let cipher = try NaClBox.box(
+                        plaintext,
+                        nonce: nonce,
+                        recipientPublicKey: member.pub,
+                        senderPrivateKey: dm.privateKey
+                    )
+                    return (member.tid, cipher, nonce)
+                }
+                _ = try await app.api.sendGroupMessage(
+                    groupId: group.id,
+                    ciphertexts: entries.map { (recipientTid: $0.0, ciphertext: $0.1, nonce: $0.2) },
+                    senderX25519: dm.publicKey,
+                    as: key,
+                    tid: tid
+                )
+            }
             draft = ""
             await refresh()
         } catch {
             self.error = "Send failed: \(error.localizedDescription)"
         }
+    }
+
+    @MainActor
+    private func loadGroupMemberKeys(groupId: String) async {
+        // Fetch the member list, then look up each member's x25519
+        // pubkey in parallel. Members with no key registered yet are
+        // skipped — they simply won't see this thread until they
+        // register one (matches the 1:1 pre-registration constraint).
+        guard let details = try? await app.api.fetchGroup(groupId) else { return }
+        let pairs: [(String, Data)] = await withTaskGroup(of: (String, Data?).self) { tg in
+            for member in details.members {
+                tg.addTask {
+                    let pub = try? await self.app.api.fetchDMPublicKey(member.tid)
+                    return (member.tid, pub)
+                }
+            }
+            var out: [(String, Data)] = []
+            for await (tid, pub) in tg {
+                if let pub { out.append((tid, pub)) }
+            }
+            return out
+        }
+        groupMemberKeys = pairs
     }
 }
 
