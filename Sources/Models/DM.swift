@@ -95,12 +95,16 @@ public struct DMGroup: Decodable, Identifiable, Hashable {
     public let creatorTid: String
     public let memberCount: Int
     public let createdAt: Date
+    public let lastMessageAt: Date?
+    public let unreadCount: Int
 
     enum CodingKeys: String, CodingKey {
         case id, name
         case creatorTid = "creator_tid"
         case memberCount = "member_count"
         case createdAt = "created_at"
+        case lastMessageAt = "last_message_at"
+        case unreadCount = "unread_count"
     }
 
     public init(from decoder: Decoder) throws {
@@ -110,6 +114,8 @@ public struct DMGroup: Decodable, Identifiable, Hashable {
         self.creatorTid = try HubDecode.bigInt(c, forKey: .creatorTid)
         self.memberCount = HubDecode.intCount(c, forKey: .memberCount)
         self.createdAt = try HubDecode.date(c, forKey: .createdAt)
+        self.lastMessageAt = try HubDecode.dateIfPresent(c, forKey: .lastMessageAt)
+        self.unreadCount = HubDecode.intCount(c, forKey: .unreadCount)
     }
 }
 

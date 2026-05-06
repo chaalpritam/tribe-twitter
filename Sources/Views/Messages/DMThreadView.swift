@@ -139,7 +139,10 @@ struct DMThreadView: View {
                     tid: tid
                 )
                 await decryptMissing()
-                // No group read-receipts endpoint yet — skip.
+                // Reuse the 1:1 read-receipt path with a "group:<id>"
+                // namespace — migration 012 sized conversation_id for
+                // this and the inbox query joins on the same key.
+                await markRead(tid: tid, conversationId: "group:\(group.id)")
             }
         } catch {
             self.error = error.localizedDescription

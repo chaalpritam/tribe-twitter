@@ -149,9 +149,25 @@ private struct GroupRow: View {
                     .foregroundStyle(.tertiary)
             }
             Spacer()
-            Image(systemName: "person.3.fill")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            VStack(alignment: .trailing, spacing: 4) {
+                if let last = group.lastMessageAt {
+                    Text(RelativeTime.short(last))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Image(systemName: "person.3.fill")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                if group.unreadCount > 0 {
+                    Text("\(group.unreadCount)")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.accentColor))
+                }
+            }
         }
         .padding(.vertical, 4)
     }
