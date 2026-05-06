@@ -21,6 +21,9 @@ struct GroupInfoView: View {
     @State private var leaving = false
     @State private var error: String?
     @State private var confirmLeave = false
+    @State private var showAddMember = false
+    @State private var newMemberInput: String = ""
+    @State private var addingMember = false
 
     private var isCreator: Bool {
         guard let me = app.myTID, let d = details else { return false }
@@ -30,12 +33,36 @@ struct GroupInfoView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Members") {
+                Section {
                     if loading && details == nil {
                         ProgressView().frame(maxWidth: .infinity)
                     } else if let details {
                         ForEach(details.members) { member in
                             memberRow(member, isCreator: member.tid == details.creatorTid)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    if canRemove(member, in: details) {
+                                        Button(role: .destructive) {
+                                            Task { await remove(memberTID: member.tid) }
+                                        } label: {
+                                            Label("Remove", systemImage: "person.crop.circle.badge.minus")
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                } header: {
+                    HStack {
+                        Text("Members")
+                        Spacer()
+                        if isCreator {
+                            Button {
+                                newMemberInput = ""
+                                showAddMember = true
+                            } label: {
+                                Label("Add", systemImage: "plus.circle")
+                                    .labelStyle(.iconOnly)
+                            }
+                            .textCase(nil)
                         }
                     }
                 }
@@ -86,7 +113,29 @@ struct GroupInfoView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             }
+            .alert("Add member", isPresented: $showAddMember) {
+                TextField("TID", text: $newMemberInput)
+                    .keyboardType(.numberPad)
+                Button("Add") {
+                    Task { await addMember() }
+                }
+                .disabled(parsedNewMemberTID == nil)
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Enter the TID of the person to add. They'll need a registered DM key to read messages.")
+            }
         }
+    }
+
+    private var parsedNewMemberTID: String? {
+        let t = newMemberInput.trimmingCharacters(in: .whitespaces)
+        return Int64(t) != nil ? t : nil
+    }
+
+    private func canRemove(_ member: DMGroupMember, in details: DMGroupDetails) -> Bool {
+        guard let me = app.myTID else { return false }
+        // Only the creator can remove, and they can't remove themselves.
+        return details.creatorTid == me && member.tid != details.creatorTid
     }
 
     @ViewBuilder
@@ -155,6 +204,49 @@ struct GroupInfoView: View {
             onLeft()
         } catch {
             self.error = "Couldn't leave: \(error.localizedDescription)"
+        }
+    }
+
+    @MainActor
+    private func addMember() async {
+        guard
+            let key = app.appKey,
+            let tid = app.myTID,
+            let newTid = parsedNewMemberTID
+        else { return }
+        addingMember = true
+        error = nil
+        defer { addingMember = false }
+        do {
+            _ = try await app.api.addGroupMember(
+                groupId: group.id,
+                memberTID: newTid,
+                as: key,
+                tid: tid
+            )
+            await load()
+        } catch {
+            self.error = "Couldn't add: \(error.localizedDescription)"
+        }
+    }
+
+    @MainActor
+    private func remove(memberTID: String) async {
+        guard
+            let key = app.appKey,
+            let tid = app.myTID
+        else { return }
+        error = nil
+        do {
+            _ = try await app.api.removeGroupMember(
+                groupId: group.id,
+                memberTID: memberTID,
+                as: key,
+                tid: tid
+            )
+            await load()
+        } catch {
+            self.error = "Couldn't remove: \(error.localizedDescription)"
         }
     }
 }

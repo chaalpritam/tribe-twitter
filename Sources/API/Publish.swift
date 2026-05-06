@@ -447,6 +447,48 @@ extension HubClient {
         return try await postRaw(path: "v1/dm/groups/leave", envelope: envelope)
     }
 
+    /// Add a member to a group. Creator-only on the hub; non-creators
+    /// get a 403. Idempotent — re-adding an existing member is a 200.
+    @discardableResult
+    func addGroupMember(
+        groupId: String,
+        memberTID: String,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> Data {
+        let envelope = try MessageSigner.sign(
+            type: MessageType.dmGroupAddMember.rawValue,
+            tid: tid,
+            body: [
+                "group_id": groupId,
+                "tid": memberTID.numericIfFitsInt(),
+            ],
+            appKey: appKey
+        )
+        return try await postRaw(path: "v1/dm/groups/add-member", envelope: envelope)
+    }
+
+    /// Remove a member from a group. Creator-only on the hub; the
+    /// creator themselves can't be removed.
+    @discardableResult
+    func removeGroupMember(
+        groupId: String,
+        memberTID: String,
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> Data {
+        let envelope = try MessageSigner.sign(
+            type: MessageType.dmGroupRemoveMember.rawValue,
+            tid: tid,
+            body: [
+                "group_id": groupId,
+                "tid": memberTID.numericIfFitsInt(),
+            ],
+            appKey: appKey
+        )
+        return try await postRaw(path: "v1/dm/groups/remove-member", envelope: envelope)
+    }
+
     /// Mark progress through a conversation by recording the most
     /// recent message hash the user has seen. Posts a DM_READ envelope
     /// to /v1/dm/read; the hub upserts a row in `dm_read_receipts`
