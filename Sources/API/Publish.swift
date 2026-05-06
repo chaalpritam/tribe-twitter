@@ -368,6 +368,33 @@ extension HubClient {
         return try await postRaw(path: "v1/dm/send", envelope: envelope)
     }
 
+    /// Create a group. The hub validates `groupId` against
+    /// `^[a-z0-9-]{1,64}$` and requires at least 2 member TIDs (the
+    /// caller is responsible for including themselves so they can
+    /// post to and read from the group). Idempotent on group_id —
+    /// a second call adds members rather than failing.
+    @discardableResult
+    func createGroup(
+        groupId: String,
+        name: String,
+        memberTIDs: [String],
+        as appKey: AppKey,
+        tid: String
+    ) async throws -> Data {
+        let body: [String: Any] = [
+            "group_id": groupId,
+            "name": name,
+            "member_tids": memberTIDs.map { $0.numericIfFitsInt() },
+        ]
+        let envelope = try MessageSigner.sign(
+            type: MessageType.dmGroupCreate.rawValue,
+            tid: tid,
+            body: body,
+            appKey: appKey
+        )
+        return try await postRaw(path: "v1/dm/groups/create", envelope: envelope)
+    }
+
     /// Send an encrypted group message. Caller produces one nacl.box
     /// ciphertext per recipient (including themselves, so they see
     /// their own messages on refresh). Each entry is a tuple of

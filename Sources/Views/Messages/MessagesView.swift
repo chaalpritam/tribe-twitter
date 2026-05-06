@@ -14,6 +14,7 @@ struct MessagesView: View {
     @State private var loading = true
     @State private var error: String?
     @State private var presentingNew = false
+    @State private var presentingNewGroup = false
 
     private var isEmpty: Bool { conversations.isEmpty && groups.isEmpty }
 
@@ -65,12 +66,21 @@ struct MessagesView: View {
         .navigationTitle("Messages")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    presentingNew = true
+                Menu {
+                    Button {
+                        presentingNew = true
+                    } label: {
+                        Label("New direct message", systemImage: "square.and.pencil")
+                    }
+                    Button {
+                        presentingNewGroup = true
+                    } label: {
+                        Label("New group", systemImage: "person.3")
+                    }
                 } label: {
                     Image(systemName: "square.and.pencil")
                 }
-                .accessibilityLabel("New message")
+                .accessibilityLabel("New conversation")
             }
         }
         .task {
@@ -91,6 +101,16 @@ struct MessagesView: View {
             }
             .environmentObject(app)
             .presentationDetents([.medium])
+        }
+        .sheet(isPresented: $presentingNewGroup) {
+            NewDMGroupSheet { groupId in
+                Task {
+                    presentingNewGroup = false
+                    await refresh()
+                    _ = groupId
+                }
+            }
+            .environmentObject(app)
         }
     }
 
