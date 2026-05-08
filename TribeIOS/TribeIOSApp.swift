@@ -13,6 +13,7 @@ struct TribeIOSApp: App {
                 // AppState don't propagate inner-object changes
                 // through the EnvironmentObject machinery.
                 .environmentObject(appState.interactions)
+                .environmentObject(appState.tipStats)
         }
     }
 }

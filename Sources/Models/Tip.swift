@@ -111,3 +111,44 @@ public struct OnchainTip: Decodable, Identifiable, Hashable {
 public struct OnchainTipListResponse: Decodable {
     public let tips: [OnchainTip]
 }
+
+/// Aggregate tip stats for a single tweet target hash. Decoded from
+/// `/v1/tips/onchain/target/:hash` — we ignore the per-tip rows here
+/// and only keep the count + total so a card can render a compact
+/// "X · 0.05 SOL" alongside the tip button.
+public struct OnchainTipStats: Decodable, Hashable {
+    public let tipCount: Int
+    public let totalLamports: Int64
+
+    enum CodingKeys: String, CodingKey {
+        case tipCount = "tip_count"
+        case totalLamports = "total_lamports"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.tipCount = HubDecode.intCount(c, forKey: .tipCount)
+        if let n = try? c.decode(Int64.self, forKey: .totalLamports) {
+            self.totalLamports = n
+        } else if let s = try? c.decode(String.self, forKey: .totalLamports), let n = Int64(s) {
+            self.totalLamports = n
+        } else {
+            self.totalLamports = 0
+        }
+    }
+
+    public init(tipCount: Int, totalLamports: Int64) {
+        self.tipCount = tipCount
+        self.totalLamports = totalLamports
+    }
+
+    public static let empty = OnchainTipStats(tipCount: 0, totalLamports: 0)
+
+    public var formattedSol: String {
+        let sol = Double(totalLamports) / 1_000_000_000.0
+        let formatter = NumberFormatter()
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 6
+        return formatter.string(from: NSNumber(value: sol)) ?? "\(sol)"
+    }
+}

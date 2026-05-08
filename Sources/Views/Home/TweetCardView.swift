@@ -3,6 +3,7 @@ import SwiftUI
 struct TweetCardView: View {
     @EnvironmentObject private var app: AppState
     @EnvironmentObject private var interactions: InteractionCache
+    @EnvironmentObject private var tipStats: OnchainTipStatsCache
     let tweet: Tweet
     var onReplyTap: (() -> Void)? = nil
     var onDeleted: (() -> Void)? = nil
@@ -103,6 +104,7 @@ struct TweetCardView: View {
         .padding(.vertical, 6)
         .task {
             await interactions.ensureLoaded()
+            tipStats.ensureLoaded(hash: tweet.hash)
         }
         .sheet(isPresented: $presentingReply) {
             ComposeTweetView(parentHash: tweet.hash)
@@ -212,18 +214,50 @@ struct TweetCardView: View {
                 Task { await toggleBookmark() }
             }
             if !isOwnTweet {
-                actionButton(
-                    symbol: "dollarsign.circle",
-                    count: nil,
-                    active: false,
-                    activeTint: .orange
-                ) {
-                    presentingTip = true
-                }
+                tipActionButton
+            } else if let stats = tipStats.stats(for: tweet.hash), stats.tipCount > 0 {
+                // Authors don't get a tip-yourself button, but we do
+                // show the rolled-up count + total as a read-only chip
+                // so they can see their on-chain rep on each tweet.
+                tipReceivedChip(stats)
             }
             Spacer()
         }
         .foregroundStyle(.secondary)
+    }
+
+    @ViewBuilder
+    private var tipActionButton: some View {
+        let stats = tipStats.stats(for: tweet.hash)
+        Button {
+            presentingTip = true
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "dollarsign.circle")
+                    .font(.subheadline)
+                if let stats, stats.tipCount > 0 {
+                    Text("\(stats.tipCount) · \(stats.formattedSol)")
+                        .font(.caption)
+                        .monospacedDigit()
+                }
+            }
+            .foregroundStyle(.secondary)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(pendingAction || app.appKey == nil || app.myTID == nil)
+    }
+
+    private func tipReceivedChip(_ stats: OnchainTipStats) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: "dollarsign.circle.fill")
+                .font(.subheadline)
+                .foregroundStyle(.orange)
+            Text("\(stats.tipCount) · \(stats.formattedSol) SOL")
+                .font(.caption.weight(.medium))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+        }
     }
 
     private func actionButton(

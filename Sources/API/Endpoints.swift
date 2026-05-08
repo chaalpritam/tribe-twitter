@@ -143,6 +143,17 @@ public extension HubClient {
         return res.tips
     }
 
+    /// Aggregate on-chain tip stats for a single target hash. The
+    /// hub also returns the tip rows, but for card-level rendering we
+    /// only care about the totals — drop the rows on the floor.
+    func fetchOnchainTipStats(forTarget hash: String) async throws -> OnchainTipStats {
+        // Targets travel in the URL path; base64 hashes can contain
+        // '/' and '+', so escape exactly the same way the hash is
+        // already escaped on the off-chain target endpoint.
+        let escaped = hash.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? hash
+        return try await get("v1/tips/onchain/target/\(escaped)", query: ["limit": "1"])
+    }
+
     // MARK: - Notifications
 
     func fetchNotifications(_ tid: String, limit: Int = 50) async throws -> [TribeNotification] {
