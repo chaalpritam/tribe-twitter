@@ -125,6 +125,24 @@ public extension HubClient {
         return res.tips
     }
 
+    /// On-chain tips a TID has sent (mirrored from tip-registry PDAs).
+    func fetchOnchainTipsSent(_ tid: String, limit: Int = 50) async throws -> [OnchainTip] {
+        let res: OnchainTipListResponse = try await get(
+            "v1/tips/onchain/sent/\(tid)",
+            query: ["limit": String(limit)]
+        )
+        return res.tips
+    }
+
+    /// On-chain tips a TID has received.
+    func fetchOnchainTipsReceived(_ tid: String, limit: Int = 50) async throws -> [OnchainTip] {
+        let res: OnchainTipListResponse = try await get(
+            "v1/tips/onchain/received/\(tid)",
+            query: ["limit": String(limit)]
+        )
+        return res.tips
+    }
+
     // MARK: - Notifications
 
     func fetchNotifications(_ tid: String, limit: Int = 50) async throws -> [TribeNotification] {

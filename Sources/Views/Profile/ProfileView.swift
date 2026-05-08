@@ -17,6 +17,8 @@ struct ProfileView: View {
     @State private var karma: KarmaSummary?
     @State private var erProfile: ERProfile?
     @State private var followStatus: ERLinkStatus?
+    @State private var tipsReceived: [OnchainTip] = []
+    @State private var tipsSent: [OnchainTip] = []
     @State private var loading = true
     @State private var showingWallet = false
     @State private var showingSettings = false
@@ -48,6 +50,22 @@ struct ProfileView: View {
                             .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
+                    }
+
+                    if !tipsReceived.isEmpty {
+                        Section("Tips received") {
+                            ForEach(tipsReceived) { tip in
+                                OnchainTipRow(tip: tip, role: .received)
+                            }
+                        }
+                    }
+
+                    if isOwnProfile && !tipsSent.isEmpty {
+                        Section("Tips sent") {
+                            ForEach(tipsSent) { tip in
+                                OnchainTipRow(tip: tip, role: .sent)
+                            }
+                        }
                     }
 
                     if loading && tweets.isEmpty {
@@ -308,12 +326,76 @@ struct ProfileView: View {
             guard let myTID = app.myTID else { return nil }
             return try? await app.er.link(followerTID: myTID, followingTID: tid)
         }()
+        // Tips received are public on every profile; sent are private,
+        // so only fetch them when the viewer is the same user.
+        async let receivedTask = try? app.api.fetchOnchainTipsReceived(tid)
+        async let sentTask: [OnchainTip]? = isOwnProfile
+            ? (try? await app.api.fetchOnchainTipsSent(tid))
+            : nil
         self.user = await userTask
         self.tweets = (await tweetsTask) ?? []
         self.karma = (await karmaTask) ?? nil
         self.erProfile = (await erTask) ?? nil
         self.followStatus = await followTask
+        self.tipsReceived = (await receivedTask) ?? []
+        self.tipsSent = (await sentTask) ?? []
         loading = false
+    }
+}
+
+/// Row in the on-chain tips section. Tap → Solana explorer for the
+/// settling tx. Counterparty initial / username comes from the join
+/// the hub does on tids.username (nil → fall back to TID #N).
+private struct OnchainTipRow: View {
+    enum Role { case received, sent }
+    let tip: OnchainTip
+    let role: Role
+
+    private var counterpartyTitle: String {
+        if let u = tip.counterpartyUsername, !u.isEmpty {
+            return "@\(u).tribe"
+        }
+        return "TID #\(role == .received ? tip.senderTid : tip.recipientTid)"
+    }
+
+    private var initial: String {
+        if let u = tip.counterpartyUsername, let first = u.first {
+            return String(first).uppercased()
+        }
+        let tid = role == .received ? tip.senderTid : tip.recipientTid
+        return String(tid.prefix(1))
+    }
+
+    private var explorerURL: URL? {
+        URL(string: "https://explorer.solana.com/tx/\(tip.txSignature)?cluster=\(Config.solanaCluster)")
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            AvatarView(initial: initial, size: 36)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(role == .received ? "From \(counterpartyTitle)" : "To \(counterpartyTitle)")
+                    .font(.subheadline.weight(.medium))
+                Text(RelativeTime.short(tip.createdAt))
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("\(tip.formattedSol) SOL")
+                    .font(.subheadline.weight(.semibold))
+                    .monospacedDigit()
+                if let url = explorerURL {
+                    Link(destination: url) {
+                        Label("Explorer", systemImage: "arrow.up.right.square")
+                            .labelStyle(.iconOnly)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        .padding(.vertical, 2)
     }
 }
 
