@@ -63,13 +63,7 @@ struct TweetCardView: View {
             }
 
             HStack(alignment: .top, spacing: 12) {
-                NavigationLink {
-                    if !isOwnTweet { ProfileView(tid: tweet.tid) }
-                } label: {
-                    AvatarView(initial: initial, size: 44, seed: tweet.username ?? tweet.tid)
-                }
-                .buttonStyle(.plain)
-                .disabled(isOwnTweet)
+                AvatarView(initial: initial, size: 44, seed: tweet.username ?? tweet.tid)
 
                 VStack(alignment: .leading, spacing: 4) {
                     headerRow
@@ -130,17 +124,21 @@ struct TweetCardView: View {
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
+                .layoutPriority(1)
             Text(handle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+                .truncationMode(.tail)
             Text("·")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .layoutPriority(1)
             Text(RelativeTime.short(tweet.timestamp))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+                .layoutPriority(1)
             Spacer(minLength: 4)
             if isOwnTweet {
                 Menu {
@@ -203,12 +201,16 @@ struct TweetCardView: View {
                 activeTint: TribeColor.brand
             ) { presentingReply = true }
 
+            Spacer(minLength: 0)
+
             actionButton(
                 symbol: "arrow.2.squarepath",
                 count: nil,
                 active: retweeted,
                 activeTint: TribeColor.accentEmerald
             ) { Task { await toggleRetweet() } }
+
+            Spacer(minLength: 0)
 
             actionButton(
                 symbol: liked ? "heart.fill" : "heart",
@@ -217,6 +219,8 @@ struct TweetCardView: View {
                 activeTint: TribeColor.accentRose
             ) { Task { await toggleLike() } }
 
+            Spacer(minLength: 0)
+
             actionButton(
                 symbol: bookmarked ? "bookmark.fill" : "bookmark",
                 count: nil,
@@ -224,15 +228,25 @@ struct TweetCardView: View {
                 activeTint: TribeColor.accentIndigo
             ) { Task { await toggleBookmark() } }
 
-            if !isOwnTweet {
-                tipActionButton
-            } else if let stats = tipStats.stats(for: tweet.hash), stats.tipCount > 0 {
-                tipReceivedChip(stats)
-            } else {
-                Spacer().frame(maxWidth: .infinity)
-            }
+            Spacer(minLength: 0)
+
+            trailingActionSlot
         }
         .foregroundStyle(.secondary)
+    }
+
+    @ViewBuilder
+    private var trailingActionSlot: some View {
+        if !isOwnTweet {
+            tipActionButton
+        } else if let stats = tipStats.stats(for: tweet.hash), stats.tipCount > 0 {
+            tipReceivedChip(stats)
+        } else {
+            // Empty placeholder so other-tweet rows and own-tweet rows
+            // share the same trailing column anchor — keeps the four
+            // standard buttons spaced identically across both cases.
+            Color.clear.frame(width: 24, height: 1)
+        }
     }
 
     @ViewBuilder
@@ -252,7 +266,6 @@ struct TweetCardView: View {
                 }
             }
             .foregroundStyle(hasTips ? TribeColor.accentAmber : .secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -268,7 +281,6 @@ struct TweetCardView: View {
                 .monospacedDigit()
         }
         .foregroundStyle(TribeColor.accentAmber)
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func actionButton(
@@ -289,7 +301,6 @@ struct TweetCardView: View {
                 }
             }
             .foregroundStyle(active ? activeTint : .secondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

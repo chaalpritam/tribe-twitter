@@ -93,18 +93,12 @@ struct HomeFeedView: View {
         } else {
             List {
                 ForEach(tweets) { tweet in
-                    ZStack {
-                        // Hidden NavigationLink keeps the row tappable
-                        // without painting the default disclosure
-                        // chevron / blue highlight, so the tweet card
-                        // owns the entire row visual.
-                        NavigationLink {
-                            TweetDetailView(tweet: tweet)
-                        } label: { EmptyView() }
-                        .opacity(0)
-
+                    NavigationLink {
+                        TweetDetailView(tweet: tweet)
+                    } label: {
                         TweetCardView(tweet: tweet)
                     }
+                    .buttonStyle(.plain)
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
                     .onAppear {
