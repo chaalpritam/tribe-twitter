@@ -15,6 +15,10 @@ struct HomeFeedView: View {
     /// True once the hub has served a page with no further cursor —
     /// stops the trailing skeleton row from re-firing the load.
     @State private var reachedEnd = false
+    /// Tweet selected via row tap; drives navigationDestination so we
+    /// can push the detail view without the disclosure chevron that
+    /// a plain NavigationLink-as-row would draw.
+    @State private var selectedTweet: Tweet?
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -23,6 +27,9 @@ struct HomeFeedView: View {
         }
         .navigationTitle("Home")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(item: $selectedTweet) { tweet in
+            TweetDetailView(tweet: tweet)
+        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
@@ -93,20 +100,17 @@ struct HomeFeedView: View {
         } else {
             List {
                 ForEach(tweets) { tweet in
-                    NavigationLink {
-                        TweetDetailView(tweet: tweet)
-                    } label: {
-                        TweetCardView(tweet: tweet)
-                    }
-                    .buttonStyle(.plain)
-                    .listRowInsets(EdgeInsets())
-                    .listRowSeparator(.hidden)
-                    .onAppear {
-                        let triggerIndex = max(0, tweets.count - 2)
-                        if tweet.id == tweets[triggerIndex].id {
-                            Task { await loadMore() }
+                    TweetCardView(tweet: tweet)
+                        .contentShape(Rectangle())
+                        .onTapGesture { selectedTweet = tweet }
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                        .onAppear {
+                            let triggerIndex = max(0, tweets.count - 2)
+                            if tweet.id == tweets[triggerIndex].id {
+                                Task { await loadMore() }
+                            }
                         }
-                    }
                 }
 
                 if loadingMore {
