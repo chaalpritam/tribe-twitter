@@ -6,12 +6,21 @@ struct ExploreView: View {
     @State private var users: [User] = []
     @State private var loading = true
     @State private var error: String?
+    /// User pushed via row tap; drives navigationDestination so the
+    /// row tap reaches the profile without the disclosure chevron a
+    /// NavigationLink-as-row would draw, and so FollowButton inside
+    /// each row stays independently tappable.
+    @State private var selectedTID: String?
 
     var body: some View {
         Group {
             if loading && users.isEmpty {
                 List {
-                    ForEach(0..<5, id: \.self) { _ in UserSkeleton() }
+                    ForEach(0..<5, id: \.self) { _ in
+                        UserSkeleton()
+                            .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
+                    }
                 }
                 .listStyle(.plain)
             } else if let error, users.isEmpty {
@@ -28,13 +37,22 @@ struct ExploreView: View {
                     message: "Be the first to register a Tribe identity."
                 )
             } else {
-                List(users) { user in
-                    UserRow(user: user)
+                List {
+                    ForEach(users) { user in
+                        UserRow(user: user)
+                            .contentShape(Rectangle())
+                            .onTapGesture { selectedTID = user.tid }
+                            .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
+                    }
                 }
                 .listStyle(.plain)
             }
         }
         .navigationTitle("Explore")
+        .navigationDestination(item: $selectedTID) { tid in
+            ProfileView(tid: tid)
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink {
@@ -79,62 +97,105 @@ struct ExploreView: View {
 }
 
 private struct UserRow: View {
-    @EnvironmentObject private var app: AppState
     let user: User
 
-    var body: some View {
-        HStack(spacing: 12) {
-            // Avatar + name area pushes the user's profile. Kept as a
-            // sibling of FollowButton (rather than wrapping the whole
-            // row) so the follow button stays independently tappable.
-            NavigationLink {
-                ProfileView(tid: user.tid)
-            } label: {
-                HStack(spacing: 12) {
-                    UserAvatar(
-                        tid: user.tid,
-                        initial: user.initial,
-                        size: 44,
-                        seed: user.username ?? user.tid
-                    )
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(user.displayName)
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                        Text(walletShort)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        Text("\(user.followersCount) followers · \(user.followingCount) following")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                    }
-                    Spacer(minLength: 0)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            FollowButton(targetTID: user.tid)
-        }
-        .padding(.vertical, 4)
+    private var handle: String {
+        if let u = user.username { return "@\(u).tribe" }
+        return "@tid\(user.tid)"
     }
 
-    private var walletShort: String {
-        let s = user.custodyAddress
-        guard s.count > 8 else { return s }
-        return "\(s.prefix(4))…\(s.suffix(4))"
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            UserAvatar(
+                tid: user.tid,
+                initial: user.initial,
+                size: 48,
+                seed: user.username ?? user.tid
+            )
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .top, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(user.displayName)
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        Text(handle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    Spacer(minLength: 8)
+                    FollowButton(targetTID: user.tid)
+                }
+
+                if let bio = user.profile?.bio, !bio.isEmpty {
+                    Text(bio)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 2)
+                }
+
+                statsRow
+                    .padding(.top, 2)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color(.systemBackground))
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(TribeColor.cardStroke.opacity(0.4))
+                .frame(height: 0.5)
+        }
+    }
+
+    private var statsRow: some View {
+        HStack(spacing: 14) {
+            inlineStat(
+                value: "\(user.followingCount)",
+                label: "Following"
+            )
+            inlineStat(
+                value: "\(user.followersCount)",
+                label: "Followers"
+            )
+        }
+    }
+
+    private func inlineStat(value: String, label: String) -> some View {
+        HStack(spacing: 4) {
+            Text(value)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.primary)
+                .monospacedDigit()
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
     }
 }
 
 private struct UserSkeleton: View {
     var body: some View {
-        HStack(spacing: 12) {
-            Circle().fill(Color(.tertiarySystemFill)).frame(width: 44, height: 44)
+        HStack(alignment: .top, spacing: 12) {
+            Circle().fill(Color(.tertiarySystemFill)).frame(width: 48, height: 48)
             VStack(alignment: .leading, spacing: 6) {
                 RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 140, height: 11)
                 RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 90, height: 9)
-                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 160, height: 9)
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(maxWidth: .infinity).frame(height: 11)
+                RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 200, height: 11)
             }
             Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(TribeColor.cardStroke.opacity(0.4))
+                .frame(height: 0.5)
         }
         .redacted(reason: .placeholder)
     }
