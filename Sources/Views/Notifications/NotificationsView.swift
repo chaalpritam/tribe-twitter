@@ -61,6 +61,10 @@ struct NotificationsView: View {
             // Stamp the read mark only after a successful fetch so a
             // network error doesn't silently mark everything read.
             app.markNotificationsRead(tid: tid)
+        } catch HubError.statusCode(404, _) {
+            // Some hubs 404 a TID with no activity. Treat as empty.
+            rows = []
+            app.markNotificationsRead(tid: tid)
         } catch {
             self.error = error.localizedDescription
         }

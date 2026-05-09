@@ -81,6 +81,32 @@ public struct TribeNotification: Decodable, Hashable, Identifiable {
 
 public struct NotificationListResponse: Decodable {
     public let notifications: [TribeNotification]
+
+    enum CodingKeys: String, CodingKey {
+        case notifications
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        // Decode rows through a forgiving wrapper so a single bad
+        // entry — a new server-side type the iOS build doesn't know
+        // yet, a missing actor_tid, an unexpected date format —
+        // doesn't sink the entire list and surface as
+        // "Couldn't load notifications". Bad rows are dropped; the
+        // rest still render.
+        let raw = try c.decodeIfPresent([ForgivingNotification].self, forKey: .notifications) ?? []
+        self.notifications = raw.compactMap(\.value)
+    }
+}
+
+/// Wrapper that swallows decoding failures for a single notification
+/// row so the surrounding list decode keeps going.
+private struct ForgivingNotification: Decodable {
+    let value: TribeNotification?
+
+    init(from decoder: Decoder) throws {
+        self.value = try? TribeNotification(from: decoder)
+    }
 }
 
 public struct NotificationCountResponse: Decodable {
