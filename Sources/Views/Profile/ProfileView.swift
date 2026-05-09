@@ -8,6 +8,7 @@ import SwiftUI
 struct ProfileView: View {
     @EnvironmentObject private var app: AppState
     @EnvironmentObject private var userAvatars: UserAvatarCache
+    @EnvironmentObject private var interactions: InteractionCache
     /// Nil → render the signed-in user (`app.myTID`). Non-nil →
     /// render that TID. Captured at init so a sign-out doesn't
     /// retarget an already-pushed other-user view.
@@ -18,17 +19,20 @@ struct ProfileView: View {
     @State private var karma: KarmaSummary?
     @State private var erProfile: ERProfile?
     @State private var followStatus: ERLinkStatus?
-    @State private var tipsReceived: [OnchainTip] = []
-    @State private var tipsSent: [OnchainTip] = []
+    @State private var likedTweets: [Tweet] = []
+    @State private var likedLoaded = false
+    @State private var likedLoading = false
     @State private var loading = true
     @State private var showingWallet = false
     @State private var showingSettings = false
     @State private var showingProfileEditor = false
     @State private var selectedTab: ProfileTab = .tweets
+    @State private var selectedMediaTweet: Tweet?
 
     enum ProfileTab: String, CaseIterable, Identifiable {
         case tweets = "Tweets"
-        case tips = "Tips"
+        case media = "Media"
+        case likes = "Likes"
         var id: String { rawValue }
     }
 
@@ -66,12 +70,22 @@ struct ProfileView: View {
                     switch selectedTab {
                     case .tweets:
                         tweetsSection
-                    case .tips:
-                        tipsSection
+                    case .media:
+                        mediaSection
+                    case .likes:
+                        likesSection
                     }
                 }
                 .listStyle(.plain)
                 .scrollIndicators(.hidden)
+                .onChange(of: selectedTab) { _, new in
+                    if new == .likes && isOwnProfile && !likedLoaded {
+                        Task { await loadLiked() }
+                    }
+                }
+                .navigationDestination(item: $selectedMediaTweet) { t in
+                    TweetDetailView(tweet: t)
+                }
             } else {
                 EmptyStateView(
                     symbol: "person.crop.circle",
@@ -396,29 +410,123 @@ struct ProfileView: View {
         }
     }
 
+    /// Three-column image grid of every embed across this user's
+    /// tweets. Tapping a tile pushes the parent tweet's detail view.
     @ViewBuilder
-    private var tipsSection: some View {
-        if tipsReceived.isEmpty && (!isOwnProfile || tipsSent.isEmpty) {
-            Text("No tips yet.")
+    private var mediaSection: some View {
+        if loading && tweets.isEmpty {
+            mediaGridSkeleton
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+        } else if mediaItems.isEmpty {
+            Text("No media yet.")
                 .font(.subheadline)
                 .foregroundStyle(.tertiary)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.vertical, 32)
                 .listRowSeparator(.hidden)
         } else {
-            if !tipsReceived.isEmpty {
-                Section("Received") {
-                    ForEach(tipsReceived) { tip in
-                        OnchainTipRow(tip: tip, role: .received)
+            mediaGrid
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+        }
+    }
+
+    private var mediaGrid: some View {
+        let columns: [GridItem] = Array(
+            repeating: GridItem(.flexible(), spacing: 2),
+            count: 3
+        )
+        return LazyVGrid(columns: columns, spacing: 2) {
+            ForEach(mediaItems) { item in
+                Button {
+                    selectedMediaTweet = item.tweet
+                } label: {
+                    CachedAsyncImage(url: item.url) { img in
+                        img.resizable().scaledToFill()
+                    } placeholder: {
+                        Color(.tertiarySystemFill)
                     }
+                    .aspectRatio(1, contentMode: .fill)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 124)
+                    .clipped()
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
-            if isOwnProfile && !tipsSent.isEmpty {
-                Section("Sent") {
-                    ForEach(tipsSent) { tip in
-                        OnchainTipRow(tip: tip, role: .sent)
-                    }
-                }
+        }
+        .padding(.top, 2)
+    }
+
+    private var mediaGridSkeleton: some View {
+        let columns: [GridItem] = Array(
+            repeating: GridItem(.flexible(), spacing: 2),
+            count: 3
+        )
+        return LazyVGrid(columns: columns, spacing: 2) {
+            ForEach(0..<6, id: \.self) { _ in
+                Color(.tertiarySystemFill)
+                    .frame(height: 124)
+            }
+        }
+        .padding(.top, 2)
+        .redacted(reason: .placeholder)
+    }
+
+    private struct MediaItem: Identifiable {
+        let url: URL
+        let tweet: Tweet
+        var id: String { "\(tweet.id)|\(url.absoluteString)" }
+    }
+
+    private var mediaItems: [MediaItem] {
+        tweets.flatMap { tweet in
+            (tweet.embeds ?? [])
+                .compactMap { app.api.resolveMediaURL($0) }
+                .map { MediaItem(url: $0, tweet: tweet) }
+        }
+    }
+
+    /// Tweets the *signed-in* user has liked. The hub has no public
+    /// endpoint for "tweets liked by user X", so on other-user
+    /// profiles we render an explainer rather than fake the data.
+    @ViewBuilder
+    private var likesSection: some View {
+        if !isOwnProfile {
+            VStack(spacing: 8) {
+                Image(systemName: "heart")
+                    .font(.title2)
+                    .foregroundStyle(.tertiary)
+                Text("Likes are private")
+                    .font(.subheadline.weight(.semibold))
+                Text("Other users' likes aren't surfaced by the hub yet.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 36)
+            .padding(.horizontal, 32)
+            .listRowSeparator(.hidden)
+        } else if likedLoading && likedTweets.isEmpty {
+            ForEach(0..<3, id: \.self) { _ in
+                TweetSkeletonRow()
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+            }
+        } else if likedTweets.isEmpty {
+            Text("No liked tweets yet.")
+                .font(.subheadline)
+                .foregroundStyle(.tertiary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 32)
+                .listRowSeparator(.hidden)
+        } else {
+            ForEach(likedTweets) { tweet in
+                TweetCardView(tweet: tweet)
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
             }
         }
     }
@@ -457,10 +565,6 @@ struct ProfileView: View {
         async let karmaTask = try? app.api.fetchKarma(tid)
         async let erTask = try? app.er.profile(tid)
         async let followTask: ERLinkStatus? = fetchFollowStatus(tid: tid)
-        async let receivedTask = try? app.api.fetchOnchainTipsReceived(tid)
-        async let sentTask: [OnchainTip]? = isOwnProfile
-            ? (try? await app.api.fetchOnchainTipsSent(tid))
-            : nil
         let resolvedUser = await userTask
         self.user = resolvedUser
         // Seed the shared avatar cache so other surfaces (feed rows,
@@ -476,75 +580,45 @@ struct ProfileView: View {
         self.karma = (await karmaTask) ?? nil
         self.erProfile = (await erTask) ?? nil
         self.followStatus = await followTask
-        self.tipsReceived = (await receivedTask) ?? []
-        self.tipsSent = (await sentTask) ?? []
         loading = false
-    }
-}
-
-/// Row in the on-chain tips section. Tap → Solana explorer for the
-/// settling tx. Counterparty initial / username comes from the join
-/// the hub does on tids.username (nil → fall back to TID #N).
-private struct OnchainTipRow: View {
-    enum Role { case received, sent }
-    let tip: OnchainTip
-    let role: Role
-
-    private var counterpartyTitle: String {
-        if let u = tip.counterpartyUsername, !u.isEmpty {
-            return "@\(u).tribe"
+        // If the user lands directly on the Likes tab (e.g., a
+        // refresh after a previous session left it selected), kick
+        // off the like-fetch alongside everything else.
+        if selectedTab == .likes && isOwnProfile && !likedLoaded {
+            await loadLiked()
         }
-        return "TID #\(role == .received ? tip.senderTid : tip.recipientTid)"
     }
 
-    private var initial: String {
-        if let u = tip.counterpartyUsername, let first = u.first {
-            return String(first).uppercased()
+    /// Resolve the signed-in user's liked tweet hashes (from
+    /// InteractionCache) into full Tweet payloads. The hub doesn't
+    /// have a single "fetch tweets by hashes" endpoint, so we fan
+    /// out fetchTweet(hash:) in a TaskGroup and drop failures.
+    @MainActor
+    private func loadLiked() async {
+        guard isOwnProfile else { return }
+        likedLoading = true
+        defer { likedLoading = false }
+        await interactions.ensureLoaded()
+        let hashes = Array(interactions.likedHashes)
+        guard !hashes.isEmpty else {
+            likedTweets = []
+            likedLoaded = true
+            return
         }
-        let tid = role == .received ? tip.senderTid : tip.recipientTid
-        return String(tid.prefix(1))
-    }
-
-    private var counterpartyTID: String {
-        role == .received ? tip.senderTid : tip.recipientTid
-    }
-
-    private var explorerURL: URL? {
-        URL(string: "https://explorer.solana.com/tx/\(tip.txSignature)?cluster=\(Config.solanaCluster)")
-    }
-
-    var body: some View {
-        HStack(spacing: 12) {
-            UserAvatar(
-                tid: counterpartyTID,
-                initial: initial,
-                size: 36,
-                seed: tip.counterpartyUsername ?? counterpartyTID
-            )
-            VStack(alignment: .leading, spacing: 2) {
-                Text(role == .received ? "From \(counterpartyTitle)" : "To \(counterpartyTitle)")
-                    .font(.subheadline.weight(.medium))
-                Text(RelativeTime.short(tip.createdAt))
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("\(tip.formattedSol) SOL")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(TribeColor.accentAmber)
-                    .monospacedDigit()
-                if let url = explorerURL {
-                    Link(destination: url) {
-                        Label("Explorer", systemImage: "arrow.up.right.square")
-                            .labelStyle(.iconOnly)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+        let resolved = await withTaskGroup(of: Tweet?.self) { group in
+            for hash in hashes {
+                group.addTask { [api = app.api] in
+                    try? await api.fetchTweet(hash: hash)
                 }
             }
+            var collected: [Tweet] = []
+            for await t in group {
+                if let t { collected.append(t) }
+            }
+            return collected
         }
-        .padding(.vertical, 2)
+        likedTweets = resolved.sorted { $0.timestamp > $1.timestamp }
+        likedLoaded = true
     }
 }
 
