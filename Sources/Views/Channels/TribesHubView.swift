@@ -1,9 +1,12 @@
 import SwiftUI
 
 /// Tribes tab. Six sub-sections (Channels, Map, Polls, Events, Tasks,
-/// Crowdfunds) selected via a segmented Picker. The toolbar carries a
-/// "+" button whose sheet adapts to the active section so creating a
-/// new poll / event / task / channel / crowdfund only takes one tap.
+/// Crowdfunds) selected via a horizontally-scrollable tab bar with
+/// an animated underline indicator. The body is a paged TabView so
+/// the user can swipe left / right between sections in addition to
+/// tapping a tab. The toolbar "+" adapts to the active section so
+/// creating a new poll / event / task / channel / crowdfund stays a
+/// one-tap action.
 struct TribesHubView: View {
     @State private var section: Section = .channels
     @State private var showingCreate = false
@@ -26,28 +29,18 @@ struct TribesHubView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Picker("Section", selection: $section) {
-                ForEach(Section.allCases) { s in
-                    Text(s.label).tag(s)
-                }
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            sectionTabBar
 
-            Divider()
-
-            Group {
-                switch section {
-                case .channels: ChannelsView().id(refreshTick)
-                case .map: ChannelMapView().id(refreshTick)
-                case .polls: PollsView().id(refreshTick)
-                case .events: EventsView().id(refreshTick)
-                case .tasks: TasksView().id(refreshTick)
-                case .crowdfunds: CrowdfundsView().id(refreshTick)
-                }
+            TabView(selection: $section) {
+                ChannelsView().id(refreshTick).tag(Section.channels)
+                ChannelMapView().id(refreshTick).tag(Section.map)
+                PollsView().id(refreshTick).tag(Section.polls)
+                EventsView().id(refreshTick).tag(Section.events)
+                TasksView().id(refreshTick).tag(Section.tasks)
+                CrowdfundsView().id(refreshTick).tag(Section.crowdfunds)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .background(TribeColor.pageBackground)
         }
         .background(TribeColor.pageBackground)
         .navigationTitle("Tribes")
@@ -66,6 +59,51 @@ struct TribesHubView: View {
         .sheet(isPresented: $showingCreate) {
             createSheet
         }
+    }
+
+    private var sectionTabBar: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach(Section.allCases) { s in
+                        sectionTab(s)
+                    }
+                }
+                .padding(.horizontal, 8)
+            }
+            .background(Color(.systemBackground))
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(TribeColor.cardStroke.opacity(0.4))
+                    .frame(height: 0.5)
+            }
+            .onChange(of: section) { _, new in
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    proxy.scrollTo(new, anchor: .center)
+                }
+            }
+        }
+    }
+
+    private func sectionTab(_ s: Section) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) { section = s }
+        } label: {
+            VStack(spacing: 8) {
+                Text(s.label)
+                    .font(.subheadline.weight(section == s ? .bold : .medium))
+                    .foregroundStyle(section == s ? .primary : .secondary)
+                Rectangle()
+                    .fill(section == s ? TribeColor.brand : Color.clear)
+                    .frame(height: 3)
+                    .clipShape(Capsule())
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .id(s)
     }
 
     @ViewBuilder
