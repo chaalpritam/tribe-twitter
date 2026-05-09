@@ -14,6 +14,7 @@ struct TribeIOSApp: App {
                 // through the EnvironmentObject machinery.
                 .environmentObject(appState.interactions)
                 .environmentObject(appState.tipStats)
+                .environmentObject(appState.userAvatars)
         }
     }
 }

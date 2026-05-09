@@ -66,6 +66,7 @@ struct ExploreView: View {
 }
 
 private struct UserRow: View {
+    @EnvironmentObject private var app: AppState
     let user: User
 
     var body: some View {
@@ -77,7 +78,12 @@ private struct UserRow: View {
                 ProfileView(tid: user.tid)
             } label: {
                 HStack(spacing: 12) {
-                    AvatarView(initial: user.initial, size: 44)
+                    AvatarView(
+                        initial: user.initial,
+                        size: 44,
+                        pfpURL: app.api.resolveMediaURL(user.profile?.pfpUrl),
+                        seed: user.username ?? user.tid
+                    )
                     VStack(alignment: .leading, spacing: 2) {
                         Text(user.displayName)
                             .font(.headline)

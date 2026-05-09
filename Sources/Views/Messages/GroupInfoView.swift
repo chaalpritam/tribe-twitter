@@ -165,7 +165,12 @@ struct GroupInfoView: View {
     private func memberRow(_ member: DMGroupMember, isCreator: Bool) -> some View {
         let title = usernames[member.tid].map { "\($0).tribe" } ?? "TID #\(member.tid)"
         HStack(spacing: 12) {
-            AvatarView(initial: String(title.prefix(1)).uppercased(), size: 36)
+            UserAvatar(
+                tid: member.tid,
+                initial: String(title.prefix(1)).uppercased(),
+                size: 36,
+                seed: usernames[member.tid] ?? member.tid
+            )
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.body)

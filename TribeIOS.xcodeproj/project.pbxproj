@@ -69,6 +69,8 @@
 		CEEDF60BBB1DF987E0D34486 /* InteractionReads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E5A550964EAD0AAD5AF588F /* InteractionReads.swift */; };
 		D21F3B662F0936785B4258F8 /* InteractionCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9079DDA3342BC33B65D252BF /* InteractionCache.swift */; };
 		ABCD0001ABCD0001ABCD0001 /* OnchainTipStatsCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCD0002ABCD0002ABCD0002 /* OnchainTipStatsCache.swift */; };
+		ABCD0007ABCD0007ABCD0007 /* UserAvatarCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCD0008ABCD0008ABCD0008 /* UserAvatarCache.swift */; };
+		ABCD0009ABCD0009ABCD0009 /* UserAvatar.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCD000AABCD000AABCD000A /* UserAvatar.swift */; };
 		D495EA20D0C072BB735100B0 /* TweetDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADF5FD4422513C609DB03B7 /* TweetDetailView.swift */; };
 		DA9EF4466C4BBC72615701D0 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80C7199BB3E3E23CCEB0D97 /* ActivityView.swift */; };
 		E197EE1055521978558393EC /* TipSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3451A786E7E0BE7C82E6E3A /* TipSheet.swift */; };
@@ -118,6 +120,8 @@
 		8E5A550964EAD0AAD5AF588F /* InteractionReads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionReads.swift; sourceTree = "<group>"; };
 		9079DDA3342BC33B65D252BF /* InteractionCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractionCache.swift; sourceTree = "<group>"; };
 		ABCD0002ABCD0002ABCD0002 /* OnchainTipStatsCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnchainTipStatsCache.swift; sourceTree = "<group>"; };
+		ABCD0008ABCD0008ABCD0008 /* UserAvatarCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAvatarCache.swift; sourceTree = "<group>"; };
+		ABCD000AABCD000AABCD000A /* UserAvatar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAvatar.swift; sourceTree = "<group>"; };
 		92277EC005CE1E6E1ECFE932 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		94D28C4EAD28DE3FF3195B5E /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		96B868A0DAEFFF9B5213D256 /* Channel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Channel.swift; sourceTree = "<group>"; };
@@ -181,6 +185,7 @@
 				09A8248E5AD9F1420848EDBA /* AppState.swift */,
 				9079DDA3342BC33B65D252BF /* InteractionCache.swift */,
 				ABCD0002ABCD0002ABCD0002 /* OnchainTipStatsCache.swift */,
+				ABCD0008ABCD0008ABCD0008 /* UserAvatarCache.swift */,
 			);
 			path = State;
 			sourceTree = "<group>";
@@ -412,6 +417,7 @@
 				5318951F43F3AE819F82C4A8 /* RelativeTime.swift */,
 				41D56B0655BDA4B69453E57B /* Slug.swift */,
 				FDD2A525C39B064F9AC8C727 /* TribeColors.swift */,
+				ABCD000AABCD000AABCD000A /* UserAvatar.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -575,6 +581,8 @@
 				713770619D7FC2CD4547615F /* HubClient.swift in Sources */,
 				D21F3B662F0936785B4258F8 /* InteractionCache.swift in Sources */,
 				ABCD0001ABCD0001ABCD0001 /* OnchainTipStatsCache.swift in Sources */,
+				ABCD0007ABCD0007ABCD0007 /* UserAvatarCache.swift in Sources */,
+				ABCD0009ABCD0009ABCD0009 /* UserAvatar.swift in Sources */,
 				CEEDF60BBB1DF987E0D34486 /* InteractionReads.swift in Sources */,
 				FB7318C2D0E67F6390B1D17A /* Karma.swift in Sources */,
 				56D6D7AB4E87DA43505CD611 /* Keychain.swift in Sources */,

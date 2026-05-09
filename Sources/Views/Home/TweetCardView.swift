@@ -63,7 +63,12 @@ struct TweetCardView: View {
             }
 
             HStack(alignment: .top, spacing: 12) {
-                AvatarView(initial: initial, size: 44, seed: tweet.username ?? tweet.tid)
+                UserAvatar(
+                    tid: tweet.tid,
+                    initial: initial,
+                    size: 44,
+                    seed: tweet.username ?? tweet.tid
+                )
 
                 VStack(alignment: .leading, spacing: 4) {
                     headerRow

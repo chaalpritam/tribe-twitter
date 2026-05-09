@@ -184,7 +184,12 @@ private struct ConversationRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView(initial: initial, size: 44, seed: conversation.peerUsername ?? conversation.peerTid)
+            UserAvatar(
+                tid: conversation.peerTid,
+                initial: initial,
+                size: 44,
+                seed: conversation.peerUsername ?? conversation.peerTid
+            )
             VStack(alignment: .leading, spacing: 2) {
                 Text(displayName)
                     .font(.headline)

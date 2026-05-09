@@ -66,6 +66,10 @@ final class AppState: ObservableObject {
     let interactions: InteractionCache
     /// Per-tweet on-chain tip aggregates. Lazy-loaded by tweet cards.
     let tipStats: OnchainTipStatsCache
+    /// Per-TID profile-picture URLs. Lazy-loaded by row avatars so
+    /// feeds, DMs, and tip rows can swap in real photos when the
+    /// fetch lands without each row owning its own request.
+    let userAvatars: UserAvatarCache
 
     init() {
         // One-time correctness gates: trap fast on startup if an
@@ -104,8 +108,10 @@ final class AppState: ObservableObject {
         // `myTID` lazily without an init-order cycle.
         self.interactions = InteractionCache()
         self.tipStats = OnchainTipStatsCache()
+        self.userAvatars = UserAvatarCache()
         self.interactions.attach(to: self)
         self.tipStats.attach(to: self)
+        self.userAvatars.attach(to: self)
 
         // Best-effort fetch of profile metadata so the UI shows the
         // right name / wallet on first paint after a relaunch.
@@ -140,6 +146,7 @@ final class AppState: ObservableObject {
         walletAddress = nil
         interactions.clear()
         tipStats.clear()
+        userAvatars.clear()
     }
 
     /// Lazy-load (or create + persist) the DM keypair. UI surfaces

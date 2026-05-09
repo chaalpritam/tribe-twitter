@@ -7,6 +7,7 @@ import SwiftUI
 /// only appear on your own profile.
 struct ProfileView: View {
     @EnvironmentObject private var app: AppState
+    @EnvironmentObject private var userAvatars: UserAvatarCache
     /// Nil → render the signed-in user (`app.myTID`). Non-nil →
     /// render that TID. Captured at init so a sign-out doesn't
     /// retarget an already-pushed other-user view.
@@ -181,6 +182,7 @@ struct ProfileView: View {
                 AvatarView(
                     initial: user?.initial ?? String(tid.prefix(1)),
                     size: 84,
+                    pfpURL: app.api.resolveMediaURL(user?.profile?.pfpUrl),
                     seed: seed
                 )
                 .overlay(Circle().strokeBorder(Color(.systemBackground), lineWidth: 4))
@@ -459,7 +461,17 @@ struct ProfileView: View {
         async let sentTask: [OnchainTip]? = isOwnProfile
             ? (try? await app.api.fetchOnchainTipsSent(tid))
             : nil
-        self.user = await userTask
+        let resolvedUser = await userTask
+        self.user = resolvedUser
+        // Seed the shared avatar cache so other surfaces (feed rows,
+        // DMs, tips) can render this user's pfp without their own
+        // round trip.
+        if let resolved = resolvedUser {
+            userAvatars.record(
+                tid: resolved.tid,
+                pfpUrl: app.api.resolveMediaURL(resolved.profile?.pfpUrl)
+            )
+        }
         self.tweets = (await tweetsTask) ?? []
         self.karma = (await karmaTask) ?? nil
         self.erProfile = (await erTask) ?? nil
@@ -503,7 +515,12 @@ private struct OnchainTipRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView(initial: initial, size: 36, seed: tip.counterpartyUsername ?? counterpartyTID)
+            UserAvatar(
+                tid: counterpartyTID,
+                initial: initial,
+                size: 36,
+                seed: tip.counterpartyUsername ?? counterpartyTID
+            )
             VStack(alignment: .leading, spacing: 2) {
                 Text(role == .received ? "From \(counterpartyTitle)" : "To \(counterpartyTitle)")
                     .font(.subheadline.weight(.medium))

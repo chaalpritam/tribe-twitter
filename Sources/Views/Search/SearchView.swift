@@ -143,10 +143,16 @@ struct SearchView: View {
 }
 
 private struct MiniUserRow: View {
+    @EnvironmentObject private var app: AppState
     let user: User
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView(initial: user.initial, size: 36)
+            AvatarView(
+                initial: user.initial,
+                size: 36,
+                pfpURL: app.api.resolveMediaURL(user.profile?.pfpUrl),
+                seed: user.username ?? user.tid
+            )
             VStack(alignment: .leading, spacing: 1) {
                 Text(user.displayName)
                     .font(.subheadline.weight(.medium))
