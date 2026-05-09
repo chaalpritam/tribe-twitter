@@ -133,47 +133,11 @@ struct TweetDetailView: View {
     // MARK: - Expanded focused tweet
 
     private var expandedTweet: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 12) {
-                UserAvatar(
-                    tid: tweet.tid,
-                    initial: initial,
-                    size: 48,
-                    seed: tweet.username ?? tweet.tid
-                )
+        VStack(alignment: .leading, spacing: 14) {
+            headerRow
 
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(displayName)
-                        .font(.subheadline.weight(.bold))
-                        .lineLimit(1)
-                    Text(handle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-                Spacer()
-                if isOwnTweet {
-                    Menu {
-                        Button(role: .destructive) {
-                            Task { await deleteTweet() }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                            .frame(width: 32, height: 32)
-                            .contentShape(Rectangle())
-                    }
-                } else if let channel = tweet.channelId {
-                    Text("#\(channel)")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(TribeColor.brand)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Capsule().fill(TribeColor.brand.opacity(0.12)))
-                }
+            if !isOwnTweet, let channel = tweet.channelId {
+                channelChip(channel)
             }
 
             if let text = tweet.text, !text.isEmpty {
@@ -189,23 +153,13 @@ struct TweetDetailView: View {
                 embedGrid(imageURLs)
             }
 
-            // Full timestamp ("10:24 AM · Apr 12, 2026") with the
-            // optional reply count rolled in if the hub returned one.
-            HStack(spacing: 4) {
-                Text(timestampLabel)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                if let n = tweet.replyCount, n > 0 {
-                    Text("·")
-                        .foregroundStyle(.secondary)
-                    Text("\(n) repl\(n == 1 ? "y" : "ies")")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            Text(timestampLabel)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
 
-            if let stats = tipStats.stats(for: tweet.hash), stats.tipCount > 0 {
-                tipRollupRow(stats)
+            if hasStats {
+                Divider()
+                statsRow
             }
 
             Divider()
@@ -218,7 +172,8 @@ struct TweetDetailView: View {
 
             actionRow
         }
-        .padding(16)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
         .background(Color(.systemBackground))
         .overlay(alignment: .bottom) {
             Rectangle()
@@ -231,25 +186,97 @@ struct TweetDetailView: View {
         }
     }
 
+    private var headerRow: some View {
+        HStack(alignment: .top, spacing: 12) {
+            UserAvatar(
+                tid: tweet.tid,
+                initial: initial,
+                size: 48,
+                seed: tweet.username ?? tweet.tid
+            )
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(displayName)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                Text(handle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer(minLength: 8)
+
+            if isOwnTweet {
+                Menu {
+                    Button(role: .destructive) {
+                        Task { await deleteTweet() }
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
+                }
+            }
+        }
+    }
+
+    private func channelChip(_ channel: String) -> some View {
+        Text("#\(channel)")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(TribeColor.brand)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(Capsule().fill(TribeColor.brand.opacity(0.12)))
+    }
+
+    private var hasStats: Bool {
+        (tweet.replyCount ?? 0) > 0
+            || (tipStats.stats(for: tweet.hash)?.tipCount ?? 0) > 0
+    }
+
+    private var statsRow: some View {
+        HStack(spacing: 20) {
+            if let n = tweet.replyCount, n > 0 {
+                statItem(value: "\(n)", label: n == 1 ? "Reply" : "Replies")
+            }
+            if let stats = tipStats.stats(for: tweet.hash), stats.tipCount > 0 {
+                statItem(
+                    value: "\(stats.tipCount)",
+                    label: stats.tipCount == 1 ? "Tip" : "Tips",
+                    valueTint: TribeColor.accentAmber
+                )
+                statItem(
+                    value: stats.formattedSol,
+                    label: "SOL",
+                    valueTint: TribeColor.accentAmber
+                )
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    private func statItem(value: String, label: String, valueTint: Color = .primary) -> some View {
+        HStack(spacing: 4) {
+            Text(value)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(valueTint)
+                .monospacedDigit()
+            Text(label)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+    }
+
     private var timestampLabel: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a · MMM d, yyyy"
         return formatter.string(from: tweet.timestamp)
-    }
-
-    private func tipRollupRow(_ stats: OnchainTipStats) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: "dollarsign.circle.fill")
-                .font(.subheadline)
-                .foregroundStyle(TribeColor.accentAmber)
-            Text("\(stats.tipCount) tip\(stats.tipCount == 1 ? "" : "s") · \(stats.formattedSol) SOL")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(TribeColor.accentAmber)
-                .monospacedDigit()
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(Capsule().fill(TribeColor.accentAmber.opacity(0.12)))
     }
 
     private func embedImageURLs() -> [URL]? {
@@ -281,55 +308,49 @@ struct TweetDetailView: View {
 
     private var actionRow: some View {
         HStack(spacing: 0) {
-            actionButton(
+            iconButton(
                 symbol: "bubble.left",
-                count: tweet.replyCount,
                 active: false,
-                activeTint: TribeColor.brand
+                tint: TribeColor.brand
             ) { presentingReply = true }
 
             Spacer(minLength: 0)
 
-            actionButton(
+            iconButton(
                 symbol: "arrow.2.squarepath",
-                count: nil,
                 active: retweeted,
-                activeTint: TribeColor.accentEmerald
+                tint: TribeColor.accentEmerald
             ) { Task { await toggleRetweet() } }
 
             Spacer(minLength: 0)
 
-            actionButton(
+            iconButton(
                 symbol: liked ? "heart.fill" : "heart",
-                count: nil,
                 active: liked,
-                activeTint: TribeColor.accentRose
+                tint: TribeColor.accentRose
             ) { Task { await toggleLike() } }
 
             Spacer(minLength: 0)
 
-            actionButton(
+            iconButton(
                 symbol: bookmarked ? "bookmark.fill" : "bookmark",
-                count: nil,
                 active: bookmarked,
-                activeTint: TribeColor.accentIndigo
+                tint: TribeColor.accentIndigo
             ) { Task { await toggleBookmark() } }
 
             Spacer(minLength: 0)
 
-            if !isOwnTweet {
-                Button {
-                    presentingTip = true
-                } label: {
-                    Image(systemName: "dollarsign.circle")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .disabled(app.appKey == nil || app.myTID == nil)
+            if isOwnTweet {
+                // Same fixed footprint as a real button so the
+                // remaining icons stay anchored to the same positions
+                // whether the tweet is your own or someone else's.
+                Color.clear.frame(width: 28, height: 28)
             } else {
-                Color.clear.frame(width: 24, height: 1)
+                iconButton(
+                    symbol: "dollarsign.circle",
+                    active: false,
+                    tint: TribeColor.accentAmber
+                ) { presentingTip = true }
             }
 
             Spacer(minLength: 0)
@@ -338,9 +359,30 @@ struct TweetDetailView: View {
                 Image(systemName: "square.and.arrow.up")
                     .font(.body)
                     .foregroundStyle(.secondary)
+                    .frame(width: 28, height: 28)
                     .contentShape(Rectangle())
             }
         }
+    }
+
+    /// Detail-screen action icon — fixed-size hit target so all six
+    /// trailing positions land on identical anchors regardless of
+    /// which symbol is showing.
+    private func iconButton(
+        symbol: String,
+        active: Bool,
+        tint: Color,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.body.weight(active ? .semibold : .regular))
+                .foregroundStyle(active ? tint : .secondary)
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(app.appKey == nil || app.myTID == nil)
     }
 
     private var shareText: String {
@@ -348,30 +390,6 @@ struct TweetDetailView: View {
         if let text = tweet.text, !text.isEmpty { lines.append(text) }
         lines.append("— \(displayName) (\(handle))")
         return lines.joined(separator: "\n")
-    }
-
-    private func actionButton(
-        symbol: String,
-        count: Int?,
-        active: Bool,
-        activeTint: Color,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 5) {
-                Image(systemName: symbol)
-                    .font(.body.weight(active ? .semibold : .regular))
-                if let n = count, n > 0 {
-                    Text("\(n)")
-                        .font(.subheadline.weight(.medium))
-                        .monospacedDigit()
-                }
-            }
-            .foregroundStyle(active ? activeTint : .secondary)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(app.appKey == nil || app.myTID == nil)
     }
 
     // MARK: - Sticky reply bar
