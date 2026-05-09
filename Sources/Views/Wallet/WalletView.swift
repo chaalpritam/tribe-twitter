@@ -26,7 +26,7 @@ struct WalletView: View {
             if !combined.isEmpty {
                 Section("Recent Activity") {
                     ForEach(combined, id: \.id) { row in
-                        ActivityRow(direction: row.direction, tip: row.tip)
+                        WalletActivityRow(direction: row.direction, tip: row.tip)
                     }
                 }
             } else if !loading && app.myTID != nil {
@@ -156,7 +156,7 @@ struct WalletView: View {
     }
 }
 
-private struct ActivityRow: View {
+private struct WalletActivityRow: View {
     let direction: WalletView.ActivityItem.Direction
     let tip: Tip
 

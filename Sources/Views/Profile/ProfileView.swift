@@ -268,24 +268,23 @@ struct ProfileView: View {
     @ViewBuilder
     private var followPill: some View {
         if let status = followStatus {
-            let label: String
-            let tint: Color
-            if status.isFollowing {
-                label = "Following"
-                tint = Color(red: 0.16, green: 0.55, blue: 0.36)
-            } else if status.isPending {
-                label = "Pending"
-                tint = Color(red: 0.85, green: 0.55, blue: 0.10)
-            } else {
-                label = "Not following"
-                tint = .secondary
-            }
-            Text(label)
+            let content = followPillContent(for: status)
+            Text(content.label)
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(tint)
+                .foregroundStyle(content.tint)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background(Capsule().fill(TribeColor.chipBackground))
+        }
+    }
+
+    private func followPillContent(for status: ERLinkStatus) -> (label: String, tint: Color) {
+        if status.isFollowing {
+            return ("Following", Color(red: 0.16, green: 0.55, blue: 0.36))
+        } else if status.isPending {
+            return ("Pending", Color(red: 0.85, green: 0.55, blue: 0.10))
+        } else {
+            return ("Not following", .secondary)
         }
     }
 
@@ -308,6 +307,13 @@ struct ProfileView: View {
     }
 
     @MainActor
+    private func fetchFollowStatus(tid: String) async -> ERLinkStatus? {
+        if isOwnProfile { return nil }
+        guard let myTID = app.myTID else { return nil }
+        return try? await app.er.link(followerTID: myTID, followingTID: tid)
+    }
+
+    @MainActor
     private func refresh() async {
         guard let tid = resolvedTID else { loading = false; return }
         loading = true
@@ -321,11 +327,7 @@ struct ProfileView: View {
         // Only probe the follow link when we're looking at *another*
         // user — the pill doesn't render for self-profiles anyway,
         // and the request would just answer "myself follows myself".
-        async let followTask: ERLinkStatus? = {
-            if isOwnProfile { return nil }
-            guard let myTID = app.myTID else { return nil }
-            return try? await app.er.link(followerTID: myTID, followingTID: tid)
-        }()
+        async let followTask: ERLinkStatus? = fetchFollowStatus(tid: tid)
         // Tips received are public on every profile; sent are private,
         // so only fetch them when the viewer is the same user.
         async let receivedTask = try? app.api.fetchOnchainTipsReceived(tid)

@@ -103,8 +103,8 @@ final class AppState: ObservableObject {
         // holds a weak ref back to self so it can read `api` and
         // `myTID` lazily without an init-order cycle.
         self.interactions = InteractionCache()
-        self.interactions.attach(to: self)
         self.tipStats = OnchainTipStatsCache()
+        self.interactions.attach(to: self)
         self.tipStats.attach(to: self)
 
         // Best-effort fetch of profile metadata so the UI shows the
