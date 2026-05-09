@@ -23,6 +23,13 @@ struct ProfileView: View {
     @State private var showingWallet = false
     @State private var showingSettings = false
     @State private var showingProfileEditor = false
+    @State private var selectedTab: ProfileTab = .tweets
+
+    enum ProfileTab: String, CaseIterable, Identifiable {
+        case tweets = "Tweets"
+        case tips = "Tips"
+        var id: String { rawValue }
+    }
 
     init(tid: String? = nil) {
         self.targetTID = tid
@@ -45,50 +52,25 @@ struct ProfileView: View {
         Group {
             if let tid = resolvedTID {
                 List {
-                    Section {
-                        identityCard(tid: tid)
-                            .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                    }
+                    profileHeader(tid: tid)
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
 
-                    if !tipsReceived.isEmpty {
-                        Section("Tips received") {
-                            ForEach(tipsReceived) { tip in
-                                OnchainTipRow(tip: tip, role: .received)
-                            }
-                        }
-                    }
+                    tabBar
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color(.systemBackground))
 
-                    if isOwnProfile && !tipsSent.isEmpty {
-                        Section("Tips sent") {
-                            ForEach(tipsSent) { tip in
-                                OnchainTipRow(tip: tip, role: .sent)
-                            }
-                        }
-                    }
-
-                    if loading && tweets.isEmpty {
-                        Section("Tweets") {
-                            ForEach(0..<2, id: \.self) { _ in
-                                TweetSkeletonRow()
-                            }
-                        }
-                    } else if tweets.isEmpty {
-                        Section("Tweets") {
-                            Text("No tweets yet.")
-                                .font(.subheadline)
-                                .foregroundStyle(.tertiary)
-                        }
-                    } else {
-                        Section("Tweets") {
-                            ForEach(tweets) { tweet in
-                                TweetCardView(tweet: tweet)
-                            }
-                        }
+                    switch selectedTab {
+                    case .tweets:
+                        tweetsSection
+                    case .tips:
+                        tipsSection
                     }
                 }
-                .listStyle(.insetGrouped)
+                .listStyle(.plain)
+                .scrollIndicators(.hidden)
             } else {
                 EmptyStateView(
                     symbol: "person.crop.circle",
@@ -98,39 +80,35 @@ struct ProfileView: View {
             }
         }
         .navigationTitle(isOwnProfile ? "Profile" : profileTitle)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if isOwnProfile {
                 ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink {
-                        ActivityView()
+                    Menu {
+                        NavigationLink {
+                            ActivityView()
+                        } label: {
+                            Label("Activity", systemImage: "list.bullet.clipboard")
+                        }
+                        NavigationLink {
+                            BookmarksView()
+                        } label: {
+                            Label("Bookmarks", systemImage: "bookmark")
+                        }
+                        Button {
+                            showingWallet = true
+                        } label: {
+                            Label("Wallet", systemImage: "wallet.pass")
+                        }
+                        Button {
+                            showingSettings = true
+                        } label: {
+                            Label("Settings", systemImage: "gearshape")
+                        }
                     } label: {
-                        Image(systemName: "list.bullet.clipboard")
+                        Image(systemName: "ellipsis.circle")
                     }
-                    .accessibilityLabel("Activity")
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink {
-                        BookmarksView()
-                    } label: {
-                        Image(systemName: "bookmark")
-                    }
-                    .accessibilityLabel("Bookmarks")
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingWallet = true
-                    } label: {
-                        Image(systemName: "wallet.pass")
-                    }
-                    .accessibilityLabel("Wallet")
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                    }
-                    .accessibilityLabel("Settings")
+                    .accessibilityLabel("More")
                 }
             }
         }
@@ -170,9 +148,6 @@ struct ProfileView: View {
             .environmentObject(app)
         }
         .onChange(of: showingProfileEditor) { _, isShown in
-            // Reload after the editor closes so any field edits the
-            // user just published show up in the card without
-            // needing to pull-to-refresh.
             if !isShown { Task { await refresh() } }
         }
     }
@@ -187,104 +162,262 @@ struct ProfileView: View {
         return "Profile"
     }
 
-    private func identityCard(tid: String) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 14) {
-                AvatarView(initial: user?.initial ?? String(tid.prefix(1)), size: 64)
+    // MARK: - Header (banner + avatar + meta)
+
+    private func profileHeader(tid: String) -> some View {
+        let seed = user?.username ?? tid
+        return VStack(alignment: .leading, spacing: 0) {
+            // Banner — gradient seeded by the user so each profile
+            // has a stable, distinct color until we wire up uploads.
+            ZStack(alignment: .bottomLeading) {
+                TribeColor.avatarGradient(seed: "banner-\(seed)")
+                    .frame(height: 140)
+                    .clipped()
+            }
+            .frame(maxWidth: .infinity)
+
+            // Avatar overlapping bottom of banner + action button on the right
+            HStack(alignment: .bottom) {
+                AvatarView(
+                    initial: user?.initial ?? String(tid.prefix(1)),
+                    size: 84,
+                    seed: seed
+                )
+                .overlay(Circle().strokeBorder(Color(.systemBackground), lineWidth: 4))
+                .offset(y: -42)
+                .padding(.leading, 16)
+                .padding(.bottom, -42)
+
+                Spacer()
+
+                actionButton
+                    .padding(.trailing, 16)
+                    .padding(.top, 12)
+            }
+
+            VStack(alignment: .leading, spacing: 10) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(user?.displayName ?? "TID #\(tid)")
-                        .font(.title2.weight(.semibold))
-                    if let address = user?.custodyAddress {
-                        Text(short(address))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        .font(.title2.weight(.bold))
+                    Text(handleText(tid: tid))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                if let bio = user?.profile?.bio, !bio.isEmpty {
+                    Text(bio)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                metaRow
+
+                statsRow
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 12)
+        }
+    }
+
+    @ViewBuilder
+    private var actionButton: some View {
+        if isOwnProfile {
+            Button {
+                showingProfileEditor = true
+            } label: {
+                Text("Edit profile")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule().strokeBorder(TribeColor.cardStroke, lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            .disabled(app.appKey == nil)
+        } else if let status = followStatus {
+            followCapsule(for: status)
+        }
+    }
+
+    @ViewBuilder
+    private func followCapsule(for status: ERLinkStatus) -> some View {
+        let label: String = status.isFollowing ? "Following" : (status.isPending ? "Pending" : "Follow")
+        let isFollowingOrPending = status.isFollowing || status.isPending
+        Text(label)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(isFollowingOrPending ? TribeColor.brand : .white)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 8)
+            .background(
+                Group {
+                    if isFollowingOrPending {
+                        Capsule().fill(TribeColor.brand.opacity(0.12))
                     } else {
-                        Text("TID #\(tid)")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        Capsule().fill(TribeColor.brandGradient)
                     }
                 }
-                Spacer()
-                if isOwnProfile {
-                    Button {
-                        showingProfileEditor = true
-                    } label: {
-                        Label("Edit", systemImage: "pencil")
-                            .labelStyle(.titleAndIcon)
-                            .font(.caption.weight(.semibold))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Capsule().fill(TribeColor.chipBackground))
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(app.appKey == nil)
-                } else {
-                    followPill
-                }
-            }
+            )
+            .overlay(
+                Capsule().strokeBorder(
+                    isFollowingOrPending ? TribeColor.brand.opacity(0.3) : Color.clear,
+                    lineWidth: 1
+                )
+            )
+    }
 
-            HStack(spacing: 22) {
-                Stat(label: "Following", value: "\(erProfile?.followingCount ?? user?.followingCount ?? 0)")
-                Stat(label: "Followers", value: "\(erProfile?.followersCount ?? user?.followersCount ?? 0)")
-                if let k = karma {
-                    Stat(label: "Karma · L\(k.level)", value: "\(k.total)")
-                }
-            }
+    private func handleText(tid: String) -> String {
+        if let username = user?.username { return "@\(username).tribe" }
+        return "@tid\(tid)"
+    }
 
-            if let bio = user?.profile?.bio, !bio.isEmpty {
-                Text(bio)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
+    @ViewBuilder
+    private var metaRow: some View {
+        let location = user?.profile?.location
+        let urlString = user?.profile?.url
+        let address = user?.custodyAddress
 
-            HStack(spacing: 16) {
-                if let location = user?.profile?.location, !location.isEmpty {
-                    Label(location, systemImage: "mappin.and.ellipse")
+        if (location?.isEmpty == false) || (urlString?.isEmpty == false) || (address?.isEmpty == false) {
+            HStack(spacing: 14) {
+                if let loc = location, !loc.isEmpty {
+                    Label(loc, systemImage: "mappin.and.ellipse")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                if let urlString = user?.profile?.url,
-                   !urlString.isEmpty,
-                   let url = URL(string: urlString) {
+                if let urlString, !urlString.isEmpty, let url = URL(string: urlString) {
                     Link(destination: url) {
                         Label(displayHost(urlString), systemImage: "link")
                             .font(.caption.weight(.medium))
+                            .foregroundStyle(TribeColor.brand)
                     }
+                }
+                if let address, !address.isEmpty {
+                    Label(short(address), systemImage: "wallet.pass")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospaced()
                 }
             }
         }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(.secondarySystemGroupedBackground))
-        )
     }
 
-    /// Read-only follow indicator for other-user profiles. iOS doesn't
-    /// hold the Solana custody key, so it can show whether the signed-in
-    /// user already follows this account but can't initiate follow /
-    /// unfollow ops — those still require tribe-app.
-    @ViewBuilder
-    private var followPill: some View {
-        if let status = followStatus {
-            let content = followPillContent(for: status)
-            Text(content.label)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(content.tint)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(Capsule().fill(TribeColor.chipBackground))
+    private var statsRow: some View {
+        HStack(spacing: 22) {
+            inlineStat(
+                value: "\(erProfile?.followingCount ?? user?.followingCount ?? 0)",
+                label: "Following"
+            )
+            inlineStat(
+                value: "\(erProfile?.followersCount ?? user?.followersCount ?? 0)",
+                label: "Followers"
+            )
+            if let k = karma {
+                inlineStat(
+                    value: "\(k.total)",
+                    label: "Karma · L\(k.level)",
+                    valueTint: TribeColor.accentAmber
+                )
+            }
         }
     }
 
-    private func followPillContent(for status: ERLinkStatus) -> (label: String, tint: Color) {
-        if status.isFollowing {
-            return ("Following", Color(red: 0.16, green: 0.55, blue: 0.36))
-        } else if status.isPending {
-            return ("Pending", Color(red: 0.85, green: 0.55, blue: 0.10))
+    private func inlineStat(value: String, label: String, valueTint: Color = .primary) -> some View {
+        HStack(spacing: 4) {
+            Text(value)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(valueTint)
+                .monospacedDigit()
+            Text(label)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - Tab bar (Tweets / Tips)
+
+    private var tabBar: some View {
+        HStack(spacing: 0) {
+            ForEach(ProfileTab.allCases) { tab in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.15)) { selectedTab = tab }
+                } label: {
+                    VStack(spacing: 8) {
+                        Text(tab.rawValue)
+                            .font(.subheadline.weight(selectedTab == tab ? .bold : .medium))
+                            .foregroundStyle(selectedTab == tab ? .primary : .secondary)
+                        Rectangle()
+                            .fill(selectedTab == tab ? TribeColor.brand : Color.clear)
+                            .frame(height: 3)
+                            .clipShape(Capsule())
+                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.top, 8)
+        .background(Color(.systemBackground))
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(TribeColor.cardStroke.opacity(0.4))
+                .frame(height: 0.5)
+        }
+    }
+
+    // MARK: - Sections
+
+    @ViewBuilder
+    private var tweetsSection: some View {
+        if loading && tweets.isEmpty {
+            ForEach(0..<3, id: \.self) { _ in
+                TweetSkeletonRow()
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+            }
+        } else if tweets.isEmpty {
+            Text("No tweets yet.")
+                .font(.subheadline)
+                .foregroundStyle(.tertiary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 32)
+                .listRowSeparator(.hidden)
         } else {
-            return ("Not following", .secondary)
+            ForEach(tweets) { tweet in
+                TweetCardView(tweet: tweet)
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var tipsSection: some View {
+        if tipsReceived.isEmpty && (!isOwnProfile || tipsSent.isEmpty) {
+            Text("No tips yet.")
+                .font(.subheadline)
+                .foregroundStyle(.tertiary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 32)
+                .listRowSeparator(.hidden)
+        } else {
+            if !tipsReceived.isEmpty {
+                Section("Received") {
+                    ForEach(tipsReceived) { tip in
+                        OnchainTipRow(tip: tip, role: .received)
+                    }
+                }
+            }
+            if isOwnProfile && !tipsSent.isEmpty {
+                Section("Sent") {
+                    ForEach(tipsSent) { tip in
+                        OnchainTipRow(tip: tip, role: .sent)
+                    }
+                }
+            }
         }
     }
 
@@ -318,18 +451,10 @@ struct ProfileView: View {
         guard let tid = resolvedTID else { loading = false; return }
         loading = true
         async let userTask = try? app.api.fetchUser(tid)
-        // Profile feed (rather than fetchTweets) so the rows include
-        // retweets the user did, with retweeted_by_* metadata so the
-        // card can render an "X retweeted" header.
         async let tweetsTask = try? app.api.fetchFeed(tid: tid)
         async let karmaTask = try? app.api.fetchKarma(tid)
         async let erTask = try? app.er.profile(tid)
-        // Only probe the follow link when we're looking at *another*
-        // user — the pill doesn't render for self-profiles anyway,
-        // and the request would just answer "myself follows myself".
         async let followTask: ERLinkStatus? = fetchFollowStatus(tid: tid)
-        // Tips received are public on every profile; sent are private,
-        // so only fetch them when the viewer is the same user.
         async let receivedTask = try? app.api.fetchOnchainTipsReceived(tid)
         async let sentTask: [OnchainTip]? = isOwnProfile
             ? (try? await app.api.fetchOnchainTipsSent(tid))
@@ -368,13 +493,17 @@ private struct OnchainTipRow: View {
         return String(tid.prefix(1))
     }
 
+    private var counterpartyTID: String {
+        role == .received ? tip.senderTid : tip.recipientTid
+    }
+
     private var explorerURL: URL? {
         URL(string: "https://explorer.solana.com/tx/\(tip.txSignature)?cluster=\(Config.solanaCluster)")
     }
 
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView(initial: initial, size: 36)
+            AvatarView(initial: initial, size: 36, seed: tip.counterpartyUsername ?? counterpartyTID)
             VStack(alignment: .leading, spacing: 2) {
                 Text(role == .received ? "From \(counterpartyTitle)" : "To \(counterpartyTitle)")
                     .font(.subheadline.weight(.medium))
@@ -386,6 +515,7 @@ private struct OnchainTipRow: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text("\(tip.formattedSol) SOL")
                     .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(TribeColor.accentAmber)
                     .monospacedDigit()
                 if let url = explorerURL {
                     Link(destination: url) {
@@ -401,27 +531,23 @@ private struct OnchainTipRow: View {
     }
 }
 
-private struct Stat: View {
-    let label: String
-    let value: String
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(value)
-                .font(.title3.weight(.semibold))
-            Text(label)
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
 private struct TweetSkeletonRow: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(maxWidth: .infinity).frame(height: 12)
-            RoundedRectangle(cornerRadius: 4).fill(Color(.tertiarySystemFill)).frame(width: 200, height: 12)
+        HStack(alignment: .top, spacing: 12) {
+            Circle().fill(Color(.tertiarySystemFill)).frame(width: 44, height: 44)
+            VStack(alignment: .leading, spacing: 8) {
+                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(width: 140, height: 11)
+                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(maxWidth: .infinity).frame(height: 11)
+                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(width: 220, height: 11)
+            }
         }
-        .padding(.vertical, 4)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(TribeColor.cardStroke.opacity(0.4))
+                .frame(height: 0.5)
+        }
         .redacted(reason: .placeholder)
     }
 }
