@@ -15,6 +15,7 @@ struct RootView: View {
                 MainTabs()
             }
         }
+        .tint(TribeColor.brand)
         .animation(.easeInOut(duration: 0.2), value: app.phase)
     }
 }
@@ -23,19 +24,19 @@ private struct MainTabs: View {
     var body: some View {
         TabView {
             NavigationStack { HomeFeedView() }
-                .tabItem { Label("Home", systemImage: "house") }
+                .tabItem { Label("Home", systemImage: "house.fill") }
 
             NavigationStack { ExploreView() }
-                .tabItem { Label("Explore", systemImage: "safari") }
+                .tabItem { Label("Explore", systemImage: "safari.fill") }
 
             NavigationStack { TribesView() }
-                .tabItem { Label("Tribes", systemImage: "person.3") }
+                .tabItem { Label("Tribes", systemImage: "person.3.fill") }
 
             NavigationStack { MessagesView() }
-                .tabItem { Label("Messages", systemImage: "envelope") }
+                .tabItem { Label("Messages", systemImage: "envelope.fill") }
 
             NavigationStack { ProfileView() }
-                .tabItem { Label("Profile", systemImage: "person.crop.circle") }
+                .tabItem { Label("Profile", systemImage: "person.crop.circle.fill") }
         }
     }
 }
