@@ -64,20 +64,22 @@ private struct ChannelRow: View {
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(TribeColor.chipBackground)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(TribeColor.avatarGradient(seed: "channel-\(channel.id)"))
                 Text("#")
-                    .font(.headline)
-                    .foregroundStyle(TribeColor.textPrimary)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+                    .shadow(color: Color.black.opacity(0.18), radius: 1, x: 0, y: 1)
             }
-            .frame(width: 40, height: 40)
+            .frame(width: 44, height: 44)
+            .shadow(color: Color.black.opacity(0.06), radius: 4, x: 0, y: 2)
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(channel.displayName)
                         .font(.subheadline.weight(.semibold))
                     if channel.kind == 2 {
-                        Pill(text: "city", color: .green)
+                        Pill(text: "city", color: TribeColor.accentEmerald)
                     }
                 }
                 Text(channel.description ?? "#\(channel.id)")
@@ -90,7 +92,7 @@ private struct ChannelRow: View {
             }
             Spacer()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 }
 

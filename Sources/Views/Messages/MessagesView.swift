@@ -140,7 +140,7 @@ private struct GroupRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView(initial: initial, size: 44)
+            AvatarView(initial: initial, size: 44, seed: "group-\(group.id)")
             VStack(alignment: .leading, spacing: 2) {
                 Text(group.name)
                     .font(.headline)
@@ -157,15 +157,16 @@ private struct GroupRow: View {
                 } else {
                     Image(systemName: "person.3.fill")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(TribeColor.brand)
                 }
                 if group.unreadCount > 0 {
                     Text("\(group.unreadCount)")
-                        .font(.caption2.weight(.semibold))
+                        .font(.caption2.weight(.bold))
                         .foregroundStyle(.white)
+                        .monospacedDigit()
                         .padding(.horizontal, 7)
                         .padding(.vertical, 2)
-                        .background(Capsule().fill(Color.accentColor))
+                        .background(Capsule().fill(TribeColor.brand))
                 }
             }
         }
@@ -183,7 +184,7 @@ private struct ConversationRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            AvatarView(initial: initial, size: 44)
+            AvatarView(initial: initial, size: 44, seed: conversation.peerUsername ?? conversation.peerTid)
             VStack(alignment: .leading, spacing: 2) {
                 Text(displayName)
                     .font(.headline)
@@ -200,11 +201,12 @@ private struct ConversationRow: View {
                 }
                 if conversation.unreadCount > 0 {
                     Text("\(conversation.unreadCount)")
-                        .font(.caption2.weight(.semibold))
+                        .font(.caption2.weight(.bold))
                         .foregroundStyle(.white)
+                        .monospacedDigit()
                         .padding(.horizontal, 7)
                         .padding(.vertical, 2)
-                        .background(Capsule().fill(Color.accentColor))
+                        .background(Capsule().fill(TribeColor.brand))
                 }
             }
         }

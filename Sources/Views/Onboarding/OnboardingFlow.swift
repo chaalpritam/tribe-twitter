@@ -42,14 +42,20 @@ struct WelcomeView: View {
     var onContinue: () -> Void
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 28) {
             Spacer()
 
-            Image(systemName: "infinity.circle.fill")
-                .font(.system(size: 72, weight: .black))
-                .foregroundStyle(.tint)
+            ZStack {
+                Circle()
+                    .fill(TribeColor.brandGradient)
+                    .frame(width: 132, height: 132)
+                    .shadow(color: TribeColor.brand.opacity(0.35), radius: 24, x: 0, y: 12)
+                Image(systemName: "infinity")
+                    .font(.system(size: 60, weight: .black))
+                    .foregroundStyle(.white)
+            }
 
-            VStack(spacing: 10) {
+            VStack(spacing: 12) {
                 Text("Welcome to Tribe")
                     .font(.largeTitle.bold())
                     .multilineTextAlignment(.center)
@@ -57,20 +63,25 @@ struct WelcomeView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 32)
             }
 
             Spacer()
 
             Button(action: onContinue) {
                 Text("Get started")
+                    .font(.body.weight(.semibold))
                     .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
             }
             .buttonStyle(.borderedProminent)
+            .tint(TribeColor.brand)
             .controlSize(.large)
             .padding(.horizontal, 32)
             .padding(.bottom, 40)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(TribeColor.softBrandBackground.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
     }
 }
@@ -156,87 +167,44 @@ struct IdentityChoiceView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("How would you like to sign in?")
-                .font(.title2.bold())
-                .padding(.top, 24)
+            VStack(spacing: 8) {
+                Text("How would you like to sign in?")
+                    .font(.title2.bold())
+                Text("Tribe identities live on Solana. Your TID + a local app-key together let this device sign protocol envelopes on your behalf.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            }
+            .padding(.top, 24)
 
-            Text("Tribe identities live on Solana. Your TID + a local app-key together let this device sign protocol envelopes on your behalf.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-
-            Spacer(minLength: 16)
+            Spacer(minLength: 8)
 
             VStack(spacing: 12) {
-                Button {
+                IdentityChoiceCard(
+                    icon: "qrcode.viewfinder",
+                    iconTint: TribeColor.brand,
+                    title: "Scan QR from desktop",
+                    subtitle: "Open tribe-app → Settings → Log in on mobile"
+                ) {
                     path.append(OnboardingFlow.Step.pairFromDesktop)
-                } label: {
-                    HStack {
-                        Image(systemName: "qrcode.viewfinder")
-                        VStack(alignment: .leading) {
-                            Text("Scan QR from desktop").font(.headline)
-                            Text("Open tribe-app → Settings → Log in on mobile")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right").foregroundStyle(.tertiary)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color(.secondarySystemGroupedBackground))
-                    )
                 }
-                .buttonStyle(.plain)
-
-                Button {
+                IdentityChoiceCard(
+                    icon: "square.and.arrow.down",
+                    iconTint: TribeColor.accentTeal,
+                    title: "Import existing identity",
+                    subtitle: "Paste your TID + app-key from tribe-app"
+                ) {
                     path.append(OnboardingFlow.Step.importIdentity)
-                } label: {
-                    HStack {
-                        Image(systemName: "square.and.arrow.down")
-                        VStack(alignment: .leading) {
-                            Text("Import existing identity").font(.headline)
-                            Text("Paste your TID + app-key from tribe-app")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right").foregroundStyle(.tertiary)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color(.secondarySystemGroupedBackground))
-                    )
                 }
-                .buttonStyle(.plain)
-
-                Button {
+                IdentityChoiceCard(
+                    icon: "key.horizontal",
+                    iconTint: TribeColor.accentAmber,
+                    title: "Create new app key",
+                    subtitle: "Generate a fresh ed25519 keypair on this device"
+                ) {
                     path.append(OnboardingFlow.Step.createIdentity)
-                } label: {
-                    HStack {
-                        Image(systemName: "key.horizontal")
-                        VStack(alignment: .leading) {
-                            Text("Create new app key").font(.headline)
-                            Text("Generate a fresh ed25519 keypair on this device")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Image(systemName: "chevron.right").foregroundStyle(.tertiary)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color(.secondarySystemGroupedBackground))
-                    )
                 }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal, 16)
 
@@ -244,7 +212,53 @@ struct IdentityChoiceView: View {
         }
         .navigationTitle("Sign in")
         .navigationBarTitleDisplayMode(.inline)
-        .background(Color(.systemGroupedBackground))
+        .background(TribeColor.softBrandBackground.ignoresSafeArea())
+    }
+}
+
+private struct IdentityChoiceCard: View {
+    let icon: String
+    let iconTint: Color
+    let title: String
+    let subtitle: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(iconTint.opacity(0.18))
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(iconTint)
+                }
+                .frame(width: 40, height: 40)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.headline)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(TribeColor.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(TribeColor.cardStroke.opacity(0.4), lineWidth: 0.5)
+            )
+            .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+        }
+        .buttonStyle(.plain)
     }
 }
 
