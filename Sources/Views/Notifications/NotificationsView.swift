@@ -42,7 +42,7 @@ struct NotificationsView: View {
             }
         }
         .background(TribeColor.pageBackground)
-        .navigationTitle("Activity")
+        .navigationTitle("Notifications")
         .refreshable { await refresh() }
         .task { load() }
     }
