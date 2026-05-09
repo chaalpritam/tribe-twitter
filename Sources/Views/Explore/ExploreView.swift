@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ExploreView: View {
     @EnvironmentObject private var app: AppState
+    @EnvironmentObject private var userAvatars: UserAvatarCache
     @State private var users: [User] = []
     @State private var loading = true
     @State private var error: String?
@@ -57,7 +58,19 @@ struct ExploreView: View {
         loading = users.isEmpty
         error = nil
         do {
-            users = try await app.api.fetchUsers()
+            let fetched = try await app.api.fetchUsers()
+            users = fetched
+            // Seed the avatar cache with whatever pfp the list
+            // endpoint already returned. /v1/users tends to omit the
+            // profile sub-object (only /v1/user/:tid hydrates it),
+            // so most entries here will be nil — UserAvatar will
+            // fill them in lazily as each row appears.
+            for u in fetched {
+                if let raw = u.profile?.pfpUrl,
+                   let url = app.api.resolveMediaURL(raw) {
+                    userAvatars.record(tid: u.tid, pfpUrl: url)
+                }
+            }
         } catch {
             self.error = error.localizedDescription
         }
@@ -78,10 +91,10 @@ private struct UserRow: View {
                 ProfileView(tid: user.tid)
             } label: {
                 HStack(spacing: 12) {
-                    AvatarView(
+                    UserAvatar(
+                        tid: user.tid,
                         initial: user.initial,
                         size: 44,
-                        pfpURL: app.api.resolveMediaURL(user.profile?.pfpUrl),
                         seed: user.username ?? user.tid
                     )
                     VStack(alignment: .leading, spacing: 2) {
