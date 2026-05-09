@@ -179,15 +179,10 @@ struct TweetCardView: View {
             : [GridItem(.flexible()), GridItem(.flexible())]
         LazyVGrid(columns: columns, spacing: 4) {
             ForEach(urls, id: \.self) { url in
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let img):
-                        img.resizable().scaledToFill()
-                    case .failure:
-                        Color(.tertiarySystemFill)
-                    default:
-                        Color(.tertiarySystemFill)
-                    }
+                CachedAsyncImage(url: url) { img in
+                    img.resizable().scaledToFill()
+                } placeholder: {
+                    Color(.tertiarySystemFill)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: urls.count == 1 ? 220 : 140)

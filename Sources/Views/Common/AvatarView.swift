@@ -13,13 +13,10 @@ struct AvatarView: View {
     var body: some View {
         ZStack {
             if let url = pfpURL {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let img):
-                        img.resizable().scaledToFill()
-                    default:
-                        fallback
-                    }
+                CachedAsyncImage(url: url) { img in
+                    img.resizable().scaledToFill()
+                } placeholder: {
+                    fallback
                 }
             } else {
                 fallback

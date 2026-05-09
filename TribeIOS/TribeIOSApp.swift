@@ -4,6 +4,14 @@ import SwiftUI
 struct TribeIOSApp: App {
     @StateObject private var appState = AppState()
 
+    init() {
+        // Bump URLCache.shared so URLSession's HTTP cache (used by
+        // image fetches) can hold avatars across launches without
+        // hitting the network. NSCache in ImageCache holds decoded
+        // UIImages on top of that for instant scroll-back rendering.
+        ImageCache.configureURLCache()
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
