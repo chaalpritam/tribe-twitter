@@ -30,7 +30,7 @@ private struct MainTabs: View {
                 .tabItem { Label("Explore", systemImage: "safari.fill") }
 
             NavigationStack { TribesView() }
-                .tabItem { Label("Tribes", systemImage: "person.3.fill") }
+                .tabItem { Label("Tribes", systemImage: "circle.hexagongrid.fill") }
 
             NavigationStack { MessagesView() }
                 .tabItem { Label("Messages", systemImage: "envelope.fill") }
