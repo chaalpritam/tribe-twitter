@@ -1,5 +1,11 @@
 import SwiftUI
 
+/// Twitter-style tweet row. Avatar is pinned to the leading edge,
+/// header (name + handle + time) and body share the trailing column,
+/// and the action row sits directly under the body. Rows render
+/// edge-to-edge with a hairline separator at the bottom; List should
+/// hide its own separators and use zero row insets so this view
+/// owns the full row chrome.
 struct TweetCardView: View {
     @EnvironmentObject private var app: AppState
     @EnvironmentObject private var interactions: InteractionCache
@@ -13,17 +19,10 @@ struct TweetCardView: View {
     @State private var presentingReply = false
     @State private var presentingTip = false
 
-    /// Read directly from the shared InteractionCache so paginated
-    /// feeds, the search results, the bookmarks tab, and the profile
-    /// timeline all reflect the same live state without each view
-    /// owning its own copy.
     private var liked: Bool { interactions.contains(liked: tweet.hash) }
     private var bookmarked: Bool { interactions.contains(bookmarked: tweet.hash) }
     private var retweeted: Bool { interactions.contains(retweeted: tweet.hash) }
 
-    /// Label for the "X retweeted" header that profile feeds surface
-    /// when a row is somebody else's tweet that the profile owner
-    /// retweeted. Nil for organic tweets so the header collapses.
     private var retweeterLabel: String? {
         if let u = tweet.retweetedByUsername { return "\(u).tribe" }
         if let t = tweet.retweetedByTid { return "TID #\(t)" }
@@ -31,8 +30,13 @@ struct TweetCardView: View {
     }
 
     private var displayName: String {
-        if let u = tweet.username { return "\(u).tribe" }
+        if let u = tweet.username { return u }
         return "TID #\(tweet.tid)"
+    }
+
+    private var handle: String {
+        if let u = tweet.username { return "@\(u).tribe" }
+        return "@tid\(tweet.tid)"
     }
 
     private var initial: String {
@@ -46,62 +50,59 @@ struct TweetCardView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 4) {
             if let retweeterLabel {
                 HStack(spacing: 6) {
                     Image(systemName: "arrow.2.squarepath")
-                        .font(.caption)
+                        .font(.caption2.weight(.semibold))
                     Text("\(retweeterLabel) retweeted")
-                        .font(.caption.weight(.medium))
+                        .font(.caption.weight(.semibold))
                 }
                 .foregroundStyle(.secondary)
+                .padding(.leading, 56)
             }
 
-            HStack(alignment: .center, spacing: 10) {
-                authorChip
-                Spacer()
-                if isOwnTweet {
-                    Menu {
-                        Button(role: .destructive) {
-                            Task { await deleteTweet() }
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis")
-                            .foregroundStyle(.secondary)
-                            .frame(width: 32, height: 32)
-                            .contentShape(Rectangle())
-                    }
-                } else if let channel = tweet.channelId {
-                    Text("#\(channel)")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Capsule().fill(TribeColor.chipBackground))
+            HStack(alignment: .top, spacing: 12) {
+                NavigationLink {
+                    if !isOwnTweet { ProfileView(tid: tweet.tid) }
+                } label: {
+                    AvatarView(initial: initial, size: 44, seed: tweet.username ?? tweet.tid)
                 }
-            }
+                .buttonStyle(.plain)
+                .disabled(isOwnTweet)
 
-            if let text = tweet.text, !text.isEmpty {
-                Text(text)
-                    .font(.body)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 4) {
+                    headerRow
+                    if let text = tweet.text, !text.isEmpty {
+                        Text(text)
+                            .font(.subheadline)
+                            .foregroundStyle(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .lineSpacing(2)
+                    }
+                    if let imageURLs = embedImageURLs(), !imageURLs.isEmpty {
+                        embedGrid(imageURLs)
+                            .padding(.top, 4)
+                    }
+                    if let error {
+                        Label(error, systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(TribeColor.accentRose)
+                    }
+                    actionRow
+                        .padding(.top, 6)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-
-            if let imageURLs = embedImageURLs(), !imageURLs.isEmpty {
-                embedGrid(imageURLs)
-            }
-
-            if let error {
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
-
-            actionRow
         }
-        .padding(.vertical, 6)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(Color(.systemBackground))
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(TribeColor.cardStroke.opacity(0.4))
+                .frame(height: 0.5)
+        }
         .task {
             await interactions.ensureLoaded()
             tipStats.ensureLoaded(hash: tweet.hash)
@@ -123,34 +124,43 @@ struct TweetCardView: View {
         }
     }
 
-    /// Avatar + display name + meta line. Wrapped in a NavigationLink
-    /// when the row belongs to somebody else so tapping it pushes
-    /// their profile; rendered as plain text on own-tweets to avoid
-    /// a self-pushing nav cycle that just duplicates the Profile tab.
-    @ViewBuilder
-    private var authorChip: some View {
-        let stack = HStack(alignment: .center, spacing: 10) {
-            AvatarView(initial: initial)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(displayName)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
-                Text("\(RelativeTime.short(tweet.timestamp)) · TID #\(tweet.tid)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+    private var headerRow: some View {
+        HStack(spacing: 4) {
+            Text(displayName)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+            Text(handle)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Text("·")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Text(RelativeTime.short(tweet.timestamp))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Spacer(minLength: 4)
+            if isOwnTweet {
+                Menu {
+                    Button(role: .destructive) {
+                        Task { await deleteTweet() }
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
+                }
+            } else if let channel = tweet.channelId {
+                Text("#\(channel)")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(TribeColor.brand)
             }
-        }
-        .contentShape(Rectangle())
-
-        if isOwnTweet {
-            stack
-        } else {
-            NavigationLink {
-                ProfileView(tid: tweet.tid)
-            } label: {
-                stack
-            }
-            .buttonStyle(.plain)
         }
     }
 
@@ -164,7 +174,7 @@ struct TweetCardView: View {
         let columns: [GridItem] = urls.count == 1
             ? [GridItem(.flexible())]
             : [GridItem(.flexible()), GridItem(.flexible())]
-        LazyVGrid(columns: columns, spacing: 6) {
+        LazyVGrid(columns: columns, spacing: 4) {
             ForEach(urls, id: \.self) { url in
                 AsyncImage(url: url) { phase in
                     switch phase {
@@ -177,51 +187,50 @@ struct TweetCardView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: urls.count == 1 ? 240 : 140)
+                .frame(height: urls.count == 1 ? 220 : 140)
                 .clipped()
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
         }
     }
 
     private var actionRow: some View {
-        HStack(spacing: 28) {
-            actionButton(symbol: "bubble.left", count: tweet.replyCount, active: false) {
-                presentingReply = true
-            }
+        HStack(spacing: 0) {
+            actionButton(
+                symbol: "bubble.left",
+                count: tweet.replyCount,
+                active: false,
+                activeTint: TribeColor.brand
+            ) { presentingReply = true }
+
             actionButton(
                 symbol: "arrow.2.squarepath",
                 count: nil,
                 active: retweeted,
-                activeTint: Color(red: 0.16, green: 0.65, blue: 0.42)
-            ) {
-                Task { await toggleRetweet() }
-            }
+                activeTint: TribeColor.accentEmerald
+            ) { Task { await toggleRetweet() } }
+
             actionButton(
                 symbol: liked ? "heart.fill" : "heart",
                 count: nil,
                 active: liked,
-                activeTint: .pink
-            ) {
-                Task { await toggleLike() }
-            }
+                activeTint: TribeColor.accentRose
+            ) { Task { await toggleLike() } }
+
             actionButton(
                 symbol: bookmarked ? "bookmark.fill" : "bookmark",
                 count: nil,
                 active: bookmarked,
-                activeTint: .blue
-            ) {
-                Task { await toggleBookmark() }
-            }
+                activeTint: TribeColor.accentIndigo
+            ) { Task { await toggleBookmark() } }
+
             if !isOwnTweet {
                 tipActionButton
             } else if let stats = tipStats.stats(for: tweet.hash), stats.tipCount > 0 {
-                // Authors don't get a tip-yourself button, but we do
-                // show the rolled-up count + total as a read-only chip
-                // so they can see their on-chain rep on each tweet.
                 tipReceivedChip(stats)
+            } else {
+                Spacer().frame(maxWidth: .infinity)
             }
-            Spacer()
         }
         .foregroundStyle(.secondary)
     }
@@ -229,19 +238,21 @@ struct TweetCardView: View {
     @ViewBuilder
     private var tipActionButton: some View {
         let stats = tipStats.stats(for: tweet.hash)
+        let hasTips = (stats?.tipCount ?? 0) > 0
         Button {
             presentingTip = true
         } label: {
             HStack(spacing: 4) {
-                Image(systemName: "dollarsign.circle")
+                Image(systemName: hasTips ? "dollarsign.circle.fill" : "dollarsign.circle")
                     .font(.subheadline)
                 if let stats, stats.tipCount > 0 {
-                    Text("\(stats.tipCount) · \(stats.formattedSol)")
-                        .font(.caption)
+                    Text("\(stats.tipCount)")
+                        .font(.caption.weight(.medium))
                         .monospacedDigit()
                 }
             }
-            .foregroundStyle(.secondary)
+            .foregroundStyle(hasTips ? TribeColor.accentAmber : .secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -252,12 +263,12 @@ struct TweetCardView: View {
         HStack(spacing: 4) {
             Image(systemName: "dollarsign.circle.fill")
                 .font(.subheadline)
-                .foregroundStyle(.orange)
-            Text("\(stats.tipCount) · \(stats.formattedSol) SOL")
-                .font(.caption.weight(.medium))
+            Text("\(stats.tipCount) · \(stats.formattedSol)")
+                .font(.caption.weight(.semibold))
                 .monospacedDigit()
-                .foregroundStyle(.secondary)
         }
+        .foregroundStyle(TribeColor.accentAmber)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func actionButton(
@@ -270,12 +281,15 @@ struct TweetCardView: View {
         Button(action: action) {
             HStack(spacing: 4) {
                 Image(systemName: symbol)
-                    .font(.subheadline)
+                    .font(.subheadline.weight(active ? .semibold : .regular))
                 if let n = count, n > 0 {
-                    Text("\(n)").font(.caption)
+                    Text("\(n)")
+                        .font(.caption.weight(.medium))
+                        .monospacedDigit()
                 }
             }
             .foregroundStyle(active ? activeTint : .secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -17,72 +17,12 @@ struct HomeFeedView: View {
     @State private var reachedEnd = false
 
     var body: some View {
-        Group {
-            if loading && tweets.isEmpty {
-                List {
-                    ForEach(0..<3, id: \.self) { _ in
-                        TweetSkeleton()
-                    }
-                }
-                .listStyle(.plain)
-            } else if let error, tweets.isEmpty {
-                EmptyStateView(
-                    symbol: "wifi.exclamationmark",
-                    title: "Couldn't load feed",
-                    message: error,
-                    action: ("Retry", load)
-                )
-            } else if tweets.isEmpty {
-                EmptyStateView(
-                    symbol: "sparkles",
-                    title: "It's quiet here",
-                    message: "Once people start posting, their tweets will appear here in real time."
-                )
-            } else {
-                List {
-                    ForEach(tweets) { tweet in
-                        NavigationLink {
-                            TweetDetailView(tweet: tweet)
-                        } label: {
-                            TweetCardView(tweet: tweet)
-                        }
-                        .buttonStyle(.plain)
-                        .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
-                        .onAppear {
-                            // Trigger the next page when the
-                            // second-to-last visible row appears so
-                            // the user rarely hits a hard stop while
-                            // scrolling. With <2 rows we fall through
-                            // to the last row.
-                            let triggerIndex = max(0, tweets.count - 2)
-                            if tweet.id == tweets[triggerIndex].id {
-                                Task { await loadMore() }
-                            }
-                        }
-                    }
-
-                    if loadingMore {
-                        HStack {
-                            Spacer()
-                            ProgressView()
-                            Spacer()
-                        }
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                    } else if reachedEnd && !tweets.isEmpty {
-                        Text("End of feed")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.vertical, 12)
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                    }
-                }
-                .listStyle(.plain)
-            }
+        ZStack(alignment: .bottomTrailing) {
+            content
+            composeFAB
         }
         .navigationTitle("Home")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
@@ -92,21 +32,13 @@ struct HomeFeedView: View {
                         .overlay(alignment: .topTrailing) {
                             if unreadCount > 0 {
                                 Circle()
-                                    .fill(Color.pink)
+                                    .fill(TribeColor.accentRose)
                                     .frame(width: 8, height: 8)
                                     .offset(x: 4, y: -2)
                             }
                         }
                 }
                 .accessibilityLabel("Activity")
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    presentingCompose = true
-                } label: {
-                    Image(systemName: "square.and.pencil")
-                }
-                .accessibilityLabel("Compose")
             }
         }
         .refreshable { await refresh() }
@@ -132,6 +64,97 @@ struct HomeFeedView: View {
             }
             .environmentObject(app)
         }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if loading && tweets.isEmpty {
+            List {
+                ForEach(0..<5, id: \.self) { _ in
+                    TweetSkeleton()
+                        .listRowInsets(EdgeInsets())
+                        .listRowSeparator(.hidden)
+                }
+            }
+            .listStyle(.plain)
+        } else if let error, tweets.isEmpty {
+            EmptyStateView(
+                symbol: "wifi.exclamationmark",
+                title: "Couldn't load feed",
+                message: error,
+                action: ("Retry", load)
+            )
+        } else if tweets.isEmpty {
+            EmptyStateView(
+                symbol: "sparkles",
+                title: "It's quiet here",
+                message: "Once people start posting, their tweets will appear here in real time."
+            )
+        } else {
+            List {
+                ForEach(tweets) { tweet in
+                    ZStack {
+                        // Hidden NavigationLink keeps the row tappable
+                        // without painting the default disclosure
+                        // chevron / blue highlight, so the tweet card
+                        // owns the entire row visual.
+                        NavigationLink {
+                            TweetDetailView(tweet: tweet)
+                        } label: { EmptyView() }
+                        .opacity(0)
+
+                        TweetCardView(tweet: tweet)
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+                    .onAppear {
+                        let triggerIndex = max(0, tweets.count - 2)
+                        if tweet.id == tweets[triggerIndex].id {
+                            Task { await loadMore() }
+                        }
+                    }
+                }
+
+                if loadingMore {
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                        Spacer()
+                    }
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .padding(.vertical, 16)
+                } else if reachedEnd && !tweets.isEmpty {
+                    Text("End of feed")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 24)
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                }
+            }
+            .listStyle(.plain)
+        }
+    }
+
+    private var composeFAB: some View {
+        Button {
+            presentingCompose = true
+        } label: {
+            Image(systemName: "square.and.pencil")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(.white)
+                .frame(width: 56, height: 56)
+                .background(
+                    Circle().fill(TribeColor.brandGradient)
+                )
+                .shadow(color: TribeColor.brand.opacity(0.4), radius: 12, x: 0, y: 6)
+        }
+        .accessibilityLabel("Compose tweet")
+        .padding(.trailing, 20)
+        .padding(.bottom, 20)
+        .disabled(app.appKey == nil)
     }
 
     private func load() {
@@ -195,15 +218,20 @@ struct HomeFeedView: View {
 private struct TweetSkeleton: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Circle().fill(Color(.tertiarySystemFill)).frame(width: 40, height: 40)
+            Circle().fill(Color(.tertiarySystemFill)).frame(width: 44, height: 44)
             VStack(alignment: .leading, spacing: 8) {
-                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(width: 120, height: 12)
-                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(maxWidth: .infinity).frame(height: 12)
-                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(width: 200, height: 12)
+                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(width: 140, height: 11)
+                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(maxWidth: .infinity).frame(height: 11)
+                RoundedRectangle(cornerRadius: 6).fill(Color(.tertiarySystemFill)).frame(width: 220, height: 11)
             }
         }
-        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(TribeColor.cardStroke.opacity(0.4))
+                .frame(height: 0.5)
+        }
         .redacted(reason: .placeholder)
     }
 }
-
