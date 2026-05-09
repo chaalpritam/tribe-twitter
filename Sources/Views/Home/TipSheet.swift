@@ -28,9 +28,23 @@ struct TipSheet: View {
         NavigationStack {
             Form {
                 Section {
-                    Text("Tipping \(recipientName)")
-                        .font(.headline)
-                    Text("Off-chain receipt only — your Solana custody key isn't on this device, so no SOL actually moves. Open tribe-app on the web to send SOL on-chain.")
+                    HStack(spacing: 12) {
+                        ZStack {
+                            Circle().fill(TribeColor.accentAmber.opacity(0.18))
+                            Image(systemName: "dollarsign.circle.fill")
+                                .font(.title)
+                                .foregroundStyle(TribeColor.accentAmber)
+                        }
+                        .frame(width: 44, height: 44)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Tipping \(recipientName)")
+                                .font(.headline)
+                            Text("Off-chain receipt")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Text("Your Solana custody key isn't on this device, so no SOL actually moves. Open tribe-app on the web to send SOL on-chain.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -43,10 +57,11 @@ struct TipSheet: View {
                             HStack {
                                 Text(format(preset) + " SOL")
                                     .font(.body.weight(.medium))
+                                    .monospacedDigit()
                                 Spacer()
                                 if selected == preset {
-                                    Image(systemName: "checkmark")
-                                        .foregroundStyle(.tint)
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(TribeColor.accentAmber)
                                 }
                             }
                             .contentShape(Rectangle())
@@ -57,8 +72,8 @@ struct TipSheet: View {
 
                 if let error {
                     Section {
-                        Label(error, systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.red)
+                        Label(error, systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(TribeColor.accentRose)
                             .font(.footnote)
                     }
                 }
@@ -66,7 +81,7 @@ struct TipSheet: View {
                 if sent {
                     Section {
                         Label("Tip published", systemImage: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
+                            .foregroundStyle(TribeColor.accentEmerald)
                     }
                 }
 
@@ -75,13 +90,17 @@ struct TipSheet: View {
                         Task { await send() }
                     } label: {
                         HStack {
-                            if sending { ProgressView() }
+                            if sending { ProgressView().tint(.white) }
                             Text(sending ? "Publishing…" : "Publish tip")
                                 .fontWeight(.semibold)
                         }
                         .frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(TribeColor.accentAmber)
+                    .controlSize(.large)
                     .disabled(sending || sent || app.appKey == nil || app.myTID == nil)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                 }
             }
             .navigationTitle("Tip")

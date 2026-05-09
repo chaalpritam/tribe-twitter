@@ -40,14 +40,17 @@ struct FollowButton: View {
                     Text(label)
                         .font(.caption.weight(.semibold))
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .foregroundStyle(following ? Color.primary : Color.white)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .foregroundStyle(following ? TribeColor.brand : Color.white)
                 .background(
-                    Capsule().fill(following ? Color(.tertiarySystemFill) : Color.primary)
+                    Capsule().fill(following ? TribeColor.brand.opacity(0.12) : Color.clear)
+                )
+                .background(
+                    following ? nil : Capsule().fill(TribeColor.brandGradient)
                 )
                 .overlay(
-                    Capsule().stroke(following ? TribeColor.cardStroke : Color.clear, lineWidth: 0.5)
+                    Capsule().stroke(following ? TribeColor.brand.opacity(0.25) : Color.clear, lineWidth: 0.5)
                 )
             }
             .buttonStyle(.plain)
