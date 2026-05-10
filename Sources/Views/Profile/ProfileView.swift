@@ -63,6 +63,13 @@ struct ProfileView: View {
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
 
+                    if isOwnProfile {
+                        quickActions
+                            .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color(.systemBackground))
+                    }
+
                     tabBar
                         .listRowInsets(EdgeInsets())
                         .listRowSeparator(.hidden)
@@ -118,31 +125,12 @@ struct ProfileView: View {
         .toolbar {
             if isOwnProfile {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        NavigationLink {
-                            ActivityView()
-                        } label: {
-                            Label("Activity", systemImage: "list.bullet.clipboard")
-                        }
-                        NavigationLink {
-                            BookmarksView()
-                        } label: {
-                            Label("Bookmarks", systemImage: "bookmark")
-                        }
-                        NavigationLink {
-                            TipsView()
-                        } label: {
-                            Label("Tips", systemImage: "dollarsign.circle")
-                        }
-                        Button {
-                            showingSettings = true
-                        } label: {
-                            Label("Settings", systemImage: "gearshape")
-                        }
+                    Button {
+                        showingSettings = true
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        Image(systemName: "gearshape")
                     }
-                    .accessibilityLabel("More")
+                    .accessibilityLabel("Settings")
                 }
             }
         }
@@ -346,6 +334,80 @@ struct ProfileView: View {
     private func handleText(tid: String) -> String {
         if let username = user?.username { return "@\(username).tribe" }
         return "@tid\(tid)"
+    }
+
+    /// Three quick-access tiles between the header and the tab bar.
+    /// Each pushes a self-contained screen that the ⋯ menu used to
+    /// hide. Own-profile only — viewers don't get to see somebody
+    /// else's bookmarks or tip ledger.
+    private var quickActions: some View {
+        HStack(spacing: 10) {
+            NavigationLink {
+                ActivityView()
+            } label: {
+                quickActionTile(
+                    title: "Activity",
+                    symbol: "list.bullet.clipboard",
+                    tint: TribeColor.accentEmerald
+                )
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
+                BookmarksView()
+            } label: {
+                quickActionTile(
+                    title: "Bookmarks",
+                    symbol: "bookmark.fill",
+                    tint: TribeColor.accentIndigo
+                )
+            }
+            .buttonStyle(.plain)
+
+            NavigationLink {
+                TipsView()
+            } label: {
+                quickActionTile(
+                    title: "Tips",
+                    symbol: "dollarsign.circle.fill",
+                    tint: TribeColor.accentAmber
+                )
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+    }
+
+    private func quickActionTile(
+        title: String,
+        symbol: String,
+        tint: Color
+    ) -> some View {
+        VStack(spacing: 6) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(tint.opacity(0.15))
+                Image(systemName: symbol)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(tint)
+            }
+            .frame(width: 40, height: 40)
+
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.primary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(TribeColor.surface)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(TribeColor.cardStroke.opacity(0.4), lineWidth: 0.5)
+        )
     }
 
     @ViewBuilder
