@@ -28,6 +28,8 @@ struct ProfileView: View {
     @State private var showingProfileEditor = false
     @State private var selectedTab: ProfileTab = .tweets
     @State private var selectedMediaTweet: Tweet?
+    @State private var followListMode: FollowListView.Mode?
+    @State private var showingKarma = false
 
     enum ProfileTab: String, CaseIterable, Identifiable {
         case tweets = "Tweets"
@@ -85,6 +87,24 @@ struct ProfileView: View {
                 }
                 .navigationDestination(item: $selectedMediaTweet) { t in
                     TweetDetailView(tweet: t)
+                }
+                .navigationDestination(item: $followListMode) { mode in
+                    if let tid = resolvedTID {
+                        FollowListView(tid: tid, mode: mode)
+                    }
+                }
+                .sheet(isPresented: $showingKarma) {
+                    if let k = karma {
+                        NavigationStack {
+                            KarmaSheet(karma: k)
+                                .toolbar {
+                                    ToolbarItem(placement: .topBarTrailing) {
+                                        Button("Done") { showingKarma = false }
+                                    }
+                                }
+                        }
+                        .presentationDetents([.medium, .large])
+                    }
                 }
             } else {
                 EmptyStateView(
@@ -322,20 +342,37 @@ struct ProfileView: View {
 
     private var statsRow: some View {
         HStack(spacing: 22) {
-            inlineStat(
-                value: "\(erProfile?.followingCount ?? user?.followingCount ?? 0)",
-                label: "Following"
-            )
-            inlineStat(
-                value: "\(erProfile?.followersCount ?? user?.followersCount ?? 0)",
-                label: "Followers"
-            )
-            if let k = karma {
+            Button {
+                followListMode = .following
+            } label: {
                 inlineStat(
-                    value: "\(k.total)",
-                    label: "Karma · L\(k.level)",
-                    valueTint: TribeColor.accentAmber
+                    value: "\(erProfile?.followingCount ?? user?.followingCount ?? 0)",
+                    label: "Following"
                 )
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                followListMode = .followers
+            } label: {
+                inlineStat(
+                    value: "\(erProfile?.followersCount ?? user?.followersCount ?? 0)",
+                    label: "Followers"
+                )
+            }
+            .buttonStyle(.plain)
+
+            if let k = karma {
+                Button {
+                    showingKarma = true
+                } label: {
+                    inlineStat(
+                        value: "\(k.total)",
+                        label: "Karma · L\(k.level)",
+                        valueTint: TribeColor.accentAmber
+                    )
+                }
+                .buttonStyle(.plain)
             }
         }
     }

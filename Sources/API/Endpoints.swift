@@ -61,6 +61,26 @@ public extension HubClient {
         try await get("v1/user/\(tid)")
     }
 
+    /// `/v1/users/:tid/followers`. Returns the users following the
+    /// given TID. The hub surfaces this as a {users:[…]} payload —
+    /// same shape as fetchUsers — so we reuse UserListResponse.
+    func fetchFollowers(_ tid: String, limit: Int = 100) async throws -> [User] {
+        let res: UserListResponse = try await get(
+            "v1/users/\(tid)/followers",
+            query: ["limit": String(limit)]
+        )
+        return res.users
+    }
+
+    /// `/v1/users/:tid/following`. Returns the users this TID follows.
+    func fetchFollowing(_ tid: String, limit: Int = 100) async throws -> [User] {
+        let res: UserListResponse = try await get(
+            "v1/users/\(tid)/following",
+            query: ["limit": String(limit)]
+        )
+        return res.users
+    }
+
     // MARK: - Channels
 
     func fetchChannels() async throws -> [Channel] {
