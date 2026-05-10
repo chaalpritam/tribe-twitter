@@ -7,6 +7,7 @@ struct HomeFeedView: View {
     @State private var error: String?
     @State private var presentingCompose = false
     @State private var presentingNotifications = false
+    @State private var presentingWallet = false
     @State private var unreadCount = 0
     /// Cursor for the next page. Nil before the first load; nil after
     /// the hub tells us we've reached the tail.
@@ -47,6 +48,15 @@ struct HomeFeedView: View {
                 }
                 .accessibilityLabel("Activity")
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    presentingWallet = true
+                } label: {
+                    Image(systemName: "wallet.pass")
+                }
+                .accessibilityLabel("Wallet")
+                .disabled(app.myTID == nil)
+            }
         }
         .refreshable { await refresh() }
         .task {
@@ -66,6 +76,17 @@ struct HomeFeedView: View {
                     .toolbar {
                         ToolbarItem(placement: .topBarTrailing) {
                             Button("Done") { presentingNotifications = false }
+                        }
+                    }
+            }
+            .environmentObject(app)
+        }
+        .sheet(isPresented: $presentingWallet) {
+            NavigationStack {
+                WalletView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { presentingWallet = false }
                         }
                     }
             }
