@@ -364,18 +364,17 @@ struct ProfileView: View {
         let urlString = user?.profile?.url
 
         if (location?.isEmpty == false) || (urlString?.isEmpty == false) {
-            VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 18) {
                 if let loc = location, !loc.isEmpty {
                     HStack(spacing: 6) {
                         Image(systemName: "mappin.and.ellipse")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(TribeColor.accentTeal)
-                            .frame(width: 16)
                         Text(loc)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
                     }
                 }
                 if let urlString, !urlString.isEmpty, let url = URL(string: urlString) {
@@ -384,7 +383,6 @@ struct ProfileView: View {
                             Image(systemName: "link")
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(TribeColor.brand)
-                                .frame(width: 16)
                             Text(displayHost(urlString))
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(TribeColor.brand)
@@ -393,6 +391,7 @@ struct ProfileView: View {
                         }
                     }
                 }
+                Spacer(minLength: 0)
             }
         }
     }
