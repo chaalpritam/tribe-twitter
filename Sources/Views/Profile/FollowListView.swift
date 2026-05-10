@@ -24,7 +24,6 @@ struct FollowListView: View {
     @State private var users: [User] = []
     @State private var loading = true
     @State private var error: String?
-    @State private var unsupported = false
     @State private var selectedTID: String?
 
     private var title: String {
@@ -45,12 +44,6 @@ struct FollowListView: View {
                     }
                 }
                 .listStyle(.plain)
-            } else if unsupported {
-                EmptyStateView(
-                    symbol: "person.2.slash",
-                    title: "\(title) list isn't available",
-                    message: "The hub this app is pointed at doesn't expose \(title.lowercased()) lists yet. The count above stays accurate."
-                )
             } else if let error, users.isEmpty {
                 EmptyStateView(
                     symbol: "wifi.exclamationmark",
@@ -94,7 +87,6 @@ struct FollowListView: View {
     private func refresh() async {
         loading = users.isEmpty
         error = nil
-        unsupported = false
         do {
             let fetched: [User]
             switch mode {
@@ -104,20 +96,71 @@ struct FollowListView: View {
                 fetched = try await app.api.fetchFollowing(tid)
             }
             users = fetched
-            for u in fetched {
-                if let raw = u.profile?.pfpUrl,
-                   let url = app.api.resolveMediaURL(raw) {
-                    userAvatars.record(tid: u.tid, pfpUrl: url)
-                }
-            }
+            seedAvatarCache(fetched)
         } catch HubError.statusCode(404, _) {
-            // Hub doesn't expose this list — fall back to the
-            // explainer rather than surface a generic load error.
-            unsupported = true
+            // Hub doesn't expose the list endpoint — derive the list
+            // from the ER server's per-pair link status. Costs one
+            // /v1/users + N /v1/link round trips, which is fine for
+            // small graphs. Catches everyone the hub knows about who
+            // currently has an active link to / from this TID.
+            await fallbackViaERLinks()
         } catch {
             self.error = error.localizedDescription
         }
         loading = false
+    }
+
+    @MainActor
+    private func fallbackViaERLinks() async {
+        let candidates: [User]
+        do {
+            candidates = try await app.api.fetchUsers(limit: 200)
+        } catch {
+            self.error = error.localizedDescription
+            return
+        }
+        guard !candidates.isEmpty else {
+            users = []
+            return
+        }
+        let resolved = await withTaskGroup(of: User?.self) { group in
+            let myTID = self.tid
+            let mode = self.mode
+            for candidate in candidates {
+                if candidate.tid == myTID { continue }
+                group.addTask { [er = app.er] in
+                    // Followers of myTID: candidate follows myTID.
+                    // Following: myTID follows candidate.
+                    let (follower, following): (String, String) = (mode == .followers)
+                        ? (candidate.tid, myTID)
+                        : (myTID, candidate.tid)
+                    let status = try? await er.link(
+                        followerTID: follower,
+                        followingTID: following
+                    )
+                    return status?.isFollowing == true ? candidate : nil
+                }
+            }
+            var result: [User] = []
+            for await u in group {
+                if let u { result.append(u) }
+            }
+            return result
+        }
+        users = resolved.sorted { lhs, rhs in
+            (lhs.username ?? lhs.tid) < (rhs.username ?? rhs.tid)
+        }
+        seedAvatarCache(resolved)
+    }
+
+    @MainActor
+    private func seedAvatarCache(_ list: [User]) {
+        for u in list {
+            if let raw = u.profile?.pfpUrl,
+               let url = app.api.resolveMediaURL(raw) {
+                userAvatars.record(tid: u.tid, pfpUrl: url)
+            }
+        }
     }
 }
 
