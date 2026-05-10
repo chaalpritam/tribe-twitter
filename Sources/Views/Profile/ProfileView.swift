@@ -267,35 +267,32 @@ struct ProfileView: View {
 
     @State private var addressCopied = false
 
+    /// Compact wallet-icon chip beside the display name. Tapping the
+    /// copy button writes the full custody address to the pasteboard
+    /// and flashes a checkmark for 1.5s.
     private func addressChip(_ address: String) -> some View {
-        HStack(spacing: 4) {
-            Text(shortAddress(address))
-                .font(.caption.monospaced())
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-            Button {
-                UIPasteboard.general.string = address
-                addressCopied = true
-                Task {
-                    try? await Task.sleep(nanoseconds: 1_500_000_000)
-                    await MainActor.run { addressCopied = false }
-                }
-            } label: {
+        Button {
+            UIPasteboard.general.string = address
+            addressCopied = true
+            Task {
+                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                await MainActor.run { addressCopied = false }
+            }
+        } label: {
+            HStack(spacing: 5) {
+                Image(systemName: "wallet.pass")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
                 Image(systemName: addressCopied ? "checkmark" : "doc.on.doc")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(addressCopied ? TribeColor.accentEmerald : TribeColor.brand)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(addressCopied ? "Copied" : "Copy address")
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .background(Capsule().fill(TribeColor.chipBackground))
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(Capsule().fill(TribeColor.chipBackground))
-    }
-
-    private func shortAddress(_ s: String) -> String {
-        guard s.count > 10 else { return s }
-        return "\(s.prefix(4))…\(s.suffix(4))"
+        .buttonStyle(.plain)
+        .accessibilityLabel(addressCopied ? "Copied wallet address" : "Copy wallet address")
     }
 
     @ViewBuilder
