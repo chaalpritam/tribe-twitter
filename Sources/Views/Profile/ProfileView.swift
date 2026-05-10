@@ -398,10 +398,9 @@ struct ProfileView: View {
         .padding(.bottom, 12)
     }
 
-    /// Big tappable circular button with the icon in white on a
-    /// solid accent color, label centered underneath. iOS Contact-
-    /// action / Apple Wallet button style — reads as a button at a
-    /// glance instead of a card.
+    /// White-background card with the icon in a colored gradient
+    /// circle and the label centered below. Soft drop shadow + thin
+    /// border so the cards read as raised tappable surfaces.
     private func quickActionTile(
         title: String,
         symbol: String,
@@ -418,17 +417,26 @@ struct ProfileView: View {
                         )
                     )
                 Image(systemName: symbol)
-                    .font(.title2.weight(.semibold))
+                    .font(.title3.weight(.semibold))
                     .foregroundStyle(.white)
             }
-            .frame(width: 56, height: 56)
-            .shadow(color: tint.opacity(0.35), radius: 8, x: 0, y: 4)
+            .frame(width: 44, height: 44)
 
             Text(title)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.primary)
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.systemBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(TribeColor.cardStroke.opacity(0.3), lineWidth: 0.5)
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 2)
         .contentShape(Rectangle())
     }
 
