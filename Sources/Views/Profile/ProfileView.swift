@@ -29,6 +29,12 @@ struct ProfileView: View {
     @State private var selectedMediaTweet: Tweet?
     @State private var followListMode: FollowListView.Mode?
     @State private var showingKarma = false
+    @State private var quickAction: QuickAction?
+
+    enum QuickAction: String, Hashable, Identifiable {
+        case activity, bookmarks, tips
+        var id: String { rawValue }
+    }
 
     enum ProfileTab: String, CaseIterable, Identifiable {
         case tweets = "Tweets"
@@ -97,6 +103,13 @@ struct ProfileView: View {
                 .navigationDestination(item: $followListMode) { mode in
                     if let tid = resolvedTID {
                         FollowListView(tid: tid, mode: mode)
+                    }
+                }
+                .navigationDestination(item: $quickAction) { action in
+                    switch action {
+                    case .activity: ActivityView()
+                    case .bookmarks: BookmarksView()
+                    case .tips: TipsView()
                     }
                 }
                 .sheet(isPresented: $showingKarma) {
@@ -337,42 +350,43 @@ struct ProfileView: View {
     }
 
     /// Three quick-access tiles between the header and the tab bar.
-    /// Each is its own NavigationLink — pushing a separate screen,
-    /// not a paged TabView — so each shortcut lives at its own URL
-    /// in the nav stack. Layout mirrors WalletView's stat tiles.
-    /// Own-profile only.
+    /// Programmatic navigation via $quickAction so the row doesn't
+    /// pick up the disclosure chevron a List adds to NavigationLink
+    /// rows. Three-column LazyVGrid makes the row resize cleanly on
+    /// any width. Own-profile only.
     private var quickActions: some View {
-        HStack(spacing: 10) {
-            NavigationLink {
-                ActivityView()
+        let columns = Array(
+            repeating: GridItem(.flexible(), spacing: 10),
+            count: 3
+        )
+        return LazyVGrid(columns: columns, spacing: 10) {
+            Button {
+                quickAction = .activity
             } label: {
                 quickActionTile(
                     title: "Activity",
-                    subtitle: "History",
                     symbol: "clock.arrow.circlepath",
                     tint: TribeColor.accentEmerald
                 )
             }
             .buttonStyle(.plain)
 
-            NavigationLink {
-                BookmarksView()
+            Button {
+                quickAction = .bookmarks
             } label: {
                 quickActionTile(
                     title: "Bookmarks",
-                    subtitle: "Saved",
                     symbol: "bookmark.fill",
                     tint: TribeColor.accentIndigo
                 )
             }
             .buttonStyle(.plain)
 
-            NavigationLink {
-                TipsView()
+            Button {
+                quickAction = .tips
             } label: {
                 quickActionTile(
                     title: "Tips",
-                    subtitle: "Earnings",
                     symbol: "dollarsign.circle.fill",
                     tint: TribeColor.accentAmber
                 )
@@ -390,7 +404,6 @@ struct ProfileView: View {
     /// glance instead of a card.
     private func quickActionTile(
         title: String,
-        subtitle _: String,
         symbol: String,
         tint: Color
     ) -> some View {
