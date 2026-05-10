@@ -384,45 +384,39 @@ struct ProfileView: View {
         .padding(.bottom, 12)
     }
 
-    /// Stat-tile layout matching WalletView's Received / Sent / Net
-    /// row: small accent-tinted icon square top-left, title in
-    /// title3 bold, caption subtitle underneath, all left-aligned
-    /// inside the surface card.
+    /// Big tappable circular button with the icon in white on a
+    /// solid accent color, label centered underneath. iOS Contact-
+    /// action / Apple Wallet button style — reads as a button at a
+    /// glance instead of a card.
     private func quickActionTile(
         title: String,
-        subtitle: String,
+        subtitle _: String,
         symbol: String,
         tint: Color
     ) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(spacing: 8) {
             ZStack {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(tint.opacity(0.15))
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [tint, tint.opacity(0.82)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                 Image(systemName: symbol)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(tint)
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(.white)
             }
-            .frame(width: 26, height: 26)
+            .frame(width: 56, height: 56)
+            .shadow(color: tint.opacity(0.35), radius: 8, x: 0, y: 4)
 
             Text(title)
-                .font(.title3.weight(.bold))
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            Text(subtitle)
-                .font(.caption)
-                .foregroundStyle(.secondary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(TribeColor.surface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(TribeColor.cardStroke.opacity(0.4), lineWidth: 0.5)
-        )
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
     }
 
     @ViewBuilder
