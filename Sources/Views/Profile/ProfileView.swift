@@ -398,15 +398,15 @@ struct ProfileView: View {
         .padding(.bottom, 12)
     }
 
-    /// White-background card with the icon in a colored gradient
-    /// circle and the label centered below. Soft drop shadow + thin
-    /// border so the cards read as raised tappable surfaces.
+    /// Compact white-background card. Smaller icon and tighter
+    /// padding than the original; no drop shadow, just a hairline
+    /// border so the cards sit flat on the page.
     private func quickActionTile(
         title: String,
         symbol: String,
         tint: Color
     ) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 6) {
             ZStack {
                 Circle()
                     .fill(
@@ -417,26 +417,25 @@ struct ProfileView: View {
                         )
                     )
                 Image(systemName: symbol)
-                    .font(.title3.weight(.semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.white)
             }
-            .frame(width: 44, height: 44)
+            .frame(width: 32, height: 32)
 
             Text(title)
-                .font(.caption.weight(.semibold))
+                .font(.caption2.weight(.semibold))
                 .foregroundStyle(.primary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        .padding(.vertical, 10)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(.systemBackground))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(TribeColor.cardStroke.opacity(0.3), lineWidth: 0.5)
         )
-        .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 2)
         .contentShape(Rectangle())
     }
 
