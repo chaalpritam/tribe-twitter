@@ -232,6 +232,8 @@ struct ProfileView: View {
 
                 metaRow
 
+                joinedRow
+
                 statsRow
                     .padding(.top, 2)
             }
@@ -241,38 +243,36 @@ struct ProfileView: View {
         }
     }
 
-    /// Display name → @handle → full custody address (selectable +
-    /// copyable). Address takes its own row, monospaced, so users
-    /// can pick it out at a glance and long-press to copy without
-    /// having to bounce through Settings.
+    /// Display name with a shortened custody-address chip beside it,
+    /// then @handle below. The chip's copy button writes the full
+    /// address to the pasteboard and flashes a checkmark for 1.5s.
     @ViewBuilder
     private func identityBlock(tid: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(user?.displayName ?? "TID #\(tid)")
-                .font(.title2.weight(.bold))
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(user?.displayName ?? "TID #\(tid)")
+                    .font(.title2.weight(.bold))
+                    .lineLimit(1)
+                    .layoutPriority(1)
+                if let address = user?.custodyAddress, !address.isEmpty {
+                    addressChip(address)
+                }
+                Spacer(minLength: 0)
+            }
             Text(handleText(tid: tid))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            if let address = user?.custodyAddress, !address.isEmpty {
-                walletAddressRow(address)
-                    .padding(.top, 4)
-            }
         }
     }
 
     @State private var addressCopied = false
 
-    private func walletAddressRow(_ address: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: "wallet.pass")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-            Text(address)
-                .font(.footnote.monospaced())
+    private func addressChip(_ address: String) -> some View {
+        HStack(spacing: 4) {
+            Text(shortAddress(address))
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
-                .truncationMode(.middle)
-                .textSelection(.enabled)
             Button {
                 UIPasteboard.general.string = address
                 addressCopied = true
@@ -282,15 +282,20 @@ struct ProfileView: View {
                 }
             } label: {
                 Image(systemName: addressCopied ? "checkmark" : "doc.on.doc")
-                    .font(.caption.weight(.semibold))
+                    .font(.caption2.weight(.semibold))
                     .foregroundStyle(addressCopied ? TribeColor.accentEmerald : TribeColor.brand)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(addressCopied ? "Copied" : "Copy address")
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
         .background(Capsule().fill(TribeColor.chipBackground))
+    }
+
+    private func shortAddress(_ s: String) -> String {
+        guard s.count > 10 else { return s }
+        return "\(s.prefix(4))…\(s.suffix(4))"
     }
 
     @ViewBuilder
@@ -344,6 +349,26 @@ struct ProfileView: View {
     private func handleText(tid: String) -> String {
         if let username = user?.username { return "@\(username).tribe" }
         return "@tid\(tid)"
+    }
+
+    @ViewBuilder
+    private var joinedRow: some View {
+        if let registeredAt = user?.registeredAt {
+            HStack(spacing: 6) {
+                Image(systemName: "calendar")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Text("Joined \(joinedDateLabel(registeredAt))")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func joinedDateLabel(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "MMMM yyyy"
+        return f.string(from: date)
     }
 
     @ViewBuilder
