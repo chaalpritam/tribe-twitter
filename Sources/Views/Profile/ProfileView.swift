@@ -23,7 +23,6 @@ struct ProfileView: View {
     @State private var likedLoaded = false
     @State private var likedLoading = false
     @State private var loading = true
-    @State private var showingWallet = false
     @State private var showingSettings = false
     @State private var showingProfileEditor = false
     @State private var selectedTab: ProfileTab = .tweets
@@ -130,10 +129,10 @@ struct ProfileView: View {
                         } label: {
                             Label("Bookmarks", systemImage: "bookmark")
                         }
-                        Button {
-                            showingWallet = true
+                        NavigationLink {
+                            TipsView()
                         } label: {
-                            Label("Wallet", systemImage: "wallet.pass")
+                            Label("Tips", systemImage: "dollarsign.circle")
                         }
                         Button {
                             showingSettings = true
@@ -149,17 +148,6 @@ struct ProfileView: View {
         }
         .refreshable { await refresh() }
         .task { load() }
-        .sheet(isPresented: $showingWallet) {
-            NavigationStack {
-                WalletView()
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("Done") { showingWallet = false }
-                        }
-                    }
-            }
-            .environmentObject(app)
-        }
         .sheet(isPresented: $showingSettings) {
             NavigationStack {
                 SettingsView()

@@ -74,6 +74,7 @@
 		ABCD000BABCD000BABCD000B /* CachedAsyncImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCD000CABCD000CABCD000C /* CachedAsyncImage.swift */; };
 		ABCD000DABCD000DABCD000D /* FollowListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCD000EABCD000EABCD000E /* FollowListView.swift */; };
 		ABCD000FABCD000FABCD000F /* KarmaSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCD0010ABCD0010ABCD0010 /* KarmaSheet.swift */; };
+		ABCD0011ABCD0011ABCD0011 /* TipsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABCD0012ABCD0012ABCD0012 /* TipsView.swift */; };
 		D495EA20D0C072BB735100B0 /* TweetDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ADF5FD4422513C609DB03B7 /* TweetDetailView.swift */; };
 		DA9EF4466C4BBC72615701D0 /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C80C7199BB3E3E23CCEB0D97 /* ActivityView.swift */; };
 		E197EE1055521978558393EC /* TipSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3451A786E7E0BE7C82E6E3A /* TipSheet.swift */; };
@@ -128,6 +129,7 @@
 		ABCD000CABCD000CABCD000C /* CachedAsyncImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedAsyncImage.swift; sourceTree = "<group>"; };
 		ABCD000EABCD000EABCD000E /* FollowListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FollowListView.swift; sourceTree = "<group>"; };
 		ABCD0010ABCD0010ABCD0010 /* KarmaSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KarmaSheet.swift; sourceTree = "<group>"; };
+		ABCD0012ABCD0012ABCD0012 /* TipsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TipsView.swift; sourceTree = "<group>"; };
 		92277EC005CE1E6E1ECFE932 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		94D28C4EAD28DE3FF3195B5E /* EventsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsView.swift; sourceTree = "<group>"; };
 		96B868A0DAEFFF9B5213D256 /* Channel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Channel.swift; sourceTree = "<group>"; };
@@ -334,6 +336,7 @@
 				ABCD0010ABCD0010ABCD0010 /* KarmaSheet.swift */,
 				FC2A95741FA0580E9F08C53F /* ProfileEditorView.swift */,
 				4F05F4485F6FF70CE139A633 /* ProfileView.swift */,
+				ABCD0012ABCD0012ABCD0012 /* TipsView.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -595,6 +598,7 @@
 				ABCD000BABCD000BABCD000B /* CachedAsyncImage.swift in Sources */,
 				ABCD000DABCD000DABCD000D /* FollowListView.swift in Sources */,
 				ABCD000FABCD000FABCD000F /* KarmaSheet.swift in Sources */,
+				ABCD0011ABCD0011ABCD0011 /* TipsView.swift in Sources */,
 				CEEDF60BBB1DF987E0D34486 /* InteractionReads.swift in Sources */,
 				FB7318C2D0E67F6390B1D17A /* Karma.swift in Sources */,
 				56D6D7AB4E87DA43505CD611 /* Keychain.swift in Sources */,
