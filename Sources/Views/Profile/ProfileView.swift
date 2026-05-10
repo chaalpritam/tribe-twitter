@@ -337,9 +337,10 @@ struct ProfileView: View {
     }
 
     /// Three quick-access tiles between the header and the tab bar.
-    /// Each pushes a self-contained screen that the ⋯ menu used to
-    /// hide. Own-profile only — viewers don't get to see somebody
-    /// else's bookmarks or tip ledger.
+    /// Each is its own NavigationLink — pushing a separate screen,
+    /// not a paged TabView — so each shortcut lives at its own URL
+    /// in the nav stack. Layout mirrors WalletView's stat tiles.
+    /// Own-profile only.
     private var quickActions: some View {
         HStack(spacing: 10) {
             NavigationLink {
@@ -347,6 +348,7 @@ struct ProfileView: View {
             } label: {
                 quickActionTile(
                     title: "Activity",
+                    subtitle: "History",
                     symbol: "clock.arrow.circlepath",
                     tint: TribeColor.accentEmerald
                 )
@@ -358,6 +360,7 @@ struct ProfileView: View {
             } label: {
                 quickActionTile(
                     title: "Bookmarks",
+                    subtitle: "Saved",
                     symbol: "bookmark.fill",
                     tint: TribeColor.accentIndigo
                 )
@@ -369,6 +372,7 @@ struct ProfileView: View {
             } label: {
                 quickActionTile(
                     title: "Tips",
+                    subtitle: "Earnings",
                     symbol: "dollarsign.circle.fill",
                     tint: TribeColor.accentAmber
                 )
@@ -380,46 +384,44 @@ struct ProfileView: View {
         .padding(.bottom, 12)
     }
 
-    /// Quick-action tile: large circular icon over a label, with the
-    /// tile background carrying a faint wash of the accent color so
-    /// the row reads as three distinct shortcuts rather than a
-    /// generic widget grid. Mirrors the Settings.app icon-tile feel.
+    /// Stat-tile layout matching WalletView's Received / Sent / Net
+    /// row: small accent-tinted icon square top-left, title in
+    /// title3 bold, caption subtitle underneath, all left-aligned
+    /// inside the surface card.
     private func quickActionTile(
         title: String,
+        subtitle: String,
         symbol: String,
         tint: Color
     ) -> some View {
-        VStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: 6) {
             ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [tint.opacity(0.22), tint.opacity(0.12)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                Circle()
-                    .strokeBorder(tint.opacity(0.25), lineWidth: 0.5)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(tint.opacity(0.15))
                 Image(systemName: symbol)
-                    .font(.title3.weight(.semibold))
+                    .font(.caption.weight(.bold))
                     .foregroundStyle(tint)
             }
-            .frame(width: 44, height: 44)
+            .frame(width: 26, height: 26)
 
             Text(title)
-                .font(.caption.weight(.semibold))
+                .font(.title3.weight(.bold))
                 .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(subtitle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(tint.opacity(0.06))
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(TribeColor.surface)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(tint.opacity(0.15), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(TribeColor.cardStroke.opacity(0.4), lineWidth: 0.5)
         )
     }
 
