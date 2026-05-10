@@ -347,7 +347,7 @@ struct ProfileView: View {
             } label: {
                 quickActionTile(
                     title: "Activity",
-                    symbol: "list.bullet.clipboard",
+                    symbol: "clock.arrow.circlepath",
                     tint: TribeColor.accentEmerald
                 )
             }
@@ -376,37 +376,50 @@ struct ProfileView: View {
             .buttonStyle(.plain)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.top, 4)
+        .padding(.bottom, 12)
     }
 
+    /// Quick-action tile: large circular icon over a label, with the
+    /// tile background carrying a faint wash of the accent color so
+    /// the row reads as three distinct shortcuts rather than a
+    /// generic widget grid. Mirrors the Settings.app icon-tile feel.
     private func quickActionTile(
         title: String,
         symbol: String,
         tint: Color
     ) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 10) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(tint.opacity(0.15))
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [tint.opacity(0.22), tint.opacity(0.12)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                Circle()
+                    .strokeBorder(tint.opacity(0.25), lineWidth: 0.5)
                 Image(systemName: symbol)
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(tint)
             }
-            .frame(width: 40, height: 40)
+            .frame(width: 44, height: 44)
 
             Text(title)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.primary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(TribeColor.surface)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(tint.opacity(0.06))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(TribeColor.cardStroke.opacity(0.4), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(tint.opacity(0.15), lineWidth: 0.5)
         )
     }
 
