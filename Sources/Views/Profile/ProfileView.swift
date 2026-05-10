@@ -231,30 +231,78 @@ struct ProfileView: View {
                     .padding(.top, 12)
             }
 
-            VStack(alignment: .leading, spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(user?.displayName ?? "TID #\(tid)")
-                        .font(.title2.weight(.bold))
-                    Text(handleText(tid: tid))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+            VStack(alignment: .leading, spacing: 14) {
+                identityBlock(tid: tid)
 
                 if let bio = user?.profile?.bio, !bio.isEmpty {
                     Text(bio)
                         .font(.subheadline)
                         .foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
+                        .lineSpacing(2)
                 }
 
                 metaRow
 
                 statsRow
+                    .padding(.top, 2)
             }
             .padding(.horizontal, 16)
             .padding(.top, 12)
-            .padding(.bottom, 12)
+            .padding(.bottom, 16)
         }
+    }
+
+    /// Display name → @handle → full custody address (selectable +
+    /// copyable). Address takes its own row, monospaced, so users
+    /// can pick it out at a glance and long-press to copy without
+    /// having to bounce through Settings.
+    @ViewBuilder
+    private func identityBlock(tid: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(user?.displayName ?? "TID #\(tid)")
+                .font(.title2.weight(.bold))
+            Text(handleText(tid: tid))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            if let address = user?.custodyAddress, !address.isEmpty {
+                walletAddressRow(address)
+                    .padding(.top, 4)
+            }
+        }
+    }
+
+    @State private var addressCopied = false
+
+    private func walletAddressRow(_ address: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "wallet.pass")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Text(address)
+                .font(.footnote.monospaced())
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .textSelection(.enabled)
+            Button {
+                UIPasteboard.general.string = address
+                addressCopied = true
+                Task {
+                    try? await Task.sleep(nanoseconds: 1_500_000_000)
+                    await MainActor.run { addressCopied = false }
+                }
+            } label: {
+                Image(systemName: addressCopied ? "checkmark" : "doc.on.doc")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(addressCopied ? TribeColor.accentEmerald : TribeColor.brand)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(addressCopied ? "Copied" : "Copy address")
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Capsule().fill(TribeColor.chipBackground))
     }
 
     @ViewBuilder
@@ -314,27 +362,36 @@ struct ProfileView: View {
     private var metaRow: some View {
         let location = user?.profile?.location
         let urlString = user?.profile?.url
-        let address = user?.custodyAddress
 
-        if (location?.isEmpty == false) || (urlString?.isEmpty == false) || (address?.isEmpty == false) {
-            HStack(spacing: 14) {
+        if (location?.isEmpty == false) || (urlString?.isEmpty == false) {
+            VStack(alignment: .leading, spacing: 6) {
                 if let loc = location, !loc.isEmpty {
-                    Label(loc, systemImage: "mappin.and.ellipse")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 6) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(TribeColor.accentTeal)
+                            .frame(width: 16)
+                        Text(loc)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 if let urlString, !urlString.isEmpty, let url = URL(string: urlString) {
                     Link(destination: url) {
-                        Label(displayHost(urlString), systemImage: "link")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(TribeColor.brand)
+                        HStack(spacing: 6) {
+                            Image(systemName: "link")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(TribeColor.brand)
+                                .frame(width: 16)
+                            Text(displayHost(urlString))
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(TribeColor.brand)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
                     }
-                }
-                if let address, !address.isEmpty {
-                    Label(short(address), systemImage: "wallet.pass")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .monospaced()
                 }
             }
         }
