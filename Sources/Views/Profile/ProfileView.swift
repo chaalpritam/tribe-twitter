@@ -406,7 +406,7 @@ struct ProfileView: View {
         symbol: String,
         tint: Color
     ) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 4) {
             ZStack {
                 Circle()
                     .fill(
@@ -417,23 +417,23 @@ struct ProfileView: View {
                         )
                     )
                 Image(systemName: symbol)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(.white)
             }
-            .frame(width: 32, height: 32)
+            .frame(width: 26, height: 26)
 
             Text(title)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.primary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(Color(.systemBackground))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .strokeBorder(TribeColor.cardStroke.opacity(0.3), lineWidth: 0.5)
         )
         .contentShape(Rectangle())
