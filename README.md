@@ -133,21 +133,18 @@ Sources/
 
 When you add new Swift files, you don't need to do anything: Xcode picks them up via the source group's directory reference. When you change build settings or add a new target, edit `Project.yml` and run `xcodegen generate`. xcodegen produces deterministic GUIDs from the Project.yml input, so the resulting pbxproj diff stays tight and reviewable.
 
-## Adding it to TribeEco as a submodule
+## Where this fits
 
-The repo is initialized locally. To wire it into `tribeeco`:
+`tribe-ios` is part of the [TribeEco](https://github.com/chaalpritam/TribeEco) monorepo as a submodule. Clone the monorepo with `--recurse-submodules` to get everything.
 
-```sh
-# 1. Create the GitHub repo (e.g. chaalpritam/tribe-ios), then:
-cd tribe-ios
-git remote add origin git@github.com:chaalpritam/tribe-ios.git
-git push -u origin master
-
-# 2. From the TribeEco root, add as a submodule:
-cd ..
-git submodule add https://github.com/chaalpritam/tribe-ios.git tribe-ios
-git commit -m "chore: add tribe-ios submodule"
-```
+| Repo | Role |
+|---|---|
+| [tribe-protocol](../tribe-protocol) | Solana programs — identity, app keys, social graph, registries |
+| [tribe-sdk](../tribe-sdk) | TypeScript SDK shared by web clients |
+| [tribe-hub](../tribe-hub) | Decentralized hub — message storage, indexing, gossip |
+| [tribe-er-server](../tribe-er-server) | Ephemeral Rollup sequencer — instant follows |
+| [tribe-app](../tribe-app) | Next.js reference client |
+| [tribeapp.wtf](../tribeapp.wtf) | Consumer-facing web app + landing page |
 
 ## What's next
 
