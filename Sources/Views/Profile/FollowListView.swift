@@ -5,10 +5,10 @@ import SwiftUI
 /// style row with avatar, name, @handle, bio, and a Follow capsule
 /// — so the tap path is consistent across the app.
 ///
-/// The hub surfaces these as `/v1/users/:tid/followers` and
-/// `/v1/users/:tid/following`. If the deployed hub doesn't have
-/// those wrapped yet, the view degrades gracefully to an explainer
-/// instead of a noisy error.
+/// The hub surfaces these as `/v1/followers/:tid` and
+/// `/v1/following/:tid`. If the deployed hub doesn't have those
+/// wrapped yet, the view degrades gracefully to an explainer via
+/// the ER-link fallback below instead of a noisy error.
 struct FollowListView: View {
     enum Mode: String, Hashable, Identifiable {
         case followers, following

@@ -61,21 +61,21 @@ public extension HubClient {
         try await get("v1/user/\(tid)")
     }
 
-    /// `/v1/users/:tid/followers`. Returns the users following the
-    /// given TID. The hub surfaces this as a {users:[…]} payload —
-    /// same shape as fetchUsers — so we reuse UserListResponse.
+    /// `/v1/followers/:tid`. Returns users following the given TID
+    /// as canonical /v1/user-shaped rows under `users`, so we reuse
+    /// UserListResponse.
     func fetchFollowers(_ tid: String, limit: Int = 100) async throws -> [User] {
         let res: UserListResponse = try await get(
-            "v1/users/\(tid)/followers",
+            "v1/followers/\(tid)",
             query: ["limit": String(limit)]
         )
         return res.users
     }
 
-    /// `/v1/users/:tid/following`. Returns the users this TID follows.
+    /// `/v1/following/:tid`. Same shape as fetchFollowers.
     func fetchFollowing(_ tid: String, limit: Int = 100) async throws -> [User] {
         let res: UserListResponse = try await get(
-            "v1/users/\(tid)/following",
+            "v1/following/\(tid)",
             query: ["limit": String(limit)]
         )
         return res.users
