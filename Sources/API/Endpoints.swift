@@ -61,6 +61,16 @@ public extension HubClient {
         try await get("v1/user/\(tid)")
     }
 
+    /// `/v1/tid-by-wallet/:address`. Reverse lookup used by seed-
+    /// phrase sign-in: paste a phrase → derive the Solana wallet →
+    /// look up the TID that owns it. Returns the first user found
+    /// (typically there's one), or nil when no TID is registered to
+    /// the wallet on this hub.
+    func fetchTidByWallet(_ address: String) async throws -> User? {
+        let res: UserListResponse = try await get("v1/tid-by-wallet/\(address)")
+        return res.users.first
+    }
+
     /// `/v1/followers/:tid`. Returns users following the given TID
     /// as canonical /v1/user-shaped rows under `users`, so we reuse
     /// UserListResponse.

@@ -24,6 +24,8 @@ struct OnboardingFlow: View {
                         PairFromDesktopView()
                     case .restoreBackup:
                         RestoreBackupView()
+                    case .seedPhrase:
+                        SeedPhraseLoginView()
                     }
                 }
         }
@@ -36,6 +38,7 @@ struct OnboardingFlow: View {
         case importIdentity
         case pairFromDesktop
         case restoreBackup
+        case seedPhrase
     }
 }
 
@@ -199,6 +202,14 @@ struct IdentityChoiceView: View {
                     subtitle: "Open a .tribe / .tribe.enc file from tribe-app"
                 ) {
                     path.append(OnboardingFlow.Step.restoreBackup)
+                }
+                IdentityChoiceCard(
+                    icon: "list.bullet.rectangle",
+                    iconTint: TribeColor.accentTeal,
+                    title: "Sign in with seed phrase",
+                    subtitle: "Recover your TID from a 12 / 24-word BIP39 phrase"
+                ) {
+                    path.append(OnboardingFlow.Step.seedPhrase)
                 }
                 IdentityChoiceCard(
                     icon: "square.and.arrow.down",
