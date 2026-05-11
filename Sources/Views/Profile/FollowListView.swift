@@ -25,6 +25,7 @@ struct FollowListView: View {
     @State private var loading = true
     @State private var error: String?
     @State private var selectedTID: String?
+    @State private var primaryFetchError: Error?
 
     private var title: String {
         switch mode {
@@ -87,6 +88,7 @@ struct FollowListView: View {
     private func refresh() async {
         loading = users.isEmpty
         error = nil
+        primaryFetchError = nil
         do {
             let fetched: [User]
             switch mode {
@@ -97,15 +99,17 @@ struct FollowListView: View {
             }
             users = fetched
             seedAvatarCache(fetched)
-        } catch HubError.statusCode(404, _) {
-            // Hub doesn't expose the list endpoint — derive the list
-            // from the ER server's per-pair link status. Costs one
-            // /v1/users + N /v1/link round trips, which is fine for
-            // small graphs. Catches everyone the hub knows about who
-            // currently has an active link to / from this TID.
-            await fallbackViaERLinks()
         } catch {
-            self.error = error.localizedDescription
+            // Hub didn't return a usable list — missing endpoint
+            // (404), older shape that fails to decode, or a 5xx /
+            // transport error. Derive the list from the ER server's
+            // per-pair link status: one /v1/users + N /v1/link round
+            // trips, fine for small graphs. Catches everyone the hub
+            // knows about who currently has an active link to / from
+            // this TID. If that path also fails, the fallback sets
+            // self.error so the user sees a real reason.
+            primaryFetchError = error
+            await fallbackViaERLinks()
         }
         loading = false
     }
@@ -116,10 +120,20 @@ struct FollowListView: View {
         do {
             candidates = try await app.api.fetchUsers(limit: 200)
         } catch {
-            self.error = error.localizedDescription
+            // Both the dedicated endpoint and /v1/users failed —
+            // prefer the original error since that's what the user
+            // was actually trying to load.
+            self.error = (primaryFetchError ?? error).localizedDescription
             return
         }
         guard !candidates.isEmpty else {
+            // No one to probe. If the primary call had failed
+            // outright, that's the more useful thing to surface
+            // rather than letting the empty state pretend everything
+            // is fine.
+            if let primary = primaryFetchError {
+                self.error = primary.localizedDescription
+            }
             users = []
             return
         }
