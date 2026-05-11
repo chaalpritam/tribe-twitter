@@ -14,6 +14,7 @@ struct ProfileEditorView: View {
     @State private var displayName: String = ""
     @State private var bio: String = ""
     @State private var pfpURL: String = ""
+    @State private var coverURL: String = ""
     @State private var location: String = ""
     @State private var url: String = ""
     @State private var loading = true
@@ -28,13 +29,26 @@ struct ProfileEditorView: View {
             Section {
                 LabeledField(title: "Display name", text: $displayName, placeholder: "Anita")
                 LabeledField(title: "Bio", text: $bio, placeholder: "Building tribe.", multiline: true)
-                LabeledField(title: "Profile picture URL", text: $pfpURL, placeholder: "https://…")
-                LabeledField(title: "Location", text: $location, placeholder: "Bangalore")
-                LabeledField(title: "Link", text: $url, placeholder: "https://example.com")
             } header: {
                 Text("Public profile")
             } footer: {
                 Text("Each field is published as its own signed envelope. Empty fields are skipped — if you've never set a field, leaving it blank doesn't create a row.")
+            }
+
+            Section {
+                LabeledField(title: "Profile picture URL", text: $pfpURL, placeholder: "https://…")
+                LabeledField(title: "Cover photo URL", text: $coverURL, placeholder: "https://…")
+            } header: {
+                Text("Photos")
+            } footer: {
+                Text("Paste any publicly reachable image URL. The hub serves it through its media proxy.")
+            }
+
+            Section {
+                LabeledField(title: "Location", text: $location, placeholder: "Bengaluru")
+                LabeledField(title: "Link", text: $url, placeholder: "https://example.com")
+            } header: {
+                Text("About")
             }
 
             if let error {
@@ -79,6 +93,7 @@ struct ProfileEditorView: View {
             displayName = user.profile?.displayName ?? ""
             bio = user.profile?.bio ?? ""
             pfpURL = user.profile?.pfpUrl ?? ""
+            coverURL = user.profile?.coverUrl ?? ""
             location = user.profile?.location ?? ""
             url = user.profile?.url ?? ""
         }
@@ -96,6 +111,7 @@ struct ProfileEditorView: View {
             ("displayName", displayName.trimmingCharacters(in: .whitespacesAndNewlines)),
             ("bio", bio.trimmingCharacters(in: .whitespacesAndNewlines)),
             ("pfpUrl", pfpURL.trimmingCharacters(in: .whitespacesAndNewlines)),
+            ("coverUrl", coverURL.trimmingCharacters(in: .whitespacesAndNewlines)),
             ("location", location.trimmingCharacters(in: .whitespacesAndNewlines)),
             ("url", url.trimmingCharacters(in: .whitespacesAndNewlines)),
         ].filter { !$0.1.isEmpty }

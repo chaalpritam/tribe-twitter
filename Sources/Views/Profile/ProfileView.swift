@@ -191,12 +191,39 @@ struct ProfileView: View {
     private func profileHeader(tid: String) -> some View {
         let seed = user?.username ?? tid
         return VStack(alignment: .leading, spacing: 0) {
-            // Banner — gradient seeded by the user so each profile
-            // has a stable, distinct color until we wire up uploads.
-            ZStack(alignment: .bottomLeading) {
-                TribeColor.avatarGradient(seed: "banner-\(seed)")
+            // Banner — shows coverUrl when set, falls back to a
+            // seeded gradient. Own-profile gets a camera overlay that
+            // opens the editor directly.
+            ZStack(alignment: .bottomTrailing) {
+                if let raw = user?.profile?.coverUrl,
+                   !raw.isEmpty,
+                   let coverURL = app.api.resolveMediaURL(raw) {
+                    CachedAsyncImage(url: coverURL) { img in
+                        img.resizable().scaledToFill()
+                    } placeholder: {
+                        TribeColor.avatarGradient(seed: "banner-\(seed)")
+                    }
                     .frame(height: 140)
                     .clipped()
+                } else {
+                    TribeColor.avatarGradient(seed: "banner-\(seed)")
+                        .frame(height: 140)
+                }
+
+                if isOwnProfile {
+                    Button {
+                        showingProfileEditor = true
+                    } label: {
+                        Image(systemName: "camera.fill")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .padding(8)
+                            .background(Circle().fill(Color.black.opacity(0.5)))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(10)
+                    .accessibilityLabel("Edit cover photo")
+                }
             }
             .frame(maxWidth: .infinity)
 
