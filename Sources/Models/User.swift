@@ -35,7 +35,10 @@ public struct User: Decodable, Identifiable, Hashable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         self.tid = try HubDecode.bigInt(c, forKey: .tid)
-        self.custodyAddress = try c.decode(String.self, forKey: .custodyAddress)
+        // Some hub list endpoints (followers / following) return
+        // lightweight user rows without custody_address. Treat it as
+        // optional rather than failing the whole decode.
+        self.custodyAddress = (try? c.decode(String.self, forKey: .custodyAddress)) ?? ""
         self.username = try c.decodeIfPresent(String.self, forKey: .username)
         self.registeredAt = try HubDecode.dateIfPresent(c, forKey: .registeredAt)
         self.followingCount = HubDecode.intCount(c, forKey: .followingCount)
@@ -55,4 +58,26 @@ public struct UserProfile: Decodable, Hashable {
 public struct UserListResponse: Decodable {
     public let users: [User]
     public let total: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case users, followers, following, total
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        // The hub returns `{ users: [...] }` for /v1/users and
+        // /v1/tid-by-wallet, but the follower / following endpoints
+        // wrap the rows under `followers` / `following`. Accept any
+        // of the three so one wrapper type covers every list shape.
+        if let u = try? c.decode([User].self, forKey: .users) {
+            self.users = u
+        } else if let u = try? c.decode([User].self, forKey: .followers) {
+            self.users = u
+        } else if let u = try? c.decode([User].self, forKey: .following) {
+            self.users = u
+        } else {
+            self.users = []
+        }
+        self.total = try c.decodeIfPresent(Int.self, forKey: .total)
+    }
 }
