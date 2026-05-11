@@ -14,6 +14,11 @@ enum KeychainStore {
         /// Survives sign-out so a returning user can still read past
         /// messages encrypted to their public DM key.
         case dmKeySeed = "tribe.dmKey.seed"
+        /// Opaque JSON of the Solana browser wallet (mnemonic + Solana
+        /// secret) restored from a backup payload. iOS doesn't sign
+        /// Solana transactions today, but we round-trip the field so
+        /// `Export` produces a file that still works in tribe-app.
+        case browserWallet = "tribe.browserWallet"
     }
 
     enum Error: Swift.Error {

@@ -29,6 +29,17 @@ struct DMKey {
         return DMKey(privateKey: Data(sk.rawRepresentation), publicKey: Data(sk.publicKey.rawRepresentation))
     }
 
+    /// Load the stored DM key if one exists; return nil otherwise.
+    /// Unlike `loadOrCreate`, this does not allocate a fresh keypair
+    /// — used by the backup exporter so a user who has never opened
+    /// DMs doesn't end up creating a key just to bundle it.
+    static func loadIfExists() throws -> DMKey? {
+        guard let raw = try KeychainStore.load(.dmKeySeed), raw.count == 32 else {
+            return nil
+        }
+        return try restore(seed: raw)
+    }
+
     /// Load the stored DM key, or generate + persist a new one if
     /// none exists. The seed lives under the same Keychain access
     /// flag as the app key.
