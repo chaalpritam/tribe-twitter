@@ -9,6 +9,7 @@ struct SettingsView: View {
     @State private var showingSignOut = false
     @State private var showingAppKey = false
     @State private var showingProfileEditor = false
+    @State private var showingExportBackup = false
 
     var body: some View {
         Form {
@@ -27,6 +28,8 @@ struct SettingsView: View {
                     Button("Edit profile") { showingProfileEditor = true }
                         .disabled(app.appKey == nil)
                     Button("View app key") { showingAppKey = true }
+                    Button("Export account backup") { showingExportBackup = true }
+                        .disabled(app.appKey == nil)
                 } else {
                     Text("Not signed in")
                         .foregroundStyle(.secondary)
@@ -112,6 +115,10 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingAppKey) {
             AppKeySheet()
+                .environmentObject(app)
+        }
+        .sheet(isPresented: $showingExportBackup) {
+            ExportBackupSheet()
                 .environmentObject(app)
         }
         .sheet(isPresented: $showingProfileEditor) {

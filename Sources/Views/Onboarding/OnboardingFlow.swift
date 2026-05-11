@@ -22,6 +22,8 @@ struct OnboardingFlow: View {
                         ImportIdentityView()
                     case .pairFromDesktop:
                         PairFromDesktopView()
+                    case .restoreBackup:
+                        RestoreBackupView()
                     }
                 }
         }
@@ -33,6 +35,7 @@ struct OnboardingFlow: View {
         case createIdentity
         case importIdentity
         case pairFromDesktop
+        case restoreBackup
     }
 }
 
@@ -190,10 +193,18 @@ struct IdentityChoiceView: View {
                     path.append(OnboardingFlow.Step.pairFromDesktop)
                 }
                 IdentityChoiceCard(
+                    icon: "doc.badge.arrow.up",
+                    iconTint: TribeColor.accentTeal,
+                    title: "Restore from backup",
+                    subtitle: "Open a .tribe / .tribe.enc file from tribe-app"
+                ) {
+                    path.append(OnboardingFlow.Step.restoreBackup)
+                }
+                IdentityChoiceCard(
                     icon: "square.and.arrow.down",
                     iconTint: TribeColor.accentTeal,
-                    title: "Import existing identity",
-                    subtitle: "Paste your TID + app-key from tribe-app"
+                    title: "Paste TID + app key",
+                    subtitle: "Manual import from tribe-app's local storage"
                 ) {
                     path.append(OnboardingFlow.Step.importIdentity)
                 }
