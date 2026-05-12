@@ -4,6 +4,46 @@ Native SwiftUI iOS client for the [TribeEco](https://github.com/chaalpritam/trib
 
 The visual language is borrowed from `tribeapp.wtf`: a black rounded-pill bottom nav with a floating "+" Create sheet, white card surfaces with a 28-pt corner radius, monochrome primary actions, and quiet semantic accents (indigo for polls, amber for warnings, emerald for success, rose for unread badges).
 
+## Screenshots
+
+<table>
+  <tr>
+    <td><img src="cover/IMG_1760.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1761.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1762.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1763.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1764.PNG" width="180"/></td>
+  </tr>
+  <tr>
+    <td><img src="cover/IMG_1765.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1766.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1767.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1768.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1769.PNG" width="180"/></td>
+  </tr>
+  <tr>
+    <td><img src="cover/IMG_1770.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1771.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1772.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1773.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1774.PNG" width="180"/></td>
+  </tr>
+  <tr>
+    <td><img src="cover/IMG_1775.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1776.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1777.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1778.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1779.PNG" width="180"/></td>
+  </tr>
+  <tr>
+    <td><img src="cover/IMG_1780.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1781.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1783.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1784.PNG" width="180"/></td>
+    <td><img src="cover/IMG_1785.PNG" width="180"/></td>
+  </tr>
+</table>
+
 ## Status
 
 iPhone-only, portrait-only mobile app. iPad and landscape layouts are intentionally not supported — the bottom-tab nav and single-column card stacks are designed for one-hand portrait use.
