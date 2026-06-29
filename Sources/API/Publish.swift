@@ -72,10 +72,10 @@ extension HubClient {
     // MARK: - Convenience builders
 
     /// Publish a tweet. Optional reply parent hash and channel id
-    /// match what the existing tribe-app composer sends. The hub
+    /// match what the existing tribe-twitter-app composer sends. The hub
     /// requires every TWEET_ADD to carry a channel_id; when the
     /// caller doesn't have one, fall back to the reserved "general"
-    /// channel, which is what tribe-app's composer does.
+    /// channel, which is what tribe-twitter-app's composer does.
     @discardableResult
     func publishTweet(
         text: String,
@@ -116,7 +116,7 @@ extension HubClient {
     }
 
     /// Subtypes of a REACTION envelope. Matches the web client's
-    /// `ReactionSubtype` in tribe-app/src/lib/messages.ts and what the
+    /// `ReactionSubtype` in tribe-twitter-app/src/lib/messages.ts and what the
     /// hub stores in `messages.text` for type=3 / type=4 rows.
     ///
     /// Note: REACTION_REMOVE on the hub clears EVERY reaction the user

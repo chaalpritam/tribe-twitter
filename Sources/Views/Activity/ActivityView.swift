@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Account transparency log mirroring tribe-app's /activity page.
+/// Account transparency log mirroring tribe-twitter-app's /activity page.
 /// Top: three stat tiles (total, onchain, signed-offchain) + a
 /// segmented filter. Body: rows grouped by date bucket (Today /
 /// Yesterday / This week / This month / Older), each leading with

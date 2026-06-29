@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Read-only follow indicator. Shows the live follow status pulled
 /// from the ER server and, on tap, opens an explanation sheet that
-/// directs the user to follow / unfollow from tribe-app — the iOS app
+/// directs the user to follow / unfollow from tribe-twitter-app — the iOS app
 /// can't sign with the Solana custody key required by the ER follow
 /// endpoint.
 ///
@@ -89,12 +89,12 @@ private struct FollowExplainerSheet: View {
                     .foregroundStyle(.tint)
                     .padding(.top, 24)
 
-                Text(following ? "Unfollow on tribe-app" : "Follow on tribe-app")
+                Text(following ? "Unfollow on tribe-twitter-app" : "Follow on tribe-twitter-app")
                     .font(.title3.bold())
 
                 Text(following
-                     ? "Unfollows must be signed by your Solana custody key. Open tribe-app on web, find this profile, and tap Unfollow there. The change shows up here as soon as the ER sequencer confirms."
-                     : "Follows are written to the ER sequencer with a signature from your Solana custody key. The iOS app doesn't hold that key today, so open tribe-app on web to follow. The change shows up here in ~50 ms once submitted."
+                     ? "Unfollows must be signed by your Solana custody key. Open tribe-twitter-app on web, find this profile, and tap Unfollow there. The change shows up here as soon as the ER sequencer confirms."
+                     : "Follows are written to the ER sequencer with a signature from your Solana custody key. The iOS app doesn't hold that key today, so open tribe-twitter-app on web to follow. The change shows up here in ~50 ms once submitted."
                 )
                 .font(.subheadline)
                 .foregroundStyle(.secondary)

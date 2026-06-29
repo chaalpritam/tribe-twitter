@@ -2,7 +2,7 @@ import Foundation
 
 /// Hub validates channel / poll / event / task / crowdfund IDs against
 /// `^[a-z0-9-]{1,64}$`. We slug the user's free-form title client-side
-/// the same way tribe-app does in `src/lib/messages.ts`, then suffix
+/// the same way tribe-twitter-app does in `src/lib/messages.ts`, then suffix
 /// 6 random hex chars so the same title can be reused without
 /// colliding with an existing row.
 enum Slug {

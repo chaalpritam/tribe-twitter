@@ -2,9 +2,9 @@ import SwiftUI
 import UniformTypeIdentifiers
 import TribeCore
 
-/// Onboarding step that restores an identity from a tribe-app
+/// Onboarding step that restores an identity from a tribe-twitter-app
 /// `.tribe` / `.tribe.enc` backup. Same JSON / encryption format as
-/// `tribe-app/src/lib/backup.ts`, so files round-trip between web and
+/// `tribe-twitter-app/src/lib/backup.ts`, so files round-trip between web and
 /// iOS.
 struct RestoreBackupView: View {
     @EnvironmentObject private var app: AppState
@@ -31,7 +31,7 @@ struct RestoreBackupView: View {
             } header: {
                 Text("Backup file")
             } footer: {
-                Text("Pick the `.tribe` or `.tribe.enc` file you exported from tribe-app (Settings → Export account) or from this app.")
+                Text("Pick the `.tribe` or `.tribe.enc` file you exported from tribe-twitter-app (Settings → Export account) or from this app.")
             }
 
             if let pickedFileName, fileText != nil {
@@ -83,7 +83,7 @@ struct RestoreBackupView: View {
         .navigationBarTitleDisplayMode(.inline)
         .fileImporter(
             isPresented: $pickerShown,
-            // tribe-app writes both .tribe (JSON) and .tribe.enc
+            // tribe-twitter-app writes both .tribe (JSON) and .tribe.enc
             // (base64). Neither has a registered UTType, so accept
             // anything and validate after read.
             allowedContentTypes: [.data]

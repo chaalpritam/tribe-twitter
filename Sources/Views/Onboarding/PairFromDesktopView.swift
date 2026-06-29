@@ -1,7 +1,7 @@
 import SwiftUI
 import TribeCore
 
-/// Camera scanner that consumes a tribe-app pairing QR. On a successful
+/// Camera scanner that consumes a tribe-twitter-app pairing QR. On a successful
 /// scan, swaps the hub URL and adopts the desktop's TID + app key —
 /// AppState's phase recompute then routes to the main TabView.
 struct PairFromDesktopView: View {
@@ -40,7 +40,7 @@ struct PairFromDesktopView: View {
                     .font(.footnote)
                     .foregroundStyle(.white)
             } else {
-                Text("In tribe-app: open Settings → Log in on mobile, then point your camera at the QR.")
+                Text("In tribe-twitter-app: open Settings → Log in on mobile, then point your camera at the QR.")
                     .font(.footnote)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.white)

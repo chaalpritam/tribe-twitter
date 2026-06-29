@@ -24,7 +24,7 @@ struct ChannelsView: View {
                 EmptyStateView(
                     symbol: "number",
                     title: "No channels yet",
-                    message: "Channels are topic-based feeds. Create one from tribe-app or post a tweet with a channel."
+                    message: "Channels are topic-based feeds. Create one from tribe-twitter-app or post a tweet with a channel."
                 )
             } else {
                 List(channels) { channel in

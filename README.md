@@ -74,14 +74,14 @@ iPhone-only, portrait-only mobile app. iPad and landscape layouts are intentiona
 
 Every write builds a signed envelope locally — BLAKE3 hashing (pure-Swift port of the reference implementation, with self-test vectors that run at launch) and ed25519 signing via Apple CryptoKit's `Curve25519`. The seed lives in the iOS Keychain (`kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`); UserDefaults only stores the hub URL, the ER server URL, and the public TID number.
 
-DMs use a separate x25519 keypair (also in the Keychain) plus a pure-Swift port of `nacl.box` (Salsa20 core, XSalsa20 stream, Poly1305 MAC) so ciphertext written here is byte-compatible with what tweetnacl produces in tribe-app. `NaClBox.selfTest()` round-trips at launch.
+DMs use a separate x25519 keypair (also in the Keychain) plus a pure-Swift port of `nacl.box` (Salsa20 core, XSalsa20 stream, Poly1305 MAC) so ciphertext written here is byte-compatible with what tweetnacl produces in tribe-twitter-app. `NaClBox.selfTest()` round-trips at launch.
 
 **Still stubbed:**
 
 | Capability | Why |
 |---|---|
-| Register a fresh TID on Solana | The on-chain `tid-registry` program needs a Solana mobile / WalletConnect provider on iOS. Workaround today: register on tribe-app, then import the TID + app-key via the iOS onboarding flow. |
-| Follow / unfollow writes | The ER sequencer's `/v1/follow` requires a signature from the user's Solana custody key, which the iOS app doesn't hold. Read-only follow state still surfaces from the ER server (Follow / Following / Pending labels). The button on tap explains the limitation and points the user at tribe-app on web. |
+| Register a fresh TID on Solana | The on-chain `tid-registry` program needs a Solana mobile / WalletConnect provider on iOS. Workaround today: register on tribe-twitter-app, then import the TID + app-key via the iOS onboarding flow. |
+| Follow / unfollow writes | The ER sequencer's `/v1/follow` requires a signature from the user's Solana custody key, which the iOS app doesn't hold. Read-only follow state still surfaces from the ER server (Follow / Following / Pending labels). The button on tap explains the limitation and points the user at tribe-twitter-app on web. |
 | On-chain tip settlement | `tip-registry` program calls need the wallet-adapter integration. The off-chain TIP_ADD envelope works and shows up in notifications + karma; no `tx_signature` yet. |
 | On-chain crowdfund settlement | Same. |
 
@@ -131,7 +131,7 @@ Sources/
 
   API/
     HubClient.swift                  URLSession + JSONDecoder wrapper
-    Endpoints.swift                  read paths matching tribe-app/src/lib/api.ts
+    Endpoints.swift                  read paths matching tribe-twitter-app/src/lib/api.ts
     Publish.swift                    every signed-envelope write path
     InteractionReads.swift           per-user "have I liked / bookmarked X" helpers
     ERClient.swift                   ephemeral-rollup follow status reads
@@ -183,18 +183,18 @@ When you add new Swift files, you don't need to do anything: Xcode picks them up
 | [tribe-sdk](../tribe-sdk) | TypeScript SDK shared by web clients |
 | [tribe-hub](../tribe-hub) | Decentralized hub — message storage, indexing, gossip |
 | [tribe-er-server](../tribe-er-server) | Ephemeral Rollup sequencer — instant follows |
-| [tribe-app](../tribe-app) | Next.js reference client |
+| [tribe-twitter-app](../tribe-twitter-app) | Next.js reference client |
 | [tribeapp.wtf](../tribeapp.wtf) | Consumer-facing web app + landing page |
 
 ## What's next
 
-- Wrap the Solana on-chain helpers (TID register, follow/unfollow, on-chain tip) using a Solana mobile / WalletConnect provider. Until that lands, on-chain settlement is the only piece left for full feature parity with tribe-app.
+- Wrap the Solana on-chain helpers (TID register, follow/unfollow, on-chain tip) using a Solana mobile / WalletConnect provider. Until that lands, on-chain settlement is the only piece left for full feature parity with tribe-twitter-app.
 - Group DMs (DM_GROUP_CREATE / DM_GROUP_SEND). The 1:1 path is wired up; group fan-out encryption follows the same pattern (encrypt the same plaintext once per recipient with their x25519 pubkey).
 - Native iOS share sheet → quick-compose tweet from any other app.
 
 ## Crypto
 
-The signed-envelope path matches `tribe-app/src/lib/messages.ts`:
+The signed-envelope path matches `tribe-twitter-app/src/lib/messages.ts`:
 
 ```
 data    = { type, tid, timestamp, network: 2, body }
@@ -217,9 +217,9 @@ signer  = base64( ed25519_public_key )            // 32 bytes
 | [tribe-sdk](../tribe-sdk) | TypeScript SDK — DirectSolana and EphemeralRollup providers; clients for identity, tweets, DMs, profiles, channels, bookmarks, polls, events, tasks, crowdfunds, tips, search |
 | [tribe-hub](../tribe-hub) | Decentralized hub — signed-message storage + Solana indexer + gossip peer sync; REST + WebSocket APIs |
 | [tribe-er-server](../tribe-er-server) | Ephemeral Rollup sequencer — instant follows, batched L1 settlement every 10s |
-| [tribe-app](../tribe-app) | Next.js frontend — protocol-first reference client with multi-node failover |
+| [tribe-twitter-app](../tribe-twitter-app) | Next.js frontend — protocol-first reference client with multi-node failover |
 | [tribeapp.wtf](../tribeapp.wtf) | Consumer-facing web app + landing page at tribeapp.wtf — hyperlocal social built entirely on the protocol |
 | [tribe-twitter](../tribe-twitter) | Native SwiftUI iOS client (Twitter-shaped) — full read/write against hub + ER, NaCl-box DMs, BLAKE3 + ed25519 signing via Apple CryptoKit |
 | [tribe-insta](../tribe-insta) | Native SwiftUI iOS client (Instagram-shaped) — photo grid, stories, reels; same hub + envelope format as tribe-twitter. Scaffolding stage — see `tribe-insta/PLAN.md` |
 | [tribe-core-swift](../tribe-core-swift) | Shared Swift package consumed by tribe-twitter + tribe-insta — crypto (BLAKE3, NaCl box, ed25519 signing, BIP39, SolanaHD), backup file format, envelope signer. See `tribe-core-swift/MIGRATION.md` |
-| [homebrew-tap](../homebrew-tap) | Homebrew formulas: `brew install tribe` (hub + ER) and `brew install tribe-app` (demo UI) |
+| [homebrew-tap](../homebrew-tap) | Homebrew formulas: `brew install tribe` (hub + ER) and `brew install tribe-twitter-app` (demo UI) |

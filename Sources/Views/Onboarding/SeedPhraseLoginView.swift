@@ -7,7 +7,7 @@ import TribeCore
 ///   2. Show the resolved TID + username and ask for the app-key seed
 ///      separately (the protocol's app-key is *not* derived from the
 ///      same phrase — it's an on-chain-registered ed25519 keypair
-///      that lives in tribe-app's localStorage).
+///      that lives in tribe-twitter-app's localStorage).
 ///
 /// The "import a backup file" path is strictly better when the user
 /// has one, since it bundles app-key + dm-key + wallet in a single
@@ -70,7 +70,7 @@ struct SeedPhraseLoginView: View {
                 } header: {
                     Text("Found this TID on the hub")
                 } footer: {
-                    Text("The phrase recovers the wallet that registered this TID. To sign protocol envelopes, paste the app-key seed below — you can find it in tribe-app under Settings → View app key, or restore a full backup file from the previous screen instead.")
+                    Text("The phrase recovers the wallet that registered this TID. To sign protocol envelopes, paste the app-key seed below — you can find it in tribe-twitter-app under Settings → View app key, or restore a full backup file from the previous screen instead.")
                 }
 
                 Section {
@@ -117,7 +117,7 @@ struct SeedPhraseLoginView: View {
         do {
             let (address, _) = try SolanaHD.keypair(fromMnemonic: phraseInput)
             guard let user = try await app.api.fetchTidByWallet(address) else {
-                error = "No TID is registered to this wallet on \(app.hubBaseURL.host ?? "this hub"). Make sure you're pointing at the right hub, or finish onboarding in tribe-app first."
+                error = "No TID is registered to this wallet on \(app.hubBaseURL.host ?? "this hub"). Make sure you're pointing at the right hub, or finish onboarding in tribe-twitter-app first."
                 return
             }
             resolved = ResolvedWallet(address: address, user: user)

@@ -24,7 +24,7 @@ struct PollsView: View {
                 EmptyStateView(
                     symbol: "chart.bar",
                     title: "No polls yet",
-                    message: "Polls give the network a quick vote. Create one from tribe-app."
+                    message: "Polls give the network a quick vote. Create one from tribe-twitter-app."
                 )
             } else {
                 List(polls) { poll in

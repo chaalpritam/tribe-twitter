@@ -1,8 +1,8 @@
 import Foundation
 
-/// Read-only mirror of every hub endpoint tribe-app's web client uses.
+/// Read-only mirror of every hub endpoint tribe-twitter-app's web client uses.
 /// Names are deliberately the same as the JS helpers in
-/// `tribe-app/src/lib/api.ts` so the two clients can be eyeballed
+/// `tribe-twitter-app/src/lib/api.ts` so the two clients can be eyeballed
 /// side-by-side.
 public extension HubClient {
     // MARK: - Feeds

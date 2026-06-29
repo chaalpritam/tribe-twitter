@@ -7,7 +7,7 @@ import Foundation
 ///
 /// Writes (POST /v1/follow, /v1/unfollow) require a signature from the
 /// user's Solana custody key, which the iOS app doesn't hold today —
-/// the Follow button surfaces a "use tribe-app" notice rather than
+/// the Follow button surfaces a "use tribe-twitter-app" notice rather than
 /// pretending to publish.
 public final class ERClient {
     public let baseURL: URL

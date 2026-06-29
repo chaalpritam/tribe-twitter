@@ -1,7 +1,7 @@
 import Foundation
 
 /// User-account transparency log row from `/v1/users/:tid/activity`.
-/// Mirrors the web ActivityRow in tribe-app/src/lib/api.ts so the two
+/// Mirrors the web ActivityRow in tribe-twitter-app/src/lib/api.ts so the two
 /// surfaces stay 1:1.
 public struct ActivityRow: Decodable, Identifiable, Hashable {
     public let type: ActivityType
@@ -64,7 +64,7 @@ public enum ActivityType: String, Codable, Hashable {
     case unknown
 
     /// Human-readable verb — what the row says happened. Matches the
-    /// VERB map in tribe-app/src/app/activity/page.tsx.
+    /// VERB map in tribe-twitter-app/src/app/activity/page.tsx.
     public var verb: String {
         switch self {
         case .tidRegistered: return "Registered TID on Solana"

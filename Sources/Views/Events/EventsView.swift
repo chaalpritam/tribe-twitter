@@ -35,7 +35,7 @@ struct EventsView: View {
                     EmptyStateView(
                         symbol: "calendar",
                         title: upcomingOnly ? "No upcoming events" : "No events",
-                        message: "Events show meetups and on-chain happenings. Schedule one from tribe-app."
+                        message: "Events show meetups and on-chain happenings. Schedule one from tribe-twitter-app."
                     )
                 } else {
                     List(events) { event in

@@ -2,11 +2,11 @@ import Foundation
 
 /// Tiny URLSession wrapper that points at a tribe-hub instance.
 ///
-/// All hub endpoints used by tribe-app are mirrored here so the iOS
+/// All hub endpoints used by tribe-twitter-app are mirrored here so the iOS
 /// app can stay read-compatible with the existing hub. Write paths
 /// (signed envelopes for tweets, tips, RSVPs, etc.) are deliberately
 /// not implemented yet — they need ed25519 signing + blake3 hashing
-/// of canonical message bytes, which lives in tribe-app/src/lib/messages.ts
+/// of canonical message bytes, which lives in tribe-twitter-app/src/lib/messages.ts
 /// and needs a Swift port before iOS can publish anything.
 public final class HubClient {
     public let baseURL: URL

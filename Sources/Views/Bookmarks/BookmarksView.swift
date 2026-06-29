@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Mirror of tribe-app's /bookmarks page. Lists every tweet the user
+/// Mirror of tribe-twitter-app's /bookmarks page. Lists every tweet the user
 /// has bookmarked, most-recently-saved first. Hub joins each bookmark
 /// row against the messages table on the way out so we get the full
 /// tweet body in a single round-trip.

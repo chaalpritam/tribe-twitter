@@ -2,7 +2,7 @@ import SwiftUI
 import CoreImage.CIFilterBuiltins
 
 /// Inverse of `PairFromDesktopView`: shows a QR encoding this device's
-/// identity so tribe-app on desktop can scan to sign in as the same
+/// identity so tribe-twitter-app on desktop can scan to sign in as the same
 /// TID. Same `{ v:1, kind:"tribe-pair", tid, appKeySeedB64, hubUrl }`
 /// envelope `PairingPayload.decode` consumes on the other end, so the
 /// formats stay symmetric.
@@ -72,7 +72,7 @@ struct PairToDesktopView: View {
                 } header: {
                     Text("Pairing code")
                 } footer: {
-                    Text("In tribe-app on desktop: open Settings → Sign in from mobile, then point your camera at this QR. Anyone who scans it can sign as you, so don't share it.")
+                    Text("In tribe-twitter-app on desktop: open Settings → Sign in from mobile, then point your camera at this QR. Anyone who scans it can sign as you, so don't share it.")
                 }
 
                 if revealed {

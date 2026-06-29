@@ -1,7 +1,7 @@
 import SwiftUI
 import CoreLocation
 
-/// Compose sheet for a new channel. Mirrors what tribe-app's New
+/// Compose sheet for a new channel. Mirrors what tribe-twitter-app's New
 /// Channel form does: pick INTEREST or CITY, fill name / description,
 /// and (for CITY) attach the device's current coordinates so the
 /// channel surfaces on the city map.

@@ -8,7 +8,7 @@ enum Config {
 
     /// Ephemeral-rollup sequencer — handles instant follows, with
     /// batched L1 settlement every ~10 s. Mirrors `ER_SERVER_URL` in
-    /// tribe-app's constants.ts.
+    /// tribe-twitter-app's constants.ts.
     static let defaultERURL: URL = URL(string: "http://127.0.0.1:3003")!
 
     /// Solana cluster used for explorer deep-links and on-chain reads.

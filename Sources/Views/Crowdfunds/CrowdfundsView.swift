@@ -24,7 +24,7 @@ struct CrowdfundsView: View {
                 EmptyStateView(
                     symbol: "circle.hexagongrid",
                     title: "No crowdfunds yet",
-                    message: "Community-funded campaigns. Start one from tribe-app."
+                    message: "Community-funded campaigns. Start one from tribe-twitter-app."
                 )
             } else {
                 List(campaigns) { cf in

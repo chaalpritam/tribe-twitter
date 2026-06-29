@@ -8,7 +8,7 @@ import SwiftUI
 /// Web's TipButton does the SOL transfer first and then publishes
 /// this envelope as a follow-up; we ship the envelope-only half so
 /// the social side of the tip is a one-tap action on iOS, and route
-/// users to tribe-app when they actually want to move SOL.
+/// users to tribe-twitter-app when they actually want to move SOL.
 struct TipSheet: View {
     @EnvironmentObject private var app: AppState
     @Environment(\.dismiss) private var dismiss
@@ -44,7 +44,7 @@ struct TipSheet: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
-                    Text("Your Solana custody key isn't on this device, so no SOL actually moves. Open tribe-app on the web to send SOL on-chain.")
+                    Text("Your Solana custody key isn't on this device, so no SOL actually moves. Open tribe-twitter-app on the web to send SOL on-chain.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

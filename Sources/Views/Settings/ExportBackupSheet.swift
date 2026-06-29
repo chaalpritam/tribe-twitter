@@ -4,7 +4,7 @@ import TribeCore
 /// Build a `.tribe` (plain JSON) or `.tribe.enc` (AES-GCM, password-
 /// derived) backup of this device's identity and hand the result off
 /// to the system share sheet so the user can save it to Files,
-/// iCloud, AirDrop, etc. Same wire format as tribe-app's exporter, so
+/// iCloud, AirDrop, etc. Same wire format as tribe-twitter-app's exporter, so
 /// the file round-trips between web and iOS.
 struct ExportBackupSheet: View {
     @EnvironmentObject private var app: AppState
@@ -31,7 +31,7 @@ struct ExportBackupSheet: View {
                     Toggle("Encrypt with password", isOn: $encrypt)
                 } footer: {
                     Text(encrypt
-                        ? "AES-256-GCM with a key derived via PBKDF2(SHA-256, 100k iters). Same format as tribe-app's encrypted backups."
+                        ? "AES-256-GCM with a key derived via PBKDF2(SHA-256, 100k iters). Same format as tribe-twitter-app's encrypted backups."
                         : "Cleartext JSON. Anyone who opens the file can read the app-key seed.")
                 }
 

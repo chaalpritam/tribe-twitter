@@ -41,7 +41,7 @@ struct SettingsView: View {
             } header: {
                 Text("Identity")
             } footer: {
-                Text("Your app key signs every protocol envelope you publish from this device. Keep the seed somewhere safe — losing it means re-registering on tribe-app.")
+                Text("Your app key signs every protocol envelope you publish from this device. Keep the seed somewhere safe — losing it means re-registering on tribe-twitter-app.")
             }
 
             Section {

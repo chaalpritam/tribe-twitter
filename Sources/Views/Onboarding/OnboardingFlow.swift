@@ -192,7 +192,7 @@ struct IdentityChoiceView: View {
                     icon: "qrcode.viewfinder",
                     iconTint: TribeColor.brand,
                     title: "Scan QR from desktop",
-                    subtitle: "Open tribe-app → Settings → Log in on mobile"
+                    subtitle: "Open tribe-twitter-app → Settings → Log in on mobile"
                 ) {
                     path.append(OnboardingFlow.Step.pairFromDesktop)
                 }
@@ -200,7 +200,7 @@ struct IdentityChoiceView: View {
                     icon: "doc.badge.arrow.up",
                     iconTint: TribeColor.accentTeal,
                     title: "Restore from backup",
-                    subtitle: "Open a .tribe / .tribe.enc file from tribe-app"
+                    subtitle: "Open a .tribe / .tribe.enc file from tribe-twitter-app"
                 ) {
                     path.append(OnboardingFlow.Step.restoreBackup)
                 }
@@ -216,7 +216,7 @@ struct IdentityChoiceView: View {
                     icon: "square.and.arrow.down",
                     iconTint: TribeColor.accentTeal,
                     title: "Paste TID + app key",
-                    subtitle: "Manual import from tribe-app's local storage"
+                    subtitle: "Manual import from tribe-twitter-app's local storage"
                 ) {
                     path.append(OnboardingFlow.Step.importIdentity)
                 }
@@ -302,7 +302,7 @@ struct ImportIdentityView: View {
             } header: {
                 Text("Your TID")
             } footer: {
-                Text("The numeric on-chain identity issued during tribe-app onboarding.")
+                Text("The numeric on-chain identity issued during tribe-twitter-app onboarding.")
             }
 
             Section {
@@ -314,7 +314,7 @@ struct ImportIdentityView: View {
             } header: {
                 Text("App key (base64, 32 bytes)")
             } footer: {
-                Text("In tribe-app: open dev tools → Application → Local Storage → copy the appKeySecret value. The seed never leaves this device — it's stored in the iOS Keychain.")
+                Text("In tribe-twitter-app: open dev tools → Application → Local Storage → copy the appKeySecret value. The seed never leaves this device — it's stored in the iOS Keychain.")
             }
 
             if let error {
@@ -401,7 +401,7 @@ struct CreateIdentityView: View {
             } header: {
                 Text("Your TID")
             } footer: {
-                Text("Registering a fresh TID on Solana isn't supported in the iOS app yet — the on-chain registration program needs to be wrapped via Solana mobile / WalletConnect first. For now, register a TID in tribe-app, then enter it here so this app key can sign on its behalf.")
+                Text("Registering a fresh TID on Solana isn't supported in the iOS app yet — the on-chain registration program needs to be wrapped via Solana mobile / WalletConnect first. For now, register a TID in tribe-twitter-app, then enter it here so this app key can sign on its behalf.")
             }
 
             if let error {
