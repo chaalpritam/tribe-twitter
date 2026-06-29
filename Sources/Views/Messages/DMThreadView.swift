@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Thread of a 1:1 conversation or a group. Decrypts ciphertext rows
 /// client-side using nacl.box.open with the sender's x25519 pubkey

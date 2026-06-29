@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Two-stage seed-phrase sign-in:
 ///   1. Paste 12 / 24-word BIP39 mnemonic → derive Solana wallet at

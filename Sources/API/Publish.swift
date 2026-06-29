@@ -1,4 +1,5 @@
 import Foundation
+import TribeCore
 
 /// Hub write paths. Every protocol-state-changing action on the
 /// network goes through `POST /v1/submit` carrying a signed envelope.

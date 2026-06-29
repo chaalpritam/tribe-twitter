@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// New conversation sheet. The user types a TID (or username search
 /// result), we resolve their x25519 public key, encrypt the first

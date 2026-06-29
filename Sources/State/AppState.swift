@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import TribeCore
 
 /// Top-level app state. Carries:
 ///

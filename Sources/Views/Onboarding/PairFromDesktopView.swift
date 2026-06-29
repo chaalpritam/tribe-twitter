@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Camera scanner that consumes a tribe-app pairing QR. On a successful
 /// scan, swaps the hub URL and adopts the desktop's TID + app key —

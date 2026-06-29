@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Build a `.tribe` (plain JSON) or `.tribe.enc` (AES-GCM, password-
 /// derived) backup of this device's identity and hand the result off

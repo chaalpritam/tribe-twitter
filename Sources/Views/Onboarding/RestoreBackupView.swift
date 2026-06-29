@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import TribeCore
 
 /// Onboarding step that restores an identity from a tribe-app
 /// `.tribe` / `.tribe.enc` backup. Same JSON / encryption format as

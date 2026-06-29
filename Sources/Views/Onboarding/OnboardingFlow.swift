@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Three-step onboarding: Welcome → Configure Hub → Identity (create
 /// or import). Wrapped in a NavigationStack so each step pushes
