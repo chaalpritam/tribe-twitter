@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Edit the user's profile metadata. Each field is its own
 /// USER_DATA_ADD envelope (type 7); the hub keeps a per-tid history

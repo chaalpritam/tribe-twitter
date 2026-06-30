@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Twitter-style tweet detail. Optional parent thread context above,
 /// the focused tweet expanded in larger type with a full timestamp,

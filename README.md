@@ -125,28 +125,12 @@ TribeIOS/                            Xcode app target
 
 Sources/
   Config.swift                       defaultHubURL + defaultERURL + Solana cluster
+  TribeShims.swift                   typealiases User → HubUser (TribeCore naming)
   State/
     AppState.swift                   persisted hub URL + TID + shared HubClient + ERClient + DMKey
     InteractionCache.swift           session-scoped like / bookmark sets
 
-  API/
-    HubClient.swift                  URLSession + JSONDecoder wrapper
-    Endpoints.swift                  read paths matching tribe-twitter-app/src/lib/api.ts
-    Publish.swift                    every signed-envelope write path
-    InteractionReads.swift           per-user "have I liked / bookmarked X" helpers
-    ERClient.swift                   ephemeral-rollup follow status reads
-
-  Crypto/
-    AppKey.swift                     ed25519 signing key (CryptoKit Curve25519)
-    Blake3.swift                     pure-Swift Blake3 port + self-test
-    DMKey.swift                      x25519 DM keypair (Keychain-backed)
-    NaClBox.swift                    Salsa20 + Poly1305 + nacl.box / box.open + self-test
-    Keychain.swift                   wrapper around SecItem
-    MessageSigner.swift              builds the canonical envelope JSON
-
-  Models/
-    Decoding.swift                   bigint / date / decimal / count helpers
-    Tweet, User, Channel, Poll, Event, TaskItem, Crowdfund, Tip, Notification, Karma, DM
+  Views/                             SwiftUI screens (see below)
 
   Views/
     Shell/        RootView + BottomNavBar (tribeapp.wtf-style pill nav)
@@ -204,10 +188,7 @@ signature = base64( ed25519_sign(hash, app_key) ) // 64 bytes
 signer  = base64( ed25519_public_key )            // 32 bytes
 ```
 
-- `Sources/Crypto/Blake3.swift` is a port of the BLAKE3 reference implementation. `Blake3.selfTest()` runs against three official vectors (empty input, `0x00`, and the 1023-byte sequence that exercises the chunk boundary) on every launch.
-- `Sources/Crypto/AppKey.swift` wraps `Curve25519.Signing.PrivateKey`. The 32-byte raw seed is the canonical representation everywhere.
-- `Sources/Crypto/Keychain.swift` stores the seed under `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`.
-- `Sources/Crypto/MessageSigner.swift` builds the envelope. `JSONSerialization` with `[.sortedKeys, .withoutEscapingSlashes]` produces canonical bytes for `dataB64` so the hash is reproducible.
+Crypto, API clients, and shared protocol models live in the [tribe-core-swift](../tribe-core-swift) package (`TribeCore`). The app target depends on it via `Project.yml` and imports it where needed. `Blake3.selfTest()` and `NaClBox.selfTest()` run at launch from `AppState`.
 
 ## Related Repos
 
@@ -221,5 +202,5 @@ signer  = base64( ed25519_public_key )            // 32 bytes
 | [tribeapp.wtf](../tribeapp.wtf) | Consumer-facing web app + landing page at tribeapp.wtf — hyperlocal social built entirely on the protocol |
 | [tribe-twitter](../tribe-twitter) | Native SwiftUI iOS client (Twitter-shaped) — full read/write against hub + ER, NaCl-box DMs, BLAKE3 + ed25519 signing via Apple CryptoKit |
 | [tribe-insta](../tribe-insta) | Native SwiftUI iOS client (Instagram-shaped) — photo grid, stories, reels; same hub + envelope format as tribe-twitter. Scaffolding stage — see `tribe-insta/PLAN.md` |
-| [tribe-core-swift](../tribe-core-swift) | Shared Swift package consumed by tribe-twitter + tribe-insta — crypto (BLAKE3, NaCl box, ed25519 signing, BIP39, SolanaHD), backup file format, envelope signer. See `tribe-core-swift/MIGRATION.md` |
+| [tribe-core-swift](../tribe-core-swift) | Shared Swift package consumed by tribe-twitter + tribe-insta — crypto, API clients (HubClient, ERClient), protocol models, envelope signing. See `tribe-core-swift/MIGRATION.md` |
 | [homebrew-tap](../homebrew-tap) | Homebrew formulas: `brew install tribe` (hub + ER) and `brew install tribe-twitter-app` (demo UI) |

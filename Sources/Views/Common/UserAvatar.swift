@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// AvatarView for cases where the caller knows a TID but not the
 /// pfp URL up front (feed rows, DM list, tip rows). Pulls the

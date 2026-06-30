@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Off-chain-only tip flow. Publishes a signed TIP_ADD envelope so
 /// the recipient's notifications + activity log surface the tip,

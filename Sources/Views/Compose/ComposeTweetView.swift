@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 import PhotosUI
 import UIKit
 

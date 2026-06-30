@@ -1,4 +1,5 @@
 import Foundation
+import TribeCore
 import SwiftUI
 
 /// Session-scoped cache of "have I liked / bookmarked this tweet"

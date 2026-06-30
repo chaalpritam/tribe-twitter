@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 import UIKit
 
 /// Wallet hub. Hero card with the user's identity + send / receive

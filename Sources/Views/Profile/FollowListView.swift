@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Followers / following list pushed from the profile stats row.
 /// Shape mirrors Explore's "See all" people destination — Twitter-

@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 import CoreLocation
 
 /// Compose sheet for a new channel. Mirrors what tribe-twitter-app's New

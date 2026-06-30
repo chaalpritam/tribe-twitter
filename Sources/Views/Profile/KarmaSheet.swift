@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Karma breakdown sheet pushed from the profile stats row. Renders
 /// the existing KarmaSummary payload (already fetched by ProfileView)

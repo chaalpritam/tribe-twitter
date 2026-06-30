@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Compose sheet for a new poll. Hub validation:
 ///   - poll_id: `^[a-z0-9-]{1,64}$` (we slug from the question)

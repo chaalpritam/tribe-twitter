@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Twitter-style tweet row. Avatar is pinned to the leading edge,
 /// header (name + handle + time) and body share the trailing column,

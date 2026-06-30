@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Account transparency log mirroring tribe-twitter-app's /activity page.
 /// Top: three stat tiles (total, onchain, signed-offchain) + a

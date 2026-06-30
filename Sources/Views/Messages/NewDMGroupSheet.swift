@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// New group sheet. The user picks a name and types peer TIDs
 /// (comma- or newline-separated). On submit we generate a random

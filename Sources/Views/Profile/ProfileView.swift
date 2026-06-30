@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Profile screen. Renders the *signed-in* user when initialized
 /// without a `tid`, or any other user's profile when a `tid` is

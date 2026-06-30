@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// On-chain tip history pushed from the profile ⋯ menu. Mirrors the
 /// hub's tip-registry rows for the signed-in user — Received and

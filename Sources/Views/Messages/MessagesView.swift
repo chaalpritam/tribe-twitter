@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Inbox combining 1:1 DM conversations and groups the user belongs
 /// to. Tapping a row pushes the shared thread view (DMThreadView,

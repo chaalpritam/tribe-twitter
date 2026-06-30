@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Mirror of tribe-twitter-app's /bookmarks page. Lists every tweet the user
 /// has bookmarked, most-recently-saved first. Hub joins each bookmark

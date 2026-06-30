@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Compose sheet for a new crowdfund (CROWDFUND_ADD type 23). Stores
 /// `goal_amount` + `currency` (free-form). The actual fund transfers

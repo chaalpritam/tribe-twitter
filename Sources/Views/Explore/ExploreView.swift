@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Explore is the discovery hub. Surfaces a slice of every kind of
 /// thing the protocol carries — people, polls, events, tasks,

@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Compose sheet for a new task (TASK_ADD type 20). The protocol
 /// doesn't escrow funds — `reward_text` is a free-form description of

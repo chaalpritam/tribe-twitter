@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 struct ChannelsView: View {
     @EnvironmentObject private var app: AppState

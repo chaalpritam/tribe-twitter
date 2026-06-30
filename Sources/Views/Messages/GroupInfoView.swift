@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Group info sheet pushed from DMThreadView's toolbar. Shows the
 /// group name, full member list with usernames where available, and

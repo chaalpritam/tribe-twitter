@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 import MapKit
 
 /// Map of city-anchored content. Pins city channels (kind = 2) and

@@ -1,4 +1,5 @@
 import Foundation
+import TribeCore
 import SwiftUI
 
 /// Per-TID profile-picture URL cache. Tweet, DM, and tip rows only

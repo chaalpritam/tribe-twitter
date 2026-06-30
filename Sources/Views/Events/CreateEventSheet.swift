@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Compose sheet for a new event (EVENT_ADD type 18). starts_at /
 /// ends_at are unix seconds; an optional location text + lat/lng make

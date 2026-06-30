@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// One-channel feed. Lists tweets from /v1/feed/channel/:id with the
 /// usual pull-to-refresh, and a "+" toolbar button that opens a

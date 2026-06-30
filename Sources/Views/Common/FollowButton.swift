@@ -1,4 +1,5 @@
 import SwiftUI
+import TribeCore
 
 /// Read-only follow indicator. Shows the live follow status pulled
 /// from the ER server and, on tap, opens an explanation sheet that

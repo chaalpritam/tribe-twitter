@@ -1,4 +1,5 @@
 import Foundation
+import TribeCore
 import SwiftUI
 
 /// Per-tweet on-chain tip aggregate cache. Tweet cards call
