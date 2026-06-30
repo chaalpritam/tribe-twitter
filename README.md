@@ -95,7 +95,7 @@ DMs use a separate x25519 keypair (also in the Keychain) plus a pure-Swift port 
 
 ```sh
 cd tribe-twitter
-open TribeIOS.xcodeproj
+open TribeTwitter.xcodeproj
 # In Xcode: pick an iPhone simulator (16 / 15 / SE / etc.) and ⌘R
 ```
 
@@ -118,8 +118,8 @@ To wire the app to your TID, paste it into the same Settings sheet. The notifica
 ## Layout
 
 ```
-TribeIOS/                            Xcode app target
-  TribeIOSApp.swift                  @main entry
+TribeTwitter/                         Xcode app target
+  TribeTwitterApp.swift               @main entry
   Info.plist                         App Transport Security off so http://hub-ip works in dev
   Assets.xcassets                    AccentColor (black) + AppIcon
 
