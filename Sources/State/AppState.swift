@@ -73,6 +73,8 @@ final class AppState: ObservableObject {
     let userAvatars: UserAvatarCache
 
     init() {
+        KeychainStore.service = "app.tribe.twitter"
+
         // One-time correctness gates: trap fast on startup if an
         // OS-level integer / endianness assumption ever breaks Blake3,
         // or if a refactor knocks the NaCl-box port off the

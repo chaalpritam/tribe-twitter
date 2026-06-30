@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct TribeIOSApp: App {
+struct TribeTwitterApp: App {
     @StateObject private var appState = AppState()
 
     init() {
