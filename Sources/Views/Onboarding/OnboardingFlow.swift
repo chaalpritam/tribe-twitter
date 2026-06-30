@@ -52,16 +52,6 @@ struct WelcomeView: View {
         VStack(spacing: 28) {
             Spacer()
 
-            ZStack {
-                Circle()
-                    .fill(TribeColor.brandGradient)
-                    .frame(width: 132, height: 132)
-                    .shadow(color: TribeColor.brand.opacity(0.35), radius: 24, x: 0, y: 12)
-                Image(systemName: "infinity")
-                    .font(.system(size: 60, weight: .black))
-                    .foregroundStyle(.white)
-            }
-
             VStack(spacing: 12) {
                 Text("Welcome to Tribe")
                     .font(.largeTitle.bold())
