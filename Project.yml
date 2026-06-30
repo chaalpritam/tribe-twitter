@@ -1,4 +1,4 @@
-name: TribeIOS
+name: TribeTwitter
 options:
   bundleIdPrefix: app.tribe
   deploymentTarget:
@@ -20,23 +20,23 @@ packages:
     path: ../tribe-core-swift
 
 targets:
-  TribeIOS:
+  TribeTwitter:
     type: application
     platform: iOS
     sources:
-      - path: TribeIOS
+      - path: TribeTwitter
       - path: Sources
     dependencies:
       - package: TribeCore
         product: TribeCore
     settings:
       base:
-        PRODUCT_NAME: TribeIOS
-        PRODUCT_BUNDLE_IDENTIFIER: app.tribe.ios
-        INFOPLIST_FILE: TribeIOS/Info.plist
+        PRODUCT_NAME: TribeTwitter
+        PRODUCT_BUNDLE_IDENTIFIER: app.tribe.twitter
+        INFOPLIST_FILE: TribeTwitter/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-        DEVELOPMENT_ASSET_PATHS: "\"TribeIOS/Preview Content\""
+        DEVELOPMENT_ASSET_PATHS: "\"TribeTwitter/Preview Content\""
         SDKROOT: iphoneos
         SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
         TARGETED_DEVICE_FAMILY: "1"
@@ -52,10 +52,10 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
 
 schemes:
-  TribeIOS:
+  TribeTwitter:
     build:
       targets:
-        TribeIOS: all
+        TribeTwitter: all
     run:
       config: Debug
       commandLineArguments: {}
