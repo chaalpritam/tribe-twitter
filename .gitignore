@@ -4,6 +4,7 @@ DerivedData/
 *.xcodeproj/xcuserdata/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
+TribeIOS.xcodeproj/
 
 # Project.yml is the source of truth, but the generated .xcodeproj is
 # committed so a fresh clone opens directly in Xcode without needing
